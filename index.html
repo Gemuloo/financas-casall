@@ -15,7 +15,7 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .floating-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1.2rem; z-index: 50; }
         .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; padding: 1.5rem; }
-        .modal-content { background-color: white; width: 100%; max-width: 450px; border-radius: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-height: 85vh; overflow-y: auto; position: relative; }
+        .modal-content { background-color: white; width: 100%; max-width: 480px; border-radius: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-height: 85vh; overflow-y: auto; position: relative; }
         .btn-close-modal { position: absolute; top: 1.5rem; right: 1.5rem; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; }
         .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.6rem 2rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
     </style>
@@ -81,6 +81,14 @@
         </button>
     </div>
 
+    <div id="modal-anual" class="modal-overlay">
+        <div class="modal-content p-10 italic">
+            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center">Resumo Anual</h3>
+            <div id="corpo-anual" class="space-y-3"></div>
+        </div>
+    </div>
+
     <div id="modal-menu-config" class="modal-overlay">
         <div class="modal-content p-8">
             <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
@@ -124,14 +132,6 @@
         </div>
     </div>
 
-    <div id="modal-anual" class="modal-overlay">
-        <div class="modal-content p-10 italic">
-            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
-            <h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center">Resumo Anual</h3>
-            <div id="corpo-anual" class="space-y-3"></div>
-        </div>
-    </div>
-
     <div id="modal-lancar" class="modal-overlay">
         <div class="modal-content p-8">
             <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
@@ -145,8 +145,11 @@
                 </div>
                 <div class="p-5 bg-slate-50 rounded-2xl space-y-4">
                     <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Gasto Fixo</label>
-                    <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('f-qtd-parc').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label>
-                    <input id="f-qtd-parc" type="number" placeholder="Quantas vezes?" style="display:none" class="w-full bg-white border p-4 rounded-xl text-xs font-bold outline-none">
+                    <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label>
+                    <div id="box-qtd" style="display:none">
+                        <p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Quantidade de meses/parcelas</p>
+                        <input id="f-qtd-parc" type="number" placeholder="Ex: 12" class="w-full bg-white border p-4 rounded-xl text-xs font-bold outline-none">
+                    </div>
                 </div>
                 <button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] shadow-xl">Confirmar</button>
             </div>
@@ -157,7 +160,6 @@
         <div class="modal-content p-8">
             <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
             <h3 class="font-black text-slate-800 text-lg uppercase mb-6 text-center italic">Excluir Parcelamento</h3>
-            <p class="text-[10px] font-bold text-slate-400 uppercase text-center mb-6">Como deseja excluir este gasto?</p>
             <div class="space-y-3" id="opcoes-exclusao-container"></div>
         </div>
     </div>
@@ -187,7 +189,6 @@
             try {
                 const { data: cartoes } = await _supabase.from('cartoes').select('*').order('nome');
                 const { data: cats } = await _supabase.from('categorias').select('*').order('nome');
-                
                 renderSidebar(cartoes);
                 renderSelects(cartoes, cats);
                 renderConfigLists(cartoes, cats);
@@ -201,23 +202,97 @@
                 const { data: despesas } = await q;
                 renderTabela(despesas);
                 calcularResumo(despesas);
-            } catch (e) { console.error("Erro ao atualizar:", e); }
+            } catch (e) { console.error(e); }
         }
 
-        // LÓGICA DE EXCLUSÃO INTELIGENTE
-        async function excluir(tab, id) {
-            if (tab !== 'despesas') {
-                if (confirm("Confirmar exclusão?")) {
-                    await _supabase.from(tab).delete().eq('id', id);
-                    await atualizarTudo();
-                }
-                return;
+        async function confirmarLancamento() {
+            const desc = document.getElementById('f-desc').value;
+            const valorTotal = parseFloat(document.getElementById('f-valor').value);
+            if(!desc || !valorTotal) return alert("Preencha descrição e valor!");
+            
+            const cartao = document.getElementById('f-cartao').value;
+            const cat = document.getElementById('f-cat').value;
+            const isFixa = document.getElementById('f-fixa').checked;
+            const isParc = document.getElementById('f-parc').checked;
+            const qtdInput = parseInt(document.getElementById('f-qtd-parc').value);
+            
+            // Lógica de repetições: se for parcela ou fixa com qtd definida, usa a qtd. Senão 1.
+            let qtdLoop = 1;
+            if (isParc || (isFixa && qtdInput)) qtdLoop = qtdInput || 1;
+            
+            // Valor de cada parcela: Se for parcelado, divide. Se for fixo, repete o valor cheio.
+            const valorParcela = isParc ? (valorTotal / qtdLoop) : valorTotal;
+
+            const mesBase = parseInt(document.getElementById('sel-mes').value);
+            const anoBase = parseInt(document.getElementById('sel-ano').value);
+            const insercoes = [];
+
+            for(let i=0; i < qtdLoop; i++) {
+                let dVenc = new Date(anoBase, mesBase + i, 10);
+                insercoes.push({
+                    descricao: isParc ? `${desc} (${i+1}/${qtdLoop})` : desc,
+                    valor: valorParcela, 
+                    cartao_id: cartao || null, 
+                    categoria_id: cat || null,
+                    is_fixa: isFixa, 
+                    is_parcelado: isParc, 
+                    parcelas: isParc ? qtdLoop : 1, 
+                    data: dVenc.toISOString()
+                });
             }
 
-            const { data: despesa } = await _supabase.from('despesas').select('*').eq('id', id).single();
+            try {
+                const { error } = await _supabase.from('despesas').insert(insercoes);
+                if (error) throw error;
+                
+                // LIMPAR CAMPOS
+                document.getElementById('f-desc').value = '';
+                document.getElementById('f-valor').value = '';
+                document.getElementById('f-qtd-parc').value = '';
+                document.getElementById('f-fixa').checked = false;
+                document.getElementById('f-parc').checked = false;
+                document.getElementById('box-qtd').style.display = 'none';
+                
+                fecharModais(); 
+                await atualizarTudo();
+            } catch (e) { alert("Erro ao lançar: " + e.message); }
+        }
 
-            if (despesa && despesa.is_parcelado) {
-                itemParaExcluir = despesa;
+        async function gerarResumoAnual() {
+            const ano = document.getElementById('sel-ano').value;
+            const corpo = document.getElementById('corpo-anual');
+            corpo.innerHTML = '<p class="text-center font-bold text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
+            abrirModal('modal-anual');
+            
+            const { data } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
+            
+            let html = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">
+                <div class="w-1/4">Mês</div><div class="w-1/4 text-center">Fixas</div><div class="w-1/4 text-center">Normais</div><div class="w-1/4 text-right">Total</div>
+            </div>`;
+
+            mesesNomes.forEach((nome, i) => {
+                const dMes = data?.filter(d => new Date(d.data).getMonth() === i) || [];
+                const tFix = dMes.filter(d => d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
+                const tNorm = dMes.filter(d => !d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
+                const total = tFix + tNorm;
+                html += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2">
+                    <span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${nome}</span>
+                    <span class="w-1/4 text-center font-bold text-emerald-600 text-[10px]">R$ ${tFix.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    <span class="w-1/4 text-center font-bold text-orange-500 text-[10px]">R$ ${tNorm.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    <span class="w-1/4 text-right font-black text-slate-800 text-[11px]">R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                </div>`;
+            });
+            corpo.innerHTML = html;
+        }
+
+        async function excluir(tab, id) {
+            if (tab !== 'despesas') {
+                if (confirm("Confirmar exclusão?")) { await _supabase.from(tab).delete().eq('id', id); await atualizarTudo(); }
+                return;
+            }
+            const { data: d } = await _supabase.from('despesas').select('*').eq('id', id).single();
+            if (d && d.is_parcelado) {
+                itemParaExcluir = d;
                 const container = document.getElementById('opcoes-exclusao-container');
                 container.innerHTML = `
                     <button onclick="executarExclusao('unica')" class="w-full p-4 bg-slate-100 hover:bg-slate-200 rounded-xl font-black text-[10px] uppercase text-slate-600">Apenas esta parcela</button>
@@ -226,10 +301,7 @@
                 `;
                 abrirModal('modal-excluir-parcelado');
             } else {
-                if (confirm("Excluir esta despesa?")) {
-                    await _supabase.from('despesas').delete().eq('id', id);
-                    await atualizarTudo();
-                }
+                if (confirm("Excluir esta despesa?")) { await _supabase.from('despesas').delete().eq('id', id); await atualizarTudo(); }
             }
         }
 
@@ -237,65 +309,19 @@
             if (!itemParaExcluir) return;
             const { descricao, data, cartao_id } = itemParaExcluir;
             const baseDesc = descricao.split(' (')[0]; 
-
             let q = _supabase.from('despesas').delete();
             if (tipo === 'unica') q = q.eq('id', itemParaExcluir.id);
             else if (tipo === 'proximas') q = q.ilike('descricao', `${baseDesc}%`).eq('cartao_id', cartao_id).gte('data', data);
             else if (tipo === 'todas') q = q.ilike('descricao', `${baseDesc}%`).eq('cartao_id', cartao_id);
-
-            await q;
-            itemParaExcluir = null;
-            fecharModais();
-            await atualizarTudo();
+            await q; itemParaExcluir = null; fecharModais(); await atualizarTudo();
         }
 
         async function salvarItem(tab, inputId) {
             const el = document.getElementById(inputId);
             const nome = el.value.trim();
             if(!nome) return;
-            try {
-                await _supabase.from(tab).insert([{ nome }]);
-                el.value = ''; await atualizarTudo();
-            } catch (e) { alert("Erro de conexão."); }
-        }
-
-       async function gerarResumoAnual() {
-            const ano = document.getElementById('sel-ano').value;
-            const corpo = document.getElementById('corpo-anual');
-            corpo.innerHTML = '<p class="text-center font-bold text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
-            abrirModal('modal-anual');
-            
-            const { data } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
-            
-            let html = `
-                <div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">
-                    <div class="w-1/4">Mês</div>
-                    <div class="w-1/4 text-center">Fixas</div>
-                    <div class="w-1/4 text-center">Normais</div>
-                    <div class="w-1/4 text-right">Total</div>
-                </div>
-            `;
-
-            mesesNomes.forEach((nome, i) => {
-                const despesasMes = data?.filter(d => new Date(d.data).getMonth() === i) || [];
-                
-                // Fixas: Marcadas como is_fixa
-                const totalFixo = despesasMes.filter(d => d.is_fixa === true).reduce((a, b) => a + Number(b.valor), 0);
-                
-                // Normais: Tudo que NÃO é fixa (inclui parceladas e gastos comuns)
-                const totalNormal = despesasMes.filter(d => d.is_fixa === false).reduce((a, b) => a + Number(b.valor), 0);
-                
-                const totalGeral = totalFixo + totalNormal;
-
-                html += `
-                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2 hover:bg-slate-100 transition-colors">
-                        <span class="w-1/4 font-black text-[9px] uppercase text-slate-500 truncate">${nome}</span>
-                        <span class="w-1/4 text-center font-bold text-emerald-600 text-[10px]">R$ ${totalFixo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                        <span class="w-1/4 text-center font-bold text-orange-500 text-[10px]">R$ ${totalNormal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                        <span class="w-1/4 text-right font-black text-slate-800 text-[11px]">R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                    </div>`;
-            });
-            corpo.innerHTML = html;
+            await _supabase.from(tab).insert([{ nome }]);
+            el.value = ''; await atualizarTudo();
         }
 
         function renderConfigLists(cartoes, cats) {
@@ -329,30 +355,6 @@
                 document.getElementById('txt-label-2').innerText = "Faturas";
                 document.getElementById('txt-label-3').innerText = "Balanço do Mês";
             }
-        }
-
-        async function confirmarLancamento() {
-            const desc = document.getElementById('f-desc').value;
-            const valor = parseFloat(document.getElementById('f-valor').value);
-            if(!desc || !valor) return alert("Preencha descrição e valor!");
-            const cartao = document.getElementById('f-cartao').value;
-            const cat = document.getElementById('f-cat').value;
-            const isFixa = document.getElementById('f-fixa').checked;
-            const isParc = document.getElementById('f-parc').checked;
-            const qtd = parseInt(document.getElementById('f-qtd-parc').value) || 1;
-            const mesBase = parseInt(document.getElementById('sel-mes').value);
-            const anoBase = parseInt(document.getElementById('sel-ano').value);
-            const insercoes = [];
-            for(let i=0; i < (isFixa ? 12 : (isParc ? qtd : 1)); i++) {
-                let dVenc = new Date(anoBase, mesBase + i, 10);
-                insercoes.push({
-                    descricao: isParc ? `${desc} (${i+1}/${qtd})` : desc,
-                    valor: valor, cartao_id: cartao || null, categoria_id: cat || null,
-                    is_fixa: isFixa, is_parcelado: isParc, parcelas: qtd, data: dVenc.toISOString()
-                });
-            }
-            await _supabase.from('despesas').insert(insercoes);
-            fecharModais(); await atualizarTudo();
         }
 
         function renderSelects(cartoes, cats) {
