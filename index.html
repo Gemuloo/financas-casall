@@ -93,39 +93,40 @@
         <button onclick="abrirModal('modal-menu-config')" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center"><i class="fas fa-cog text-slate-300"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Config</span></button>
     </div>
 
-    <div id="modal-menu-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4 text-blue-700 font-black uppercase text-xs"><i class="fas fa-credit-card"></i> Bancos</button><button onclick="fecharModais(); abrirModal('modal-salario')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4 text-emerald-700 font-black uppercase text-xs"><i class="fas fa-money-bill-wave"></i> Meu Salário</button></div></div></div>
+    <div id="modal-menu-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4">
+        <button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4 text-blue-700 font-black uppercase text-xs"><i class="fas fa-credit-card"></i> Bancos</button>
+        <button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4 text-emerald-700 font-black uppercase text-xs"><i class="fas fa-tags"></i> Categorias</button>
+        <button onclick="fecharModais(); abrirModal('modal-salario')" class="w-full p-6 bg-orange-50 rounded-2xl flex items-center gap-4 text-orange-700 font-black uppercase text-xs"><i class="fas fa-money-bill-wave"></i> Salário</button>
+    </div></div></div>
 
-    <div id="modal-salario" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Cadastrar Salário</h3><div class="space-y-4"><select id="f-sal-mes" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></select><input id="f-sal-valor" type="number" placeholder="Valor do Salário" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-xl outline-none"><button onclick="salvarSalario()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl uppercase text-xs">Salvar Salário</button></div></div></div>
+    <div id="modal-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i>
+        <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Resumo Anual</h3>
+        <button onclick="gerarAnaliseGastos()" class="w-full mb-6 bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">O quanto posso gastar?</button>
+        <div id="corpo-anual" class="space-y-2"></div>
+    </div></div>
 
-    <div id="modal-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Resumo Anual</h3><div id="corpo-anual" class="space-y-2 mb-6"></div><button onclick="gerarAnaliseGastos()" class="w-full bg-slate-800 text-white font-black py-4 rounded-xl uppercase text-xs tracking-widest">Análise de Gastos</button></div></div>
+    <div id="modal-analise" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Projeção de Gastos</h3><div id="corpo-analise" class="space-y-3"></div></div></div>
 
-    <div id="modal-analise" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">O quanto posso gastar?</h3><div id="corpo-analise" class="space-y-3"></div></div></div>
+    <div id="modal-salario" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Cadastrar Salário</h3><div class="space-y-4"><select id="f-sal-mes" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></select><input id="f-sal-valor" type="number" placeholder="Valor" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-xl outline-none"><button onclick="salvarSalario()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl uppercase text-xs">Salvar</button></div></div></div>
 
     <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><input id="f-desc" type="text" placeholder="Descrição" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select><select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select></div><div class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold"></div></div><button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px]">Confirmar</button></div></div></div>
-    <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarItem('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-bancos-modal" class="space-y-2"></div></div></div>
+    <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarItem('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
+    <div id="modal-categorias" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarItem('categorias', 'f-nome-cat')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
 
     <script>
         const SUPABASE_URL = 'https://rwowvvpobywtokcqfxve.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3b3d2dnBvYnl3dG9rY3FmeHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNDY3MTgsImV4cCI6MjA4NzgyMjcxOH0.AJVmEKeUk22L4eT_FMLls0-xAJhMrAITOazM_1XmUaM';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let filtroCartao = null, filtroParcelado = false, itemParaExcluir = null;
+        let filtroCartao = null, filtroParcelado = false;
         const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-        window.onload = () => { 
-            setupDatas(); 
-            document.getElementById('f-data').valueAsDate = new Date(); 
-            atualizarTudo(); 
-        };
+        window.onload = () => { setupDatas(); document.getElementById('f-data').valueAsDate = new Date(); atualizarTudo(); };
 
         function setupDatas() {
             const ms = document.getElementById('sel-mes'), fs = document.getElementById('f-sal-mes');
-            mesesNomes.forEach((m, i) => {
-                const opt = `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`;
-                ms.innerHTML += opt; fs.innerHTML += opt;
-            });
-            const as = document.getElementById('sel-ano');
-            [2025, 2026, 2027].forEach(a => as.innerHTML += `<option value="${a}" ${a === 2026 ? 'selected' : ''}>${a}</option>`);
+            mesesNomes.forEach((m, i) => { const opt = `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`; ms.innerHTML += opt; fs.innerHTML += opt; });
+            const as = document.getElementById('sel-ano'); [2025, 2026, 2027].forEach(a => as.innerHTML += `<option value="${a}" ${a === 2026 ? 'selected' : ''}>${a}</option>`);
         }
 
         async function atualizarTudo() {
@@ -134,7 +135,7 @@
             const { data: cats } = await _supabase.from('categorias').select('*').order('nome');
             renderBancosLists(cartoes);
             renderSelects(cartoes, cats);
-            renderConfigLists(cartoes);
+            renderConfigLists(cartoes, cats);
 
             const dInicio = new Date(ano, mes, 1).toISOString(), dFim = new Date(ano, mes + 1, 0, 23, 59, 59).toISOString();
             const { data: todasDoMes } = await _supabase.from('despesas').select('*').gte('data', dInicio).lte('data', dFim).order('data');
@@ -150,70 +151,51 @@
             }
         }
 
-        async function salvarSalario() {
-            const mes = document.getElementById('f-sal-mes').value, valor = document.getElementById('f-sal-valor').value, ano = document.getElementById('sel-ano').value;
-            if(!valor) return alert("Insira um valor");
-            await _supabase.from('salarios').upsert({ mes_ano: `${ano}-${mes}`, valor: parseFloat(valor) }, { onConflict: 'mes_ano' });
-            alert("Salário salvo!"); fecharModais();
-        }
-
-        async function gerarAnaliseGastos() {
-            const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-analise');
-            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Calculando Projeção...</p>';
-            abrirModal('modal-analise');
-            
-            const { data: gastos } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
-            const { data: salarios } = await _supabase.from('salarios').select('*');
-
-            let h = '';
+        async function gerarResumoAnual() {
+            const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-anual');
+            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Carregando...</p>';
+            abrirModal('modal-anual');
+            const { data } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
+            let h = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2"><div class="w-1/4">Mês</div><div class="w-1/4 text-center">Fixas</div><div class="w-1/4 text-center">Normais</div><div class="w-1/4 text-right">Total</div></div>`;
             mesesNomes.forEach((n, i) => {
-                const totalGasto = gastos?.filter(d => new Date(d.data).getMonth() === i).reduce((a, b) => a + Number(b.valor), 0) || 0;
-                const salObj = salarios?.find(s => s.mes_ano === `${ano}-${i}`);
-                const valorSal = salObj ? Number(salObj.valor) : 0;
-                const sobra = valorSal - totalGasto;
-                
-                h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                        <div class="flex justify-between items-center mb-2"><span class="font-black text-[10px] uppercase text-slate-800">${n}</span></div>
-                        <div class="grid grid-cols-3 gap-2 text-center">
-                            <div><p class="text-[7px] font-black text-slate-400 uppercase">Gastos</p><p class="text-[10px] font-bold text-red-500">R$ ${totalGasto.toLocaleString('pt-BR')}</p></div>
-                            <div><p class="text-[7px] font-black text-slate-400 uppercase">Salário</p><p class="text-[10px] font-bold text-emerald-600">R$ ${valorSal.toLocaleString('pt-BR')}</p></div>
-                            <div><p class="text-[7px] font-black text-slate-400 uppercase">Sobra</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-700' : 'text-blue-700'}">R$ ${sobra.toLocaleString('pt-BR')}</p></div>
-                        </div>
-                    </div>`;
+                const dM = data?.filter(d => new Date(d.data).getMonth() === i) || [];
+                const tF = dM.filter(d => d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
+                const tN = dM.filter(d => !d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
+                h += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${n}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${tF.toLocaleString('pt-BR')}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${tN.toLocaleString('pt-BR')}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${(tF+tN).toLocaleString('pt-BR')}</span></div>`;
             });
             corpo.innerHTML = h;
         }
 
-        // Funções auxiliares mantidas
+        async function gerarAnaliseGastos() {
+            const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-analise');
+            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
+            abrirModal('modal-analise');
+            const { data: gastos } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
+            const { data: salarios } = await _supabase.from('salarios').select('*');
+            let h = '';
+            mesesNomes.forEach((n, i) => {
+                const tG = gastos?.filter(d => new Date(d.data).getMonth() === i).reduce((a, b) => a + Number(b.valor), 0) || 0;
+                const sal = salarios?.find(s => s.mes_ano === `${ano}-${i}`)?.valor || 0;
+                const sobra = sal - tG;
+                h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${sal.toLocaleString('pt-BR')}</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS: R$ ${tG.toLocaleString('pt-BR')}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">PODE GASTAR: R$ ${sobra.toLocaleString('pt-BR')}</p></div></div>`;
+            });
+            corpo.innerHTML = h;
+        }
+
+        async function salvarSalario() {
+            const m = document.getElementById('f-sal-mes').value, v = document.getElementById('f-sal-valor').value, a = document.getElementById('sel-ano').value;
+            if(!v) return; await _supabase.from('salarios').upsert({ mes_ano: `${a}-${m}`, valor: parseFloat(v) }, { onConflict: 'mes_ano' });
+            fecharModais();
+        }
+
         function toggleDrawer(open) { document.getElementById('body-root').classList.toggle('drawer-active', open); }
         function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
         function fecharModais() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
         function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; toggleDrawer(false); atualizarTudo(); }
         function toggleParcelados() { filtroParcelado = !filtroParcelado; document.getElementById('btn-parcelados').classList.toggle('bg-orange-500'); atualizarTudo(); }
         async function salvarItem(tab, id) { const val = document.getElementById(id).value; if(!val) return; await _supabase.from(tab).insert([{nome: val}]); document.getElementById(id).value = ''; atualizarTudo(); }
-        
-        function renderBancosLists(l) {
-            const btns = l?.map(c => `<button onclick="setFiltroCartao('${c.id}')" class="shadow-sm border font-black uppercase ${filtroCartao===c.id?'bg-blue-600 text-white':'bg-white text-slate-400'}">${c.nome}</button>`).join('') || '';
-            document.getElementById('sidebar-cartoes').innerHTML = btns; document.getElementById('mobile-lista-bancos').innerHTML = btns;
-        }
-
-        async function gerarResumoAnual() {
-            const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-anual');
-            abrirModal('modal-anual');
-            const { data } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
-            let h = '';
-            mesesNomes.forEach((n, i) => {
-                const dM = data?.filter(d => new Date(d.data).getMonth() === i) || [];
-                const t = dM.reduce((a, b) => a + Number(b.valor), 0);
-                h += `<div class="flex justify-between p-4 bg-slate-50 rounded-xl"><span class="font-black text-[9px] uppercase text-slate-500">${n}</span><span class="font-black text-slate-800 text-[10px]">R$ ${t.toLocaleString('pt-BR')}</span></div>`;
-            });
-            corpo.innerHTML = h;
-        }
-
-        function renderTabela(d) {
-            document.getElementById('lista-corpo').innerHTML = d?.map(x => `<tr class="border-t"><td class="p-6 text-[9px] font-black uppercase">${new Date(x.data).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td><td class="p-6">${x.descricao}</td><td class="p-6 font-black">R$ ${Number(x.valor).toLocaleString('pt-BR')}</td><td class="p-6 text-center"><button onclick="excluir('despesas', '${x.id}')"><i class="fas fa-trash-alt text-slate-200"></i></button></td></tr>`).join('') || '';
-        }
-
+        function renderBancosLists(l) { const btns = l?.map(c => `<button onclick="setFiltroCartao('${c.id}')" class="shadow-sm border font-black uppercase ${filtroCartao===c.id?'bg-blue-600 text-white':'bg-white text-slate-400'}">${c.nome}</button>`).join('') || ''; document.getElementById('sidebar-cartoes').innerHTML = btns; document.getElementById('mobile-lista-bancos').innerHTML = btns; }
+        function renderTabela(d) { document.getElementById('lista-corpo').innerHTML = d?.map(x => `<tr class="border-t"><td class="p-6 text-[9px] font-black uppercase">${new Date(x.data).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td><td class="p-6">${x.descricao}</td><td class="p-6 font-black">R$ ${Number(x.valor).toLocaleString('pt-BR')}</td><td class="p-6 text-center"><button onclick="excluir('despesas', '${x.id}')"><i class="fas fa-trash-alt text-slate-200"></i></button></td></tr>`).join('') || ''; }
         function calcularResumo(dados, id) {
             const b = dados.filter(d => d.cartao_id === id);
             const tNP = b.filter(d => !d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
@@ -223,21 +205,12 @@
             document.getElementById('res-total').innerText = `R$ ${(tNP+tP).toLocaleString('pt-BR')}`;
             document.getElementById('txt-label-1').innerText = "Contas não Parceladas"; document.getElementById('txt-label-2').innerText = "Contas Parceladas"; document.getElementById('txt-label-3').innerText = "Total";
         }
-
-        function zerarResumo() { 
-            document.getElementById('res-valor-1').innerText = "R$ 0,00"; document.getElementById('res-valor-2').innerText = "R$ 0,00"; document.getElementById('res-total').innerText = "R$ 0,00";
-            document.getElementById('txt-label-1').innerText = "Saldo em Conta"; document.getElementById('txt-label-2').innerText = "Faturas"; document.getElementById('txt-label-3').innerText = "Balanço";
-        }
-
-        function renderSelects(c, t) { 
-            document.getElementById('f-cartao').innerHTML = '<option value="">Banco?</option>' + c?.map(x => `<option value="${x.id}">${x.nome}</option>`).join('');
-            document.getElementById('f-cat').innerHTML = '<option value="">Cat?</option>' + t?.map(x => `<option value="${x.id}">${x.nome}</option>`).join('');
-        }
-
-        function renderConfigLists(c) {
+        function zerarResumo() { document.getElementById('res-valor-1').innerText = "R$ 0,00"; document.getElementById('res-valor-2').innerText = "R$ 0,00"; document.getElementById('res-total').innerText = "R$ 0,00"; document.getElementById('txt-label-1').innerText = "Saldo em Conta"; document.getElementById('txt-label-2').innerText = "Faturas"; document.getElementById('txt-label-3').innerText = "Balanço"; }
+        function renderSelects(c, t) { document.getElementById('f-cartao').innerHTML = '<option value="">Banco?</option>' + c?.map(x => `<option value="${x.id}">${x.nome}</option>`).join(''); document.getElementById('f-cat').innerHTML = '<option value="">Cat?</option>' + t?.map(x => `<option value="${x.id}">${x.nome}</option>`).join(''); }
+        function renderConfigLists(c, t) { 
             document.getElementById('lista-bancos-modal').innerHTML = c?.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${x.nome}</span><button onclick="excluir('cartoes', '${x.id}')"><i class="fas fa-trash"></i></button></div>`).join('');
+            document.getElementById('lista-categorias-modal').innerHTML = t?.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${x.nome}</span><button onclick="excluir('categorias', '${x.id}')"><i class="fas fa-trash"></i></button></div>`).join('');
         }
-
         async function confirmarLancamento() {
             const d = document.getElementById('f-desc').value, v = parseFloat(document.getElementById('f-valor').value), dt = document.getElementById('f-data').value;
             if(!d || !v || !dt) return;
@@ -248,7 +221,6 @@
             }
             await _supabase.from('despesas').insert(ins); fecharModais(); atualizarTudo();
         }
-
         async function excluir(tab, id) { if(confirm("Excluir?")) { await _supabase.from(tab).delete().eq('id', id); atualizarTudo(); } }
     </script>
 </body>
