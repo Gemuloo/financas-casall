@@ -31,23 +31,23 @@
         .btn-close-modal { position: absolute; top: 1.5rem; right: 1.5rem; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; }
         .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1.5rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
 
+        /* AJUSTE DE RESPONSIVIDADE PARA OS BOTÕES DE BANCO */
+        #sidebar-cartoes { display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; }
+        #sidebar-cartoes button { width: 100%; padding: 1rem; border-radius: 1rem; text-align: left; transition: all 0.2s; }
+
         @media (max-width: 768px) {
             .layout-container { flex-direction: column; }
             aside { width: 100%; height: auto; border-bottom: 0; display: block !important; }
-            /* Alinhamento conforme a foto enviada */
             #sidebar-cartoes { 
-                display: flex; 
+                flex-direction: row; 
                 justify-content: center; 
-                flex-wrap: wrap;
-                gap: 0.75rem; 
+                flex-wrap: wrap; 
                 padding: 1.5rem 1rem 0.5rem 1rem; 
             }
             #sidebar-cartoes button { 
-                flex: 0 1 auto; 
                 width: auto; 
                 padding: 0.7rem 1.5rem; 
-                border-radius: 1rem;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                text-align: center;
             }
             .content-wrapper { padding: 1rem; padding-bottom: 280px; }
         }
@@ -149,7 +149,6 @@
 
                 const dInicio = new Date(ano, mes, 1).toISOString();
                 const dFim = new Date(ano, mes + 1, 0, 23, 59, 59).toISOString();
-                
                 const { data: todasDoMes } = await _supabase.from('despesas').select('*').gte('data', dInicio).lte('data', dFim).order('data', { ascending: true });
                 
                 if (filtroCartao) {
@@ -180,13 +179,23 @@
             const baseDados = dados.filter(d => d.cartao_id === idCartaoAtivo);
             const tNaoP = baseDados.filter(d => !d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
             const tP = baseDados.filter(d => d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
-            const total = tNaoP + tP;
             document.getElementById('res-valor-1').innerText = `R$ ${tNaoP.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('res-valor-2').innerText = `R$ ${tP.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('res-total').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('res-total').innerText = `R$ ${(tNaoP + tP).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('txt-label-1').innerText = "Contas não Parceladas";
             document.getElementById('txt-label-2').innerText = "Contas Parceladas";
             document.getElementById('txt-label-3').innerText = "Somatório Total";
+        }
+
+        function renderSidebar(lista) {
+            document.getElementById('sidebar-cartoes').innerHTML = lista?.map(c => `<button onclick="setFiltroCartao('${c.id}')" class="font-black text-[9px] uppercase shadow-sm border ${filtroCartao === c.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-100'}">${c.nome}</button>`).join('') || '';
+        }
+
+        function renderTabela(dados) {
+            document.getElementById('lista-corpo').innerHTML = dados?.map(d => {
+                const dF = new Date(d.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+                return `<tr class="border-t border-slate-50"><td class="p-6 text-[10px] text-slate-400 font-black uppercase">${dF}</td><td class="p-6">${d.descricao}</td><td class="p-6 font-black">R$ ${Number(d.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td><td class="p-6 text-center"><button onclick="excluir('despesas', '${d.id}')" class="text-slate-200 hover:text-red-500"><i class="fas fa-trash-alt"></i></button></td></tr>`
+            }).join('') || '<tr><td colspan="4" class="p-10 text-center text-slate-300 uppercase text-[9px]">Sem gastos</td></tr>';
         }
 
         async function confirmarLancamento() {
@@ -215,13 +224,6 @@
             fecharModais(); await atualizarTudo();
         }
 
-        function renderTabela(dados) {
-            document.getElementById('lista-corpo').innerHTML = dados?.map(d => {
-                const dF = new Date(d.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
-                return `<tr class="border-t border-slate-50"><td class="p-6 text-[10px] text-slate-400 font-black uppercase">${dF}</td><td class="p-6">${d.descricao}</td><td class="p-6 font-black">R$ ${Number(d.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td><td class="p-6 text-center"><button onclick="excluir('despesas', '${d.id}')" class="text-slate-200 hover:text-red-500"><i class="fas fa-trash-alt"></i></button></td></tr>`
-            }).join('') || '<tr><td colspan="4" class="p-10 text-center text-slate-300 uppercase text-[9px]">Sem gastos</td></tr>';
-        }
-
         async function excluir(tab, id) {
             if (tab !== 'despesas') {
                 if (confirm("Excluir?")) { await _supabase.from(tab).delete().eq('id', id); await atualizarTudo(); }
@@ -243,10 +245,6 @@
             else if (tipo === 'proximas') q = q.ilike('descricao', `${baseDesc}%`).eq('cartao_id', cartao_id).gte('data', data);
             else if (tipo === 'todas') q = q.ilike('descricao', `${baseDesc}%`).eq('cartao_id', cartao_id);
             await q; itemParaExcluir = null; fecharModais(); await atualizarTudo();
-        }
-
-        function renderSidebar(lista) {
-            document.getElementById('sidebar-cartoes').innerHTML = lista?.map(c => `<button onclick="setFiltroCartao('${c.id}')" class="text-center font-black text-[9px] uppercase shadow-sm border transition-all ${filtroCartao === c.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-100'}">${c.nome}</button>`).join('') || '';
         }
 
         function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; atualizarTudo(); }
