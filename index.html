@@ -8,12 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* AJUSTE DE ROLAGEM: Removido overflow:hidden do body para permitir scroll no celular */
         html, body { min-height: 100vh; margin: 0; background-color: #f8fafc; font-size: 14px; -webkit-overflow-scrolling: touch; }
         .layout-container { display: flex; min-height: 100vh; width: 100vw; }
         
-        /* Sidebar visível apenas em telas grandes, ou adaptada */
-        .scroll-area { flex: 1; padding-bottom: 120px; }
+        /* AJUSTE AQUI: Aumentado o padding-bottom para a tabela subir e sair debaixo dos botões */
+        .scroll-area { flex: 1; padding-bottom: 220px; }
         
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -26,15 +25,15 @@
         .btn-close-modal { position: absolute; top: 1.5rem; right: 1.5rem; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; }
         .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1.5rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
 
-        /* Ajuste para mobile: Sidebar escondida por padrão, aparece em grid no topo ou menu */
         @media (max-width: 768px) {
             .layout-container { flex-direction: column; }
             aside { width: 100%; height: auto; border-bottom: 1px solid #e2e8f0; border-right: none; display: block !important; }
-            #sidebar-cartoes { display: flex; overflow-x: auto; gap: 0.5rem; padding: 1rem; white-space: nowrap; }
-            #sidebar-cartoes button { flex: 0 0 auto; width: auto; padding: 0.5rem 1.5rem; }
-            .scroll-area { padding: 1rem; }
+            #sidebar-cartoes { display: flex; overflow-x: auto; gap: 0.5rem; padding: 1rem; white-space: nowrap; padding-bottom: 1rem; }
+            #sidebar-cartoes button { flex: 0 0 auto; width: auto; padding: 0.5rem 1.2rem; }
+            /* No mobile, garantimos que a área principal tenha o espaço extra */
+            main .scroll-area { padding: 1rem; padding-bottom: 250px; }
             .floating-controls { bottom: 1rem; gap: 0.5rem; }
-            .floating-controls button { scale: 0.9; }
+            .floating-controls button { scale: 0.85; }
         }
     </style>
 </head>
@@ -43,11 +42,11 @@
     <div class="layout-container">
         <aside class="flex flex-col w-[260px] bg-white border-r">
             <div class="p-6 border-b text-center hidden md:block"><h2 class="font-black text-slate-800 text-lg uppercase italic">Bancos</h2></div>
-            <div id="sidebar-cartoes" class="scroll-area p-4 space-y-3 custom-scroll"></div>
+            <div id="sidebar-cartoes" class="p-4 space-y-3 custom-scroll"></div>
         </aside>
 
         <main class="flex-1 relative flex flex-col">
-            <div class="scroll-area p-6 md:p-8">
+            <div class="scroll-area p-6 md:p-8 custom-scroll">
                 <div class="flex justify-center mb-6 gap-2">
                     <select id="sel-mes" class="date-select" onchange="atualizarTudo()"></select>
                     <select id="sel-ano" class="date-select" onchange="atualizarTudo()"></select>
@@ -69,7 +68,7 @@
                 </section>
 
                 <div class="flex justify-center mb-8">
-                    <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg transition-all">Somente Parcelados</button>
+                    <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg">Somente Parcelados</button>
                 </div>
 
                 <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-x-auto">
@@ -213,33 +212,25 @@
 
                 const dInicio = new Date(ano, mes, 1).toISOString();
                 const dFim = new Date(ano, parseInt(mes) + 1, 0, 23, 59, 59).toISOString();
-                
-                // Buscamos todas as despesas do mês para o cálculo correto do resumo
                 const { data: todasDoMes } = await _supabase.from('despesas').select('*, cartoes(nome)').gte('data', dInicio).lte('data', dFim);
                 
-                // Aplicamos os filtros visuais apenas para a TABELA
                 let despesasTabela = todasDoMes || [];
                 if(filtroCartao) despesasTabela = despesasTabela.filter(d => d.cartao_id === filtroCartao);
                 if(filtroParcelado) despesasTabela = despesasTabela.filter(d => d.is_parcelado);
 
                 renderTabela(despesasTabela);
-                // O cálculo do resumo recebe TUDO do mês para manter os valores corretos
                 calcularResumo(todasDoMes || [], filtroCartao);
             } catch (e) { console.error(e); }
         }
 
         function calcularResumo(dados, idCartaoAtivo) {
-            // Se houver um cartão selecionado, filtramos os dados para o resumo daquele cartão
             const baseDados = idCartaoAtivo ? dados.filter(d => d.cartao_id === idCartaoAtivo) : dados;
-
             const tNaoP = baseDados.filter(d => !d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
             const tP = baseDados.filter(d => d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
             const total = tNaoP + tP;
-
             document.getElementById('res-valor-1').innerText = `R$ ${tNaoP.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('res-valor-2').innerText = `R$ ${tP.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('res-total').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            
             if(idCartaoAtivo) {
                 document.getElementById('txt-label-1').innerText = "Contas não Parceladas";
                 document.getElementById('txt-label-2').innerText = "Contas Parceladas";
@@ -260,15 +251,12 @@
             const isFixa = document.getElementById('f-fixa').checked;
             const isParc = document.getElementById('f-parc').checked;
             const qtdInput = parseInt(document.getElementById('f-qtd-parc').value);
-            
             let qtdLoop = 1;
             if (isParc || (isFixa && qtdInput)) qtdLoop = qtdInput || 1;
             const valorParcela = isParc ? (valorTotal / qtdLoop) : valorTotal;
-
             const mesBase = parseInt(document.getElementById('sel-mes').value);
             const anoBase = parseInt(document.getElementById('sel-ano').value);
             const insercoes = [];
-
             for(let i=0; i < qtdLoop; i++) {
                 let dVenc = new Date(anoBase, mesBase + i, 10);
                 insercoes.push({
@@ -279,13 +267,14 @@
             }
             await _supabase.from('despesas').insert(insercoes);
             document.getElementById('f-desc').value = ''; document.getElementById('f-valor').value = '';
+            document.getElementById('f-qtd-parc').value = '';
             fecharModais(); await atualizarTudo();
         }
 
         async function gerarResumoAnual() {
             const ano = document.getElementById('sel-ano').value;
             const corpo = document.getElementById('corpo-anual');
-            corpo.innerHTML = '<p class="text-center font-bold text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
+            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
             abrirModal('modal-anual');
             const { data } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
             let html = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">
