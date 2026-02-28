@@ -268,24 +268,31 @@
             const { data } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
             
             let html = `
-                <div class="flex justify-between px-4 mb-2 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                    <span class="w-1/3">Mês</span>
-                    <span class="w-1/3 text-center">Fixas</span>
-                    <span class="w-1/3 text-right">Total Geral</span>
+                <div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">
+                    <div class="w-1/4">Mês</div>
+                    <div class="w-1/4 text-center">Fixas</div>
+                    <div class="w-1/4 text-center">Normais</div>
+                    <div class="w-1/4 text-right">Total</div>
                 </div>
             `;
 
             mesesNomes.forEach((nome, i) => {
                 const despesasMes = data?.filter(d => new Date(d.data).getMonth() === i) || [];
                 
-                const totalGeral = despesasMes.reduce((a, b) => a + Number(b.valor), 0);
+                // Fixas: Marcadas como is_fixa
                 const totalFixo = despesasMes.filter(d => d.is_fixa === true).reduce((a, b) => a + Number(b.valor), 0);
+                
+                // Normais: Tudo que NÃO é fixa (inclui parceladas e gastos comuns)
+                const totalNormal = despesasMes.filter(d => d.is_fixa === false).reduce((a, b) => a + Number(b.valor), 0);
+                
+                const totalGeral = totalFixo + totalNormal;
 
                 html += `
-                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2">
-                        <span class="w-1/3 font-black text-[10px] uppercase text-slate-500">${nome}</span>
-                        <span class="w-1/3 text-center font-bold text-emerald-600 text-[11px]">R$ ${totalFixo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                        <span class="w-1/3 text-right font-black text-slate-800">R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2 hover:bg-slate-100 transition-colors">
+                        <span class="w-1/4 font-black text-[9px] uppercase text-slate-500 truncate">${nome}</span>
+                        <span class="w-1/4 text-center font-bold text-emerald-600 text-[10px]">R$ ${totalFixo.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        <span class="w-1/4 text-center font-bold text-orange-500 text-[10px]">R$ ${totalNormal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                        <span class="w-1/4 text-right font-black text-slate-800 text-[11px]">R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
                     </div>`;
             });
             corpo.innerHTML = html;
