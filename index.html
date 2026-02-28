@@ -167,24 +167,18 @@
 
         async function atualizarTudo() {
             try {
-                // PERFORMANCE: Dispara todas as consultas ao mesmo tempo
                 const [resBancos, resCats, resSals] = await Promise.all([
                     _supabase.from('cartoes').select('*').order('nome'),
                     _supabase.from('categorias').select('*').order('nome'),
                     _supabase.from('salarios').select('*')
                 ]);
-
                 cacheBancos = resBancos.data || [];
                 cacheCategorias = resCats.data || [];
                 cacheSalarios = resSals.data || [];
-
                 const mes = parseInt(document.getElementById('sel-mes').value), ano = parseInt(document.getElementById('sel-ano').value);
                 const dInicio = new Date(ano, mes, 1).toISOString(), dFim = new Date(ano, mes + 1, 0, 23, 59, 59).toISOString();
-                
                 const { data: todasDoMes } = await _supabase.from('despesas').select('*').gte('data', dInicio).lte('data', dFim).order('data');
-
                 renderBancosLists(cacheBancos); renderSelects(cacheBancos, cacheCategorias); renderConfigLists(cacheBancos, cacheCategorias, cacheSalarios);
-
                 if (filtroCartao) {
                     document.getElementById('view-relatorio').style.display = 'block'; document.getElementById('view-placeholder').style.display = 'none';
                     let dTab = (todasDoMes || []).filter(d => d.cartao_id === filtroCartao);
@@ -284,6 +278,7 @@
         }
         function zerarResumo() { document.getElementById('res-valor-1').innerText = "R$ 0,00"; document.getElementById('res-valor-2').innerText = "R$ 0,00"; document.getElementById('res-total').innerText = "R$ 0,00"; document.getElementById('txt-label-1').innerText = "Saldo em Conta"; document.getElementById('txt-label-2').innerText = "Faturas"; document.getElementById('txt-label-3').innerText = "Balanço do Mês"; }
         function renderSelects(c, t) { document.getElementById('f-cartao').innerHTML = '<option value="">Banco?</option>' + c?.map(x => `<option value="${x.id}">${x.nome}</option>`).join(''); document.getElementById('f-cat').innerHTML = '<option value="">Cat?</option>' + t?.map(x => `<option value="${x.id}">${x.nome}</option>`).join(''); }
+        
         async function confirmarLancamento() {
             const d = document.getElementById('f-desc').value, v = parseFloat(document.getElementById('f-valor').value), dt = document.getElementById('f-data').value;
             if(!d || !v || !dt) return;
@@ -292,7 +287,21 @@
                 let dV = new Date(dt + 'T12:00:00'); dV.setMonth(dV.getUTCMonth() + i);
                 ins.push({ descricao: isP?`${d} (${i+1}/${q})`:d, valor: isP?v/q:v, cartao_id: c||null, categoria_id: ct||null, is_fixa: isF, is_parcelado: isP, data: dV.toISOString() });
             }
-            await _supabase.from('despesas').insert(ins); fecharModais(); atualizarTudo();
+            await _supabase.from('despesas').insert(ins); 
+            
+            // RESET DOS CAMPOS APÓS LANÇAMENTO
+            document.getElementById('f-desc').value = '';
+            document.getElementById('f-valor').value = '';
+            document.getElementById('f-data').valueAsDate = new Date();
+            document.getElementById('f-cartao').value = '';
+            document.getElementById('f-cat').value = '';
+            document.getElementById('f-fixa').checked = false;
+            document.getElementById('f-parc').checked = false;
+            document.getElementById('box-qtd').style.display = 'none';
+            document.getElementById('f-qtd-parc').value = '';
+            
+            fecharModais(); 
+            atualizarTudo();
         }
     </script>
 </body>
