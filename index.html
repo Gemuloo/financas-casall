@@ -14,21 +14,22 @@
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .floating-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1.5rem; z-index: 50; }
+        
+        /* Ajuste do menu suspenso para não sumir */
+        .group:hover .group-hover\:block { display: block !important; bottom: 85px; padding-bottom: 20px; }
+        
         .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 60; align-items: center; justify-content: center; padding: 1.5rem; }
-        .modal-content { background-color: white; width: 100%; max-width: 400px; border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); max-height: 90vh; overflow-y: auto; }
-        .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.6rem 2rem 0.6rem 1.2rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; outline: none; transition: all 0.2s; }
+        .modal-content { background-color: white; width: 100%; max-width: 450px; border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); max-height: 85vh; overflow-y: auto; }
+        .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.6rem 2rem 0.6rem 1.2rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; outline: none; }
     </style>
 </head>
 <body>
 
     <div class="layout-container">
         <aside class="hidden md:flex flex-col w-[260px] bg-white border-r h-full flex-shrink-0">
-            <div class="p-6 border-b text-center">
-                <h2 class="font-black text-slate-800 text-lg uppercase tracking-tighter italic">Meus Cartões</h2>
-            </div>
+            <div class="p-6 border-b text-center"><h2 class="font-black text-slate-800 text-lg uppercase tracking-tighter">Bancos</h2></div>
             <div id="sidebar-cartoes" class="flex-1 scroll-area p-4 space-y-3 custom-scroll">
                 </div>
-            <div class="p-4 border-t text-center text-[9px] font-bold text-slate-300 uppercase tracking-widest">Finance App 2026</div>
         </aside>
 
         <main class="flex-1 h-full relative overflow-hidden flex flex-col">
@@ -43,35 +44,29 @@
 
                 <section class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
                     <div class="bg-white p-8 rounded-[1.2rem] shadow-sm border border-slate-100">
-                        <p id="txt-label-1" class="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Saldo em Conta</p>
+                        <p id="txt-label-1" class="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest italic">Saldo em Conta</p>
                         <h3 id="res-valor-1" class="text-3xl font-black text-slate-800 tracking-tighter">R$ 0,00</h3>
                     </div>
                     <div class="bg-white p-8 rounded-[1.2rem] shadow-sm border border-slate-100">
-                        <p id="txt-label-2" class="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Faturas</p>
+                        <p id="txt-label-2" class="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest italic">Faturas</p>
                         <h3 id="res-valor-2" class="text-3xl font-black text-slate-800 tracking-tighter">R$ 0,00</h3>
                     </div>
                     <div class="bg-white p-8 rounded-[1.2rem] shadow-sm border border-blue-100 bg-blue-50/20">
-                        <p id="txt-label-3" class="text-[9px] font-black text-blue-600 uppercase mb-1 tracking-widest">Balanço do Mês</p>
+                        <p id="txt-label-3" class="text-[9px] font-black text-blue-600 uppercase mb-1 tracking-widest italic">Balanço do Mês</p>
                         <h3 id="res-total" class="text-3xl font-black text-blue-700 tracking-tighter">R$ 0,00</h3>
                     </div>
                 </section>
 
-                <div class="flex justify-center gap-4 mb-8">
-                    <button id="btn-parcelados" onclick="toggleParcelados()" class="px-6 py-3 bg-blue-600 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest transition-all">Somente Parcelados</button>
+                <div class="flex justify-center mb-8">
+                    <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-3 bg-slate-800 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest transition-all hover:bg-blue-600">Somente Parcelados</button>
                 </div>
 
-                <div id="container-lista" class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                    <table class="w-full text-left border-collapse">
+                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                    <table class="w-full text-left">
                         <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                            <tr>
-                                <th class="p-6">Descrição</th>
-                                <th class="p-6">Origem/Cartão</th>
-                                <th class="p-6">Valor</th>
-                                <th class="p-6 text-center">Ações</th>
-                            </tr>
+                            <tr><th class="p-6">Descrição</th><th class="p-6">Banco</th><th class="p-6">Valor</th><th class="p-6 text-center">Ações</th></tr>
                         </thead>
-                        <tbody id="lista-corpo" class="text-xs font-bold text-slate-700">
-                            </tbody>
+                        <tbody id="lista-corpo" class="text-xs font-bold text-slate-700"></tbody>
                     </table>
                 </div>
             </div>
@@ -79,61 +74,62 @@
     </div>
 
     <div class="floating-controls">
-        <button onclick="abrirModal('modal-resumo')" class="bg-white w-20 h-20 rounded-[1.2rem] shadow-2xl flex flex-col items-center justify-center hover:scale-105 transition-all">
-            <i class="fas fa-chart-pie text-slate-300 text-xl"></i>
-            <span class="text-[9px] font-black mt-1 text-slate-400 uppercase">Resumo</span>
+        <button onclick="gerarResumoAnual()" class="bg-white w-20 h-20 rounded-[1.2rem] shadow-2xl flex flex-col items-center justify-center hover:scale-105 transition-all">
+            <i class="fas fa-calendar-alt text-slate-300 text-xl"></i>
+            <span class="text-[9px] font-black mt-1 text-slate-400 uppercase">Anual</span>
         </button>
+        
         <button onclick="abrirModal('modal-lancar')" class="bg-blue-600 w-28 h-28 rounded-[1.8rem] shadow-2xl border-8 border-white flex flex-col items-center justify-center -translate-y-4 hover:scale-105 transition-all">
             <i class="fas fa-plus text-white text-4xl"></i>
             <span class="text-[10px] font-black mt-1 text-white uppercase tracking-widest">Lançar</span>
         </button>
+
         <div class="relative group">
             <button class="bg-white w-20 h-20 rounded-[1.2rem] shadow-2xl flex flex-col items-center justify-center hover:scale-105 transition-all">
-                <i class="fas fa-plus-square text-slate-300 text-xl"></i>
-                <span class="text-[9px] font-black mt-1 text-slate-400 uppercase">Criar</span>
+                <i class="fas fa-cog text-slate-300 text-xl"></i>
+                <span class="text-[9px] font-black mt-1 text-slate-400 uppercase">Config</span>
             </button>
-            <div class="absolute bottom-24 right-0 w-48 bg-white rounded-[1.2rem] shadow-2xl p-2 hidden group-hover:block border">
-                <button onclick="abrirModal('modal-cartao')" class="w-full text-left p-3 hover:bg-blue-50 rounded-xl text-[9px] font-black flex items-center gap-3 uppercase"><i class="fas fa-credit-card text-blue-500"></i> Novo Cartão</button>
+            <div class="absolute right-0 w-48 bg-white rounded-[1.2rem] shadow-2xl p-2 hidden border transition-all">
+                <button onclick="abrirModal('modal-cartao')" class="w-full text-left p-3 hover:bg-blue-50 rounded-xl text-[9px] font-black flex items-center gap-3 uppercase"><i class="fas fa-credit-card text-blue-500"></i> Novo Banco</button>
                 <button onclick="abrirModal('modal-categoria')" class="w-full text-left p-3 hover:bg-blue-50 rounded-xl text-[9px] font-black flex items-center gap-3 uppercase"><i class="fas fa-tags text-emerald-500"></i> Categorias</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-lancar" class="modal-overlay">
-        <div class="modal-content p-8">
-            <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Novo Lançamento</h3>
-            <div class="space-y-4">
-                <input id="f-desc" type="text" placeholder="Ex: Compra Mercado" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none">
-                <input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none">
-                <div class="grid grid-cols-2 gap-3">
-                    <select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select>
-                    <select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select>
-                </div>
-                <div class="space-y-3 px-1">
-                    <label class="flex items-center gap-3 text-xs font-bold text-slate-600 cursor-pointer"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Despesa Fixa?</label>
-                    <label class="flex items-center gap-3 text-xs font-bold text-slate-600 cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('f-qtd-parc').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado?</label>
-                    <input id="f-qtd-parc" type="number" placeholder="Quantas parcelas?" style="display:none" class="w-full bg-blue-50 border p-3 rounded-xl text-xs font-bold outline-none">
-                </div>
-                <button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl mt-4 uppercase text-[10px] shadow-lg">Confirmar</button>
-                <button onclick="fecharModais()" class="w-full text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
             </div>
         </div>
     </div>
 
     <div id="modal-resumo" class="modal-overlay">
         <div class="modal-content p-8">
-            <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Resumo Detalhado</h3>
-            <div id="detalhe-resumo" class="space-y-3">
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Resumo 2026</h3>
+            <div id="corpo-resumo-anual" class="space-y-2">
                 </div>
             <button onclick="fecharModais()" class="w-full bg-slate-800 text-white font-black py-4 rounded-xl mt-6 uppercase text-[10px]">Fechar</button>
         </div>
     </div>
 
+    <div id="modal-lancar" class="modal-overlay">
+        <div class="modal-content p-8">
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3>
+            <div class="space-y-4">
+                <input id="f-desc" type="text" placeholder="O que você comprou?" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none">
+                <input id="f-valor" type="number" step="0.01" placeholder="R$ 0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none">
+                <div class="grid grid-cols-2 gap-3">
+                    <select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select>
+                    <select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-xl space-y-3">
+                    <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-fixa" class="w-4 h-4 accent-emerald-500"> Gasto Fixo Mensal</label>
+                    <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('f-qtd-parc').style.display = this.checked ? 'block' : 'none'" class="w-4 h-4 accent-blue-500"> Parcelar Compra</label>
+                    <input id="f-qtd-parc" type="number" placeholder="Quantas parcelas?" style="display:none" class="w-full bg-white border p-3 rounded-lg text-xs font-bold">
+                </div>
+                <button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[10px] shadow-xl">Salvar Lançamento</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-cartao" class="modal-overlay">
         <div class="modal-content p-8">
-            <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Novo Cartão</h3>
-            <input id="f-nome-cartao" type="text" placeholder="Nome do Cartão ou Banco" class="w-full bg-slate-50 border p-4 rounded-xl font-bold mb-4 outline-none">
-            <button onclick="salvarCartao()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl uppercase text-[10px]">Salvar Cartão</button>
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Cadastrar Banco</h3>
+            <input id="f-nome-cartao" type="text" placeholder="Ex: Nubank, Itaú..." class="w-full bg-slate-50 border p-4 rounded-xl font-bold mb-4 outline-none">
+            <button onclick="salvarCartao()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl uppercase text-[10px]">Salvar</button>
         </div>
     </div>
 
@@ -141,7 +137,7 @@
         <div class="modal-content p-8">
             <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Categorias</h3>
             <div class="flex gap-2 mb-4">
-                <input id="f-nome-cat" type="text" placeholder="Nova categoria..." class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold outline-none text-xs">
+                <input id="f-nome-cat" type="text" placeholder="Nova..." class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold outline-none text-xs">
                 <button onclick="salvarCategoria()" class="bg-emerald-600 text-white px-4 rounded-xl font-black uppercase text-[10px]">Add</button>
             </div>
             <div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto custom-scroll"></div>
@@ -149,13 +145,13 @@
     </div>
 
     <script>
-        // CONFIGURAÇÕES SUPABASE
         const SUPABASE_URL = 'https://oalkcwquiowfiggdwjmi.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hbGtjd3F1aW93ZmlnZ2R3am1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMTk1MzAsImV4cCI6MjA4Nzc5NTUzMH0.zFGxJ5D3vW1jOdkAvV5S6offZlgQ8eB2l8l9pDas3HU';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let filtroCartao = null;
         let filtroParcelado = false;
+        const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
         window.onload = () => {
             setupDatas();
@@ -163,13 +159,9 @@
         };
 
         function setupDatas() {
-            const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
             const ms = document.getElementById('sel-mes');
-            ms.innerHTML = '';
-            meses.forEach((m, i) => ms.innerHTML += `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`);
-            
+            mesesNomes.forEach((m, i) => ms.innerHTML += `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`);
             const as = document.getElementById('sel-ano');
-            as.innerHTML = '';
             [2025, 2026, 2027].forEach(a => as.innerHTML += `<option value="${a}" ${a === 2026 ? 'selected' : ''}>${a}</option>`);
         }
 
@@ -184,21 +176,21 @@
             renderSelects(cartoes, cats);
             renderCategoriasModal(cats);
 
-            const dataInicio = new Date(ano, mes, 1).toISOString();
-            const dataFim = new Date(ano, parseInt(mes) + 1, 0, 23, 59, 59).toISOString();
+            const dInicio = new Date(ano, mes, 1).toISOString();
+            const dFim = new Date(ano, parseInt(mes) + 1, 0, 23, 59, 59).toISOString();
 
-            let q = _supabase.from('despesas').select('*, cartoes(nome), categorias(nome)').gte('data', dataInicio).lte('data', dataFim);
+            let q = _supabase.from('despesas').select('*, cartoes(nome)').gte('data', dInicio).lte('data', dFim);
             if(filtroCartao) q = q.eq('cartao_id', filtroCartao);
             if(filtroParcelado) q = q.eq('is_parcelado', true);
 
-            const { data: despesas } = await q.order('data', {ascending: false});
+            const { data: despesas } = await q;
             renderTabela(despesas);
             calcularResumo(despesas);
         }
 
         function renderSidebar(lista) {
             const div = document.getElementById('sidebar-cartoes');
-            div.innerHTML = `<button onclick="setFiltroCartao(null)" class="w-full text-left p-4 rounded-xl font-bold text-[10px] uppercase ${!filtroCartao ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-500'} transition-all">Exibir Tudo</button>`;
+            div.innerHTML = '';
             lista?.forEach(c => {
                 div.innerHTML += `
                 <div class="relative group">
@@ -208,31 +200,36 @@
             });
         }
 
-        function renderSelects(cartoes, cats) {
-            const sc = document.getElementById('f-cartao');
-            sc.innerHTML = '<option value="">Cartão/Origem</option>';
-            cartoes?.forEach(c => sc.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
-            
-            const st = document.getElementById('f-cat');
-            st.innerHTML = '<option value="">Categoria</option>';
-            cats?.forEach(c => st.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
-        }
-
         function renderTabela(dados) {
             const tbody = document.getElementById('lista-corpo');
-            tbody.innerHTML = '';
-            if(!dados || dados.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-400 uppercase text-[10px]">Nenhum lançamento encontrado</td></tr>';
-                return;
-            }
-            dados.forEach(d => {
+            tbody.innerHTML = dados?.length ? '' : '<tr><td colspan="4" class="p-10 text-center text-slate-300 uppercase text-[10px]">Sem gastos neste mês</td></tr>';
+            dados?.forEach(d => {
                 tbody.innerHTML += `
-                    <tr class="border-t border-slate-50 hover:bg-slate-50/50 transition-all">
-                        <td class="p-6">${d.descricao} ${d.is_parcelado ? '<span class="ml-2 text-[8px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded font-black">P</span>' : ''} ${d.is_fixa ? '<span class="ml-2 text-[8px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-black">FIXA</span>' : ''}</td>
+                    <tr class="border-t border-slate-50 hover:bg-slate-50/50">
+                        <td class="p-6">${d.descricao} ${d.is_parcelado ? '<span class="ml-2 text-[8px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded font-black">P</span>' : ''}</td>
                         <td class="p-6 text-[10px] text-slate-400 uppercase font-black">${d.cartoes?.nome || 'DÉBITO'}</td>
                         <td class="p-6">R$ ${Number(d.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                        <td class="p-6 text-center"><button onclick="excluir('despesas', '${d.id}')" class="text-red-100 hover:text-red-500 transition-colors p-2"><i class="fas fa-trash-alt"></i></button></td>
+                        <td class="p-6 text-center"><button onclick="excluir('despesas', '${d.id}')" class="text-red-100 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></td>
                     </tr>`;
+            });
+        }
+
+        async function gerarResumoAnual() {
+            abrirModal('modal-resumo');
+            const corpo = document.getElementById('corpo-resumo-anual');
+            corpo.innerHTML = '<p class="text-center p-4 text-xs font-bold text-slate-400">Calculando ano...</p>';
+            
+            const ano = document.getElementById('sel-ano').value;
+            const { data } = await _supabase.from('despesas').select('valor, data').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
+            
+            corpo.innerHTML = '';
+            mesesNomes.forEach((nome, i) => {
+                const totalMes = data?.filter(d => new Date(d.data).getMonth() === i).reduce((acc, curr) => acc + Number(curr.valor), 0) || 0;
+                corpo.innerHTML += `
+                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-xl">
+                        <span class="text-[10px] font-black text-slate-400 uppercase">${nome}</span>
+                        <span class="text-xs font-black ${totalMes > 0 ? 'text-slate-800' : 'text-slate-300'}">R$ ${totalMes.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </div>`;
             });
         }
 
@@ -248,13 +245,6 @@
             document.getElementById('txt-label-1').innerText = filtroCartao ? "Contas não Parceladas" : "Saldo em Conta";
             document.getElementById('txt-label-2').innerText = filtroCartao ? "Contas Parceladas" : "Faturas";
             document.getElementById('txt-label-3').innerText = filtroCartao ? "Somatório Total" : "Balanço do Mês";
-
-            const det = document.getElementById('detalhe-resumo');
-            det.innerHTML = `
-                <div class="flex justify-between p-4 bg-slate-50 rounded-xl font-bold"><span>Variáveis:</span> <span>R$ ${totalNaoParc.toLocaleString('pt-BR')}</span></div>
-                <div class="flex justify-between p-4 bg-slate-50 rounded-xl font-bold"><span>Parcelados:</span> <span>R$ ${totalParc.toLocaleString('pt-BR')}</span></div>
-                <div class="flex justify-between p-4 bg-blue-600 text-white rounded-xl font-black italic uppercase"><span>Total:</span> <span>R$ ${totalGeral.toLocaleString('pt-BR')}</span></div>
-            `;
         }
 
         async function confirmarLancamento() {
@@ -266,14 +256,14 @@
             const isParc = document.getElementById('f-parc').checked;
             const qtd = parseInt(document.getElementById('f-qtd-parc').value) || 1;
             
-            if(!desc || !valor) return alert("Preencha descrição e valor!");
+            if(!desc || !valor) return alert("Ops! Esqueceu a descrição ou valor.");
 
             const mesBase = parseInt(document.getElementById('sel-mes').value);
             const anoBase = parseInt(document.getElementById('sel-ano').value);
             const insercoes = [];
             const loops = isParc ? qtd : 1;
 
-            for(let i=0; i < loops; i++) {
+            for(let i=0; i < (isFixa ? 12 : loops); i++) {
                 let dataVenc = new Date(anoBase, mesBase + i, 10);
                 insercoes.push({
                     descricao: isParc ? `${desc} (${i+1}/${qtd})` : desc,
@@ -287,46 +277,46 @@
                 });
             }
 
-            const { error } = await _supabase.from('despesas').insert(insercoes);
-            if(error) alert("Erro ao salvar!");
+            await _supabase.from('despesas').insert(insercoes);
             fecharModais();
             atualizarTudo();
-            // Reset campos
             document.getElementById('f-desc').value = '';
             document.getElementById('f-valor').value = '';
         }
 
+        function renderSelects(cartoes, cats) {
+            const sc = document.getElementById('f-cartao');
+            sc.innerHTML = '<option value="">Banco</option>';
+            cartoes?.forEach(c => sc.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
+            const st = document.getElementById('f-cat');
+            st.innerHTML = '<option value="">Categoria</option>';
+            cats?.forEach(c => st.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
+        }
+
         async function salvarCartao() {
             const nome = document.getElementById('f-nome-cartao').value;
-            if(!nome) return;
-            await _supabase.from('cartoes').insert([{nome}]);
-            document.getElementById('f-nome-cartao').value = '';
-            fecharModais();
-            atualizarTudo();
+            if(nome) await _supabase.from('cartoes').insert([{nome}]);
+            fecharModais(); atualizarTudo();
         }
 
         async function salvarCategoria() {
             const nome = document.getElementById('f-nome-cat').value;
-            if(!nome) return;
-            await _supabase.from('categorias').insert([{nome}]);
-            document.getElementById('f-nome-cat').value = '';
-            atualizarTudo();
+            if(nome) await _supabase.from('categorias').insert([{nome}]);
+            document.getElementById('f-nome-cat').value = ''; atualizarTudo();
         }
 
         async function excluir(tab, id) {
-            if(confirm("Deseja realmente excluir este item?")) {
+            if(confirm("Apagar permanentemente?")) {
                 await _supabase.from(tab).delete().eq('id', id);
+                if(filtroCartao === id) filtroCartao = null;
                 atualizarTudo();
             }
         }
 
-        function setFiltroCartao(id) { filtroCartao = id; atualizarTudo(); }
+        function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; atualizarTudo(); }
         function toggleParcelados() { 
             filtroParcelado = !filtroParcelado; 
-            const btn = document.getElementById('btn-parcelados');
-            btn.className = filtroParcelado ? 
-                "px-6 py-3 bg-orange-500 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest scale-110" : 
-                "px-6 py-3 bg-blue-600 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest";
+            document.getElementById('btn-parcelados').classList.toggle('bg-orange-500');
             atualizarTudo(); 
         }
         function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -334,9 +324,7 @@
         function renderCategoriasModal(cats) {
             const div = document.getElementById('lista-categorias-modal');
             div.innerHTML = '';
-            cats?.forEach(c => {
-                div.innerHTML += `<div class="flex justify-between p-3 bg-slate-50 rounded-xl text-[10px] font-bold uppercase"><span>${c.nome}</span><button onclick="excluir('categorias', '${c.id}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash-alt"></i></button></div>`;
-            });
+            cats?.forEach(c => div.innerHTML += `<div class="flex justify-between p-3 bg-slate-50 rounded-xl text-[10px] font-bold uppercase"><span>${c.nome}</span><button onclick="excluir('categorias', '${c.id}')" class="text-red-400"><i class="fas fa-trash-alt"></i></button></div>`);
         }
     </script>
 </body>
