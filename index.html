@@ -22,50 +22,52 @@
         .layout-container { display: flex; flex: 1; width: 100vw; overflow: hidden; }
         main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; }
         .content-wrapper { padding: 1.5rem; padding-bottom: 300px; }
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        /* SIDEBAR DESKTOP */
+        aside { width: 260px; background: white; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+        #sidebar-cartoes { display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; }
+        #sidebar-cartoes button { width: 100%; padding: 1rem; border-radius: 1rem; text-align: left; font-weight: 900; font-size: 10px; text-transform: uppercase; transition: all 0.2s; }
+
+        /* BOTÃO FLUTUANTE ESQUERDA (MOBILE) */
+        #btn-menu-bancos { display: none; position: fixed; top: 1.5rem; left: 1.5rem; z-index: 100; width: 50px; height: 50px; background: #1e293b; color: white; border-radius: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); align-items: center; justify-content: center; }
+
+        /* DRAWER MOBILE */
+        .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 110; }
+        .drawer-content { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; z-index: 120; transition: left 0.3s ease; padding: 2rem; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
+        .drawer-active .drawer-content { left: 0; }
+        .drawer-active .drawer-overlay { display: block; }
+
+        .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1.5rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
         .floating-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1rem; z-index: 90; width: max-content; pointer-events: none; }
         .floating-controls button { pointer-events: auto; }
-        .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
-        .modal-content { background-color: white; width: 100%; max-width: 480px; border-radius: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; position: relative; }
-        .btn-close-modal { position: absolute; top: 1.5rem; right: 1.5rem; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; }
-        .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1.5rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
-
-        /* MANTÉM COMPUTADOR IGUAL */
-        #sidebar-cartoes { display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; }
-        #sidebar-cartoes button { width: 100%; padding: 1rem; border-radius: 1rem; text-align: left; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 150; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-content { background-color: white; width: 100%; max-width: 480px; border-radius: 2.5rem; max-height: 90vh; overflow-y: auto; position: relative; }
 
         @media (max-width: 768px) {
-            .layout-container { flex-direction: column; }
-            aside { width: 100%; height: auto; border-bottom: 0; display: block !important; }
-            
-            /* AJUSTE PARA NÃO CORTAR NO CELULAR */
-            #sidebar-cartoes { 
-                display: grid; 
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
-                gap: 0.5rem; 
-                padding: 1.5rem 1rem;
-                width: 100%;
-            }
-            #sidebar-cartoes button { 
-                width: 100%; 
-                padding: 0.8rem 0.5rem; 
-                text-align: center;
-                border-radius: 1rem;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            .content-wrapper { padding: 1rem; padding-bottom: 280px; }
+            aside { display: none !important; } /* Esconde sidebar no mobile */
+            #btn-menu-bancos { display: flex; } /* Mostra botão flutuante */
+            .content-wrapper { padding-top: 5rem; }
         }
     </style>
 </head>
-<body>
+<body id="body-root">
+
+    <button id="btn-menu-bancos" onclick="toggleDrawer(true)">
+        <i class="fas fa-university"></i>
+    </button>
+
+    <div id="drawer-container">
+        <div class="drawer-overlay" onclick="toggleDrawer(false)"></div>
+        <div class="drawer-content">
+            <h3 class="font-black text-slate-800 text-lg uppercase mb-6 italic">Selecionar Banco</h3>
+            <div id="mobile-lista-bancos" class="flex flex-col gap-3"></div>
+        </div>
+    </div>
 
     <div class="layout-container">
-        <aside class="flex flex-col w-[260px] bg-white border-r">
-            <div class="p-6 border-b text-center hidden md:block"><h2 class="font-black text-slate-800 text-lg uppercase italic">Bancos</h2></div>
-            <div id="sidebar-cartoes" class="custom-scroll"></div>
+        <aside>
+            <div class="p-6 border-b text-center"><h2 class="font-black text-slate-800 text-lg uppercase italic">Bancos</h2></div>
+            <div id="sidebar-cartoes" class="overflow-y-auto"></div>
         </aside>
 
         <main id="main-scroll">
@@ -118,12 +120,12 @@
         <button onclick="abrirModal('modal-menu-config')" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center"><i class="fas fa-cog text-slate-300 text-lg"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Config</span></button>
     </div>
 
-    <div id="modal-lancar" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><input id="f-desc" type="text" placeholder="Descrição" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none"><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data do Gasto</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs outline-none"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select><select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select></div><div class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Gasto Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold outline-none"></div></div><button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] shadow-xl">Confirmar</button></div></div></div>
-    <div id="modal-menu-config" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4"><div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-credit-card"></i></div><span class="font-black text-blue-700 uppercase text-xs">Meus Bancos</span></button><button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4"><div class="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-tags"></i></div><span class="font-black text-emerald-700 uppercase text-xs">Categorias</span></button></div></div></div>
-    <div id="modal-bancos" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none"><button onclick="salvarItem('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
-    <div id="modal-categorias" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none"><button onclick="salvarItem('categorias', 'f-nome-cat')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
-    <div id="modal-excluir-parcelado" class="modal-overlay"><div class="modal-content p-8 text-center"><i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-6 italic">Excluir Parcelamento</h3><div class="space-y-3" id="opcoes-exclusao-container"></div></div></div>
-    <div id="modal-anual" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Resumo Anual</h3><div id="corpo-anual" class="space-y-2"></div></div></div>
+    <div id="modal-lancar" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><input id="f-desc" type="text" placeholder="Descrição" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none"><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data do Gasto</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs outline-none"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select><select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select></div><div class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Gasto Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold outline-none"></div></div><button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] shadow-xl">Confirmar</button></div></div></div>
+    <div id="modal-menu-config" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4"><div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-credit-card"></i></div><span class="font-black text-blue-700 uppercase text-xs">Meus Bancos</span></button><button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4"><div class="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-tags"></i></div><span class="font-black text-emerald-700 uppercase text-xs">Categorias</span></button></div></div></div>
+    <div id="modal-bancos" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none"><button onclick="salvarItem('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
+    <div id="modal-categorias" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none"><button onclick="salvarItem('categorias', 'f-nome-cat')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
+    <div id="modal-excluir-parcelado" class="modal-overlay"><div class="modal-content p-8 text-center"><h3 class="font-black text-slate-800 text-lg uppercase mb-6 italic">Excluir Parcelamento</h3><div class="space-y-3" id="opcoes-exclusao-container"></div></div></div>
+    <div id="modal-anual" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Resumo Anual</h3><div id="corpo-anual" class="space-y-2"></div></div></div>
 
     <script>
         const SUPABASE_URL = 'https://rwowvvpobywtokcqfxve.supabase.co';
@@ -150,7 +152,7 @@
             try {
                 const { data: cartoes } = await _supabase.from('cartoes').select('*').order('nome');
                 const { data: cats } = await _supabase.from('categorias').select('*').order('nome');
-                renderSidebar(cartoes);
+                renderBancosLists(cartoes);
                 renderSelects(cartoes, cats);
                 renderConfigLists(cartoes, cats);
 
@@ -173,6 +175,26 @@
             } catch (e) { console.error(e); }
         }
 
+        function toggleDrawer(open) {
+            document.getElementById('body-root').classList.toggle('drawer-active', open);
+        }
+
+        function renderBancosLists(lista) {
+            const btns = lista?.map(c => {
+                const activeClass = filtroCartao === c.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-100';
+                return `<button onclick="setFiltroCartao('${c.id}')" class="font-black text-[9px] uppercase shadow-sm border ${activeClass}">${c.nome}</button>`;
+            }).join('') || '';
+            
+            document.getElementById('sidebar-cartoes').innerHTML = btns;
+            document.getElementById('mobile-lista-bancos').innerHTML = btns;
+        }
+
+        function setFiltroCartao(id) { 
+            filtroCartao = filtroCartao === id ? null : id; 
+            toggleDrawer(false); 
+            atualizarTudo(); 
+        }
+
         function zerarResumo() {
             document.getElementById('res-valor-1').innerText = "R$ 0,00";
             document.getElementById('res-valor-2').innerText = "R$ 0,00";
@@ -192,10 +214,6 @@
             document.getElementById('txt-label-1').innerText = "Contas não Parceladas";
             document.getElementById('txt-label-2').innerText = "Contas Parceladas";
             document.getElementById('txt-label-3').innerText = "Somatório Total";
-        }
-
-        function renderSidebar(lista) {
-            document.getElementById('sidebar-cartoes').innerHTML = lista?.map(c => `<button onclick="setFiltroCartao('${c.id}')" class="font-black text-[9px] uppercase shadow-sm border ${filtroCartao === c.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-100'}">${c.nome}</button>`).join('') || '';
         }
 
         function renderTabela(dados) {
@@ -254,7 +272,6 @@
             await q; itemParaExcluir = null; fecharModais(); await atualizarTudo();
         }
 
-        function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; atualizarTudo(); }
         function toggleParcelados() { filtroParcelado = !filtroParcelado; document.getElementById('btn-parcelados').classList.toggle('bg-orange-500'); atualizarTudo(); }
         function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
         function fecharModais() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
