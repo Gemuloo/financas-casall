@@ -16,7 +16,7 @@
         .floating-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1.5rem; z-index: 50; }
         .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; padding: 1.5rem; }
         .modal-content { background-color: white; width: 100%; max-width: 450px; border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); max-height: 90vh; overflow-y: auto; position: relative; }
-        .btn-close-modal { position: absolute; top: 1.5rem; right: 1.5rem; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; transition: color 0.2s; }
+        .btn-close-modal { position: absolute; top: 1.5rem; right: 1.5rem; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; }
         .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.6rem 2rem 0.6rem 1.2rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
     </style>
 </head>
@@ -54,7 +54,7 @@
                 </section>
 
                 <div class="flex justify-center mb-8">
-                    <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest transition-all hover:bg-blue-600">Somente Parcelados</button>
+                    <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest transition-all">Somente Parcelados</button>
                 </div>
 
                 <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
@@ -84,6 +84,38 @@
         </button>
     </div>
 
+    <div id="modal-config" class="modal-overlay">
+        <div class="modal-content p-8">
+            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-8 italic text-center underline decoration-blue-500">Configurações</h3>
+            
+            <div class="space-y-10">
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <h4 class="text-[10px] font-black text-blue-600 uppercase mb-4 tracking-widest flex items-center gap-2">
+                        <i class="fas fa-credit-card"></i> Gerenciar Bancos
+                    </h4>
+                    <div class="flex gap-2 mb-4">
+                        <input id="f-nome-cartao" type="text" placeholder="Nome do Banco" class="flex-1 bg-white border p-3 rounded-xl font-bold text-xs outline-none">
+                        <button onclick="salvarCartao()" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button>
+                    </div>
+                    <div id="lista-bancos-modal" class="space-y-2 max-h-32 overflow-y-auto custom-scroll"></div>
+                </div>
+
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    <h4 class="text-[10px] font-black text-emerald-600 uppercase mb-4 tracking-widest flex items-center gap-2">
+                        <i class="fas fa-tags"></i> Gerenciar Categorias
+                    </h4>
+                    <div class="flex gap-2 mb-4">
+                        <input id="f-nome-cat" type="text" placeholder="Nome Categoria" class="flex-1 bg-white border p-3 rounded-xl font-bold text-xs outline-none">
+                        <button onclick="salvarCategoria()" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button>
+                    </div>
+                    <div id="lista-categorias-modal" class="space-y-2 max-h-32 overflow-y-auto custom-scroll"></div>
+                </div>
+            </div>
+            <button onclick="fecharModais()" class="w-full bg-slate-800 text-white font-black py-4 rounded-xl mt-8 uppercase text-[10px]">Fechar</button>
+        </div>
+    </div>
+
     <div id="modal-lancar" class="modal-overlay">
         <div class="modal-content p-8">
             <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
@@ -100,32 +132,7 @@
                     <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('f-qtd-parc').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label>
                     <input id="f-qtd-parc" type="number" placeholder="Nº de parcelas" style="display:none" class="w-full bg-white border p-4 rounded-xl text-xs font-bold outline-none">
                 </div>
-                <button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] shadow-xl hover:bg-blue-700 transition-all">Salvar</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-config" class="modal-overlay">
-        <div class="modal-content p-8">
-            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
-            <h3 class="font-black text-slate-800 text-xl uppercase mb-8 italic text-center">Configurações</h3>
-            <div class="space-y-8">
-                <div>
-                    <h4 class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Adicionar Banco</h4>
-                    <div class="flex gap-2 mb-4">
-                        <input id="f-nome-cartao" type="text" placeholder="Nome do Banco" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none">
-                        <button onclick="salvarCartao()" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button>
-                    </div>
-                    <div id="lista-bancos-modal" class="space-y-2 max-h-40 overflow-y-auto custom-scroll border-t pt-4"></div>
-                </div>
-                <div>
-                    <h4 class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Adicionar Categoria</h4>
-                    <div class="flex gap-2 mb-4">
-                        <input id="f-nome-cat" type="text" placeholder="Nome Categoria" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none">
-                        <button onclick="salvarCategoria()" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button>
-                    </div>
-                    <div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto custom-scroll border-t pt-4"></div>
-                </div>
+                <button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] shadow-xl">Salvar Lançamento</button>
             </div>
         </div>
     </div>
@@ -179,83 +186,80 @@
             calcularResumo(despesas);
         }
 
-        function renderSidebar(lista) {
-            const div = document.getElementById('sidebar-cartoes');
-            div.innerHTML = '';
-            lista?.forEach(c => {
-                div.innerHTML += `
-                <div class="relative group">
-                    <button onclick="setFiltroCartao('${c.id}')" class="w-full text-left p-4 rounded-2xl font-bold text-[10px] uppercase ${filtroCartao === c.id ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-50 text-slate-500 hover:bg-blue-50'} transition-all">${c.nome}</button>
-                </div>`;
-            });
-        }
-
-        function renderConfigLists(cartoes, cats) {
-            const listBancos = document.getElementById('lista-bancos-modal');
-            listBancos.innerHTML = cartoes?.length ? '' : '<p class="text-[9px] text-slate-300 uppercase">Nenhum banco cadastrado</p>';
-            cartoes?.forEach(c => {
-                listBancos.innerHTML += `<div class="flex justify-between p-3 bg-slate-50 rounded-xl text-[10px] font-black uppercase"><span>${c.nome}</span><button onclick="excluir('cartoes', '${c.id}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash-alt"></i></button></div>`;
-            });
-
-            const listCats = document.getElementById('lista-categorias-modal');
-            listCats.innerHTML = cats?.length ? '' : '<p class="text-[9px] text-slate-300 uppercase">Nenhuma categoria cadastrada</p>';
-            cats?.forEach(c => {
-                listCats.innerHTML += `<div class="flex justify-between p-3 bg-slate-50 rounded-xl text-[10px] font-black uppercase"><span>${c.nome}</span><button onclick="excluir('categorias', '${c.id}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash-alt"></i></button></div>`;
-            });
-        }
-
         async function salvarCartao() {
             const nome = document.getElementById('f-nome-cartao').value;
             if(!nome) return;
-            const { error } = await _supabase.from('cartoes').insert([{nome}]);
-            if(!error) {
-                document.getElementById('f-nome-cartao').value = '';
-                atualizarTudo();
+            const { error } = await _supabase.from('cartoes').insert({ nome: nome });
+            if(error) { alert("Erro ao salvar banco!"); console.error(error); }
+            else { 
+                document.getElementById('f-nome-cartao').value = ''; 
+                await atualizarTudo(); 
             }
         }
 
         async function salvarCategoria() {
             const nome = document.getElementById('f-nome-cat').value;
             if(!nome) return;
-            const { error } = await _supabase.from('categorias').insert([{nome}]);
-            if(!error) {
-                document.getElementById('f-nome-cat').value = '';
-                atualizarTudo();
+            const { error } = await _supabase.from('categorias').insert({ nome: nome });
+            if(error) { alert("Erro ao salvar categoria!"); console.error(error); }
+            else { 
+                document.getElementById('f-nome-cat').value = ''; 
+                await atualizarTudo(); 
             }
         }
 
-        async function excluir(tab, id) {
-            if(confirm("Deseja apagar permanentemente?")) {
-                await _supabase.from(tab).delete().eq('id', id);
-                if(filtroCartao === id) filtroCartao = null;
-                atualizarTudo();
-            }
+        function renderConfigLists(cartoes, cats) {
+            const lb = document.getElementById('lista-bancos-modal');
+            lb.innerHTML = cartoes?.map(c => `
+                <div class="flex justify-between p-3 bg-white border rounded-xl text-[10px] font-black uppercase">
+                    <span>${c.nome}</span>
+                    <button onclick="excluir('cartoes', '${c.id}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                </div>`).join('') || '<p class="text-[9px] text-slate-300">Nenhum banco.</p>';
+
+            const lc = document.getElementById('lista-categorias-modal');
+            lc.innerHTML = cats?.map(c => `
+                <div class="flex justify-between p-3 bg-white border rounded-xl text-[10px] font-black uppercase">
+                    <span>${c.nome}</span>
+                    <button onclick="excluir('categorias', '${c.id}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                </div>`).join('') || '<p class="text-[9px] text-slate-300">Nenhuma categoria.</p>';
+        }
+
+        function renderSidebar(lista) {
+            const div = document.getElementById('sidebar-cartoes');
+            div.innerHTML = lista?.map(c => `
+                <button onclick="setFiltroCartao('${c.id}')" class="w-full text-left p-4 rounded-2xl font-bold text-[10px] uppercase ${filtroCartao === c.id ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-50 text-slate-500 hover:bg-blue-50'} transition-all">${c.nome}</button>
+            `).join('') || '';
         }
 
         function renderTabela(dados) {
             const tbody = document.getElementById('lista-corpo');
-            tbody.innerHTML = dados?.length ? '' : '<tr><td colspan="4" class="p-10 text-center text-slate-300 uppercase text-[10px]">Sem gastos neste mês</td></tr>';
-            dados?.forEach(d => {
-                tbody.innerHTML += `
-                    <tr class="border-t border-slate-50 hover:bg-slate-50/50">
-                        <td class="p-6">${d.descricao} ${d.is_parcelado ? '<span class="ml-2 text-[8px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded font-black">P</span>' : ''}</td>
-                        <td class="p-6 text-[10px] text-slate-400 uppercase font-black">${d.cartoes?.nome || 'DÉBITO'}</td>
-                        <td class="p-6">R$ ${Number(d.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                        <td class="p-6 text-center"><button onclick="excluir('despesas', '${d.id}')" class="text-red-100 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></td>
-                    </tr>`;
-            });
+            tbody.innerHTML = dados?.length ? dados.map(d => `
+                <tr class="border-t border-slate-50 hover:bg-slate-50/50">
+                    <td class="p-6">${d.descricao} ${d.is_parcelado ? '<span class="ml-2 text-[8px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded font-black">P</span>' : ''}</td>
+                    <td class="p-6 text-[10px] text-slate-400 uppercase font-black">${d.cartoes?.nome || 'DÉBITO'}</td>
+                    <td class="p-6">R$ ${Number(d.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="p-6 text-center"><button onclick="excluir('despesas', '${d.id}')" class="text-red-100 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></td>
+                </tr>`).join('') : '<tr><td colspan="4" class="p-10 text-center text-slate-300 uppercase text-[10px]">Sem gastos</td></tr>';
         }
 
         function calcularResumo(dados) {
-            const totalNaoParc = dados?.filter(d => !d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0) || 0;
-            const totalParc = dados?.filter(d => d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0) || 0;
-            const totalGeral = totalNaoParc + totalParc;
-            document.getElementById('res-valor-1').innerText = `R$ ${totalNaoParc.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('res-valor-2').innerText = `R$ ${totalParc.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('res-total').innerText = `R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('txt-label-1').innerText = filtroCartao ? "Contas não Parceladas" : "Saldo em Conta";
-            document.getElementById('txt-label-2').innerText = filtroCartao ? "Contas Parceladas" : "Faturas";
-            document.getElementById('txt-label-3').innerText = filtroCartao ? "Somatório Total" : "Balanço do Mês";
+            const tNaoP = dados?.filter(d => !d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0) || 0;
+            const tP = dados?.filter(d => d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0) || 0;
+            const total = tNaoP + tP;
+            document.getElementById('res-valor-1').innerText = `R$ ${tNaoP.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('res-valor-2').innerText = `R$ ${tP.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('res-total').innerText = `R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            
+            // Lógica dinâmica baseada no filtro de cartão (conforme sua solicitação salva)
+            if(filtroCartao) {
+                document.getElementById('txt-label-1').innerText = "Contas não Parceladas";
+                document.getElementById('txt-label-2').innerText = "Contas Parceladas";
+                document.getElementById('txt-label-3').innerText = "Somatório Total";
+            } else {
+                document.getElementById('txt-label-1').innerText = "Saldo em Conta";
+                document.getElementById('txt-label-2').innerText = "Faturas";
+                document.getElementById('txt-label-3').innerText = "Balanço do Mês";
+            }
         }
 
         async function confirmarLancamento() {
@@ -289,27 +293,26 @@
         async function gerarResumoAnual() {
             abrirModal('modal-resumo');
             const corpo = document.getElementById('corpo-resumo-anual');
-            corpo.innerHTML = '<p class="text-center p-4 text-xs font-bold text-slate-400 uppercase">Calculando...</p>';
+            corpo.innerHTML = '<p class="text-center p-4 text-xs font-black text-slate-400">PROCESSANDO...</p>';
             const ano = document.getElementById('sel-ano').value;
             const { data } = await _supabase.from('despesas').select('valor, data').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
-            corpo.innerHTML = '';
-            mesesNomes.forEach((nome, i) => {
+            corpo.innerHTML = mesesNomes.map((nome, i) => {
                 const total = data?.filter(d => new Date(d.data).getMonth() === i).reduce((acc, curr) => acc + Number(curr.valor), 0) || 0;
-                corpo.innerHTML += `
-                    <div class="flex justify-between items-center p-4 bg-slate-50 rounded-xl">
-                        <span class="text-[10px] font-black text-slate-400 uppercase">${nome}</span>
-                        <span class="text-xs font-black ${total > 0 ? 'text-slate-800' : 'text-slate-300'}">R$ ${total.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
-                    </div>`;
-            });
+                return `<div class="flex justify-between p-4 bg-slate-50 rounded-xl"><span class="text-[10px] font-black text-slate-400 uppercase">${nome}</span><span class="text-xs font-black">R$ ${total.toLocaleString('pt-BR')}</span></div>`;
+            }).join('');
+        }
+
+        async function excluir(tab, id) {
+            if(confirm("Confirmar exclusão?")) {
+                await _supabase.from(tab).delete().eq('id', id);
+                if(filtroCartao === id) filtroCartao = null;
+                await atualizarTudo();
+            }
         }
 
         function renderSelects(cartoes, cats) {
-            const sc = document.getElementById('f-cartao');
-            sc.innerHTML = '<option value="">Banco?</option>';
-            cartoes?.forEach(c => sc.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
-            const st = document.getElementById('f-cat');
-            st.innerHTML = '<option value="">Categoria</option>';
-            cats?.forEach(c => st.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
+            document.getElementById('f-cartao').innerHTML = '<option value="">Banco?</option>' + cartoes?.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            document.getElementById('f-cat').innerHTML = '<option value="">Categoria</option>' + cats?.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
         }
 
         function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; atualizarTudo(); }
