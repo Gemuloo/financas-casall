@@ -9,57 +9,34 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         html { height: -webkit-fill-available; }
-        body { 
-            min-height: 100vh; 
-            min-height: -webkit-fill-available; 
-            margin: 0; 
-            background-color: #f8fafc; 
-            font-size: 14px; 
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+        body { min-height: 100vh; margin: 0; background-color: #f8fafc; font-size: 14px; overflow-x: hidden; display: flex; flex-direction: column; }
         .layout-container { display: flex; flex: 1; width: 100vw; overflow: hidden; }
         main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; }
         .content-wrapper { padding: 1.5rem; padding-bottom: 300px; }
-        
-        /* SIDEBAR DESKTOP */
         aside { width: 260px; background: white; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; }
         #sidebar-cartoes { display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; }
-        #sidebar-cartoes button { width: 100%; padding: 1rem; border-radius: 1rem; text-align: left; font-weight: 900; font-size: 10px; text-transform: uppercase; transition: all 0.2s; }
-
-        /* BOTÃO FLUTUANTE ESQUERDA (MOBILE) */
-        #btn-menu-bancos { display: none; position: fixed; top: 1.5rem; left: 1.5rem; z-index: 100; width: 50px; height: 50px; background: #1e293b; color: white; border-radius: 15px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); align-items: center; justify-content: center; }
-
-        /* DRAWER MOBILE */
+        #sidebar-cartoes button { width: 100%; padding: 1rem; border-radius: 1rem; text-align: left; font-weight: 900; font-size: 10px; text-transform: uppercase; }
+        #btn-menu-bancos { display: none; position: fixed; top: 1.5rem; left: 1.5rem; z-index: 100; width: 50px; height: 50px; background: #1e293b; color: white; border-radius: 15px; align-items: center; justify-content: center; }
         .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 110; }
-        .drawer-content { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; z-index: 120; transition: left 0.3s ease; padding: 2rem; box-shadow: 10px 0 30px rgba(0,0,0,0.1); }
+        .drawer-content { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; z-index: 120; transition: left 0.3s ease; padding: 2rem; }
         .drawer-active .drawer-content { left: 0; }
         .drawer-active .drawer-overlay { display: block; }
-
-        .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1.5rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
+        .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1.5rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; }
         .floating-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1rem; z-index: 90; width: max-content; pointer-events: none; }
         .floating-controls button { pointer-events: auto; }
         .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 150; align-items: center; justify-content: center; padding: 1rem; }
-        .modal-content { background-color: white; width: 100%; max-width: 480px; border-radius: 2.5rem; max-height: 90vh; overflow-y: auto; position: relative; }
-
-        @media (max-width: 768px) {
-            aside { display: none !important; } /* Esconde sidebar no mobile */
-            #btn-menu-bancos { display: flex; } /* Mostra botão flutuante */
-            .content-wrapper { padding-top: 5rem; }
-        }
+        .modal-content { background-color: white; width: 100%; max-width: 480px; border-radius: 2.5rem; max-height: 90vh; overflow-y: auto; position: relative; padding: 2rem; }
+        @media (max-width: 768px) { aside { display: none !important; } #btn-menu-bancos { display: flex; } .content-wrapper { padding-top: 5rem; } }
     </style>
 </head>
 <body id="body-root">
 
-    <button id="btn-menu-bancos" onclick="toggleDrawer(true)">
-        <i class="fas fa-university"></i>
-    </button>
+    <button id="btn-menu-bancos" onclick="toggleDrawer(true)"><i class="fas fa-university"></i></button>
 
     <div id="drawer-container">
         <div class="drawer-overlay" onclick="toggleDrawer(false)"></div>
         <div class="drawer-content">
-            <h3 class="font-black text-slate-800 text-lg uppercase mb-6 italic">Selecionar Banco</h3>
+            <h3 class="font-black text-slate-800 text-lg uppercase mb-6 italic">Bancos</h3>
             <div id="mobile-lista-bancos" class="flex flex-col gap-3"></div>
         </div>
     </div>
@@ -70,7 +47,7 @@
             <div id="sidebar-cartoes" class="overflow-y-auto"></div>
         </aside>
 
-        <main id="main-scroll">
+        <main>
             <div class="content-wrapper">
                 <div class="flex justify-center mb-6 gap-2">
                     <select id="sel-mes" class="date-select" onchange="atualizarTudo()"></select>
@@ -93,14 +70,10 @@
                 </section>
 
                 <div id="view-relatorio" style="display: none;">
-                    <div class="flex justify-center mb-8">
-                        <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg transition-all">Somente Parcelados</button>
-                    </div>
+                    <div class="flex justify-center mb-8"><button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg">Somente Parcelados</button></div>
                     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-x-auto">
                         <table class="w-full text-left min-w-[400px]">
-                            <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                <tr><th class="p-6">Data</th><th class="p-6">Descrição</th><th class="p-6">Valor</th><th class="p-6 text-center">Ações</th></tr>
-                            </thead>
+                            <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-widest"><tr><th class="p-6">Data</th><th class="p-6">Descrição</th><th class="p-6">Valor</th><th class="p-6 text-center">Ações</th></tr></thead>
                             <tbody id="lista-corpo" class="text-xs font-bold text-slate-700"></tbody>
                         </table>
                     </div>
@@ -108,191 +81,175 @@
 
                 <div id="view-placeholder" class="py-20 text-center">
                     <i class="fas fa-hand-pointer text-slate-200 text-4xl mb-4"></i>
-                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Selecione um banco para ver os detalhes</p>
+                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Selecione um banco</p>
                 </div>
             </div>
         </main>
     </div>
 
     <div class="floating-controls">
-        <button onclick="gerarResumoAnual()" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center"><i class="fas fa-calendar-alt text-slate-300 text-lg"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Anual</span></button>
-        <button onclick="abrirModal('modal-lancar')" class="bg-blue-600 w-24 h-24 md:w-28 md:h-28 rounded-[2rem] shadow-2xl border-4 md:border-8 border-white flex flex-col items-center justify-center -translate-y-4"><i class="fas fa-plus text-white text-3xl"></i><span class="text-[9px] font-black mt-1 text-white uppercase tracking-widest">Lancar</span></button>
-        <button onclick="abrirModal('modal-menu-config')" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center"><i class="fas fa-cog text-slate-300 text-lg"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Config</span></button>
+        <button onclick="gerarResumoAnual()" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center"><i class="fas fa-calendar-alt text-slate-300"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Anual</span></button>
+        <button onclick="abrirModal('modal-lancar')" class="bg-blue-600 w-24 h-24 md:w-28 md:h-28 rounded-[2rem] shadow-2xl border-4 md:border-8 border-white flex flex-col items-center justify-center -translate-y-4 text-white"><i class="fas fa-plus text-3xl"></i><span class="text-[9px] font-black uppercase">Lancar</span></button>
+        <button onclick="abrirModal('modal-menu-config')" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center"><i class="fas fa-cog text-slate-300"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Config</span></button>
     </div>
 
-    <div id="modal-lancar" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><input id="f-desc" type="text" placeholder="Descrição" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none"><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data do Gasto</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs outline-none"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select><select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select></div><div class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Gasto Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold outline-none"></div></div><button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] shadow-xl">Confirmar</button></div></div></div>
-    <div id="modal-menu-config" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4"><div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-credit-card"></i></div><span class="font-black text-blue-700 uppercase text-xs">Meus Bancos</span></button><button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4"><div class="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-tags"></i></div><span class="font-black text-emerald-700 uppercase text-xs">Categorias</span></button></div></div></div>
-    <div id="modal-bancos" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none"><button onclick="salvarItem('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
-    <div id="modal-categorias" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none"><button onclick="salvarItem('categorias', 'f-nome-cat')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
-    <div id="modal-excluir-parcelado" class="modal-overlay"><div class="modal-content p-8 text-center"><h3 class="font-black text-slate-800 text-lg uppercase mb-6 italic">Excluir Parcelamento</h3><div class="space-y-3" id="opcoes-exclusao-container"></div></div></div>
-    <div id="modal-anual" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Resumo Anual</h3><div id="corpo-anual" class="space-y-2"></div></div></div>
+    <div id="modal-menu-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4 text-blue-700 font-black uppercase text-xs"><i class="fas fa-credit-card"></i> Bancos</button><button onclick="fecharModais(); abrirModal('modal-salario')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4 text-emerald-700 font-black uppercase text-xs"><i class="fas fa-money-bill-wave"></i> Meu Salário</button></div></div></div>
+
+    <div id="modal-salario" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Cadastrar Salário</h3><div class="space-y-4"><select id="f-sal-mes" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></select><input id="f-sal-valor" type="number" placeholder="Valor do Salário" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-xl outline-none"><button onclick="salvarSalario()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl uppercase text-xs">Salvar Salário</button></div></div></div>
+
+    <div id="modal-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Resumo Anual</h3><div id="corpo-anual" class="space-y-2 mb-6"></div><button onclick="gerarAnaliseGastos()" class="w-full bg-slate-800 text-white font-black py-4 rounded-xl uppercase text-xs tracking-widest">Análise de Gastos</button></div></div>
+
+    <div id="modal-analise" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">O quanto posso gastar?</h3><div id="corpo-analise" class="space-y-3"></div></div></div>
+
+    <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><input id="f-desc" type="text" placeholder="Descrição" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select><select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select></div><div class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold"></div></div><button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px]">Confirmar</button></div></div></div>
+    <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarItem('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-bancos-modal" class="space-y-2"></div></div></div>
 
     <script>
         const SUPABASE_URL = 'https://rwowvvpobywtokcqfxve.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3b3d2dnBvYnl3dG9rY3FmeHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNDY3MTgsImV4cCI6MjA4NzgyMjcxOH0.AJVmEKeUk22L4eT_FMLls0-xAJhMrAITOazM_1XmUaM';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let filtroCartao = null;
-        let filtroParcelado = false;
-        let itemParaExcluir = null;
+        let filtroCartao = null, filtroParcelado = false, itemParaExcluir = null;
         const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
-        window.onload = () => { setupDatas(); document.getElementById('f-data').valueAsDate = new Date(); atualizarTudo(); };
+        window.onload = () => { 
+            setupDatas(); 
+            document.getElementById('f-data').valueAsDate = new Date(); 
+            atualizarTudo(); 
+        };
 
         function setupDatas() {
-            const ms = document.getElementById('sel-mes');
-            mesesNomes.forEach((m, i) => ms.innerHTML += `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`);
+            const ms = document.getElementById('sel-mes'), fs = document.getElementById('f-sal-mes');
+            mesesNomes.forEach((m, i) => {
+                const opt = `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`;
+                ms.innerHTML += opt; fs.innerHTML += opt;
+            });
             const as = document.getElementById('sel-ano');
             [2025, 2026, 2027].forEach(a => as.innerHTML += `<option value="${a}" ${a === 2026 ? 'selected' : ''}>${a}</option>`);
         }
 
         async function atualizarTudo() {
-            const mes = parseInt(document.getElementById('sel-mes').value);
-            const ano = parseInt(document.getElementById('sel-ano').value);
-            try {
-                const { data: cartoes } = await _supabase.from('cartoes').select('*').order('nome');
-                const { data: cats } = await _supabase.from('categorias').select('*').order('nome');
-                renderBancosLists(cartoes);
-                renderSelects(cartoes, cats);
-                renderConfigLists(cartoes, cats);
+            const mes = parseInt(document.getElementById('sel-mes').value), ano = parseInt(document.getElementById('sel-ano').value);
+            const { data: cartoes } = await _supabase.from('cartoes').select('*').order('nome');
+            const { data: cats } = await _supabase.from('categorias').select('*').order('nome');
+            renderBancosLists(cartoes);
+            renderSelects(cartoes, cats);
+            renderConfigLists(cartoes);
 
-                const dInicio = new Date(ano, mes, 1).toISOString();
-                const dFim = new Date(ano, mes + 1, 0, 23, 59, 59).toISOString();
-                const { data: todasDoMes } = await _supabase.from('despesas').select('*').gte('data', dInicio).lte('data', dFim).order('data', { ascending: true });
-                
-                if (filtroCartao) {
-                    document.getElementById('view-relatorio').style.display = 'block';
-                    document.getElementById('view-placeholder').style.display = 'none';
-                    let despesasTabela = (todasDoMes || []).filter(d => d.cartao_id === filtroCartao);
-                    if(filtroParcelado) despesasTabela = despesasTabela.filter(d => d.is_parcelado);
-                    renderTabela(despesasTabela);
-                    calcularResumo(todasDoMes || [], filtroCartao);
-                } else {
-                    document.getElementById('view-relatorio').style.display = 'none';
-                    document.getElementById('view-placeholder').style.display = 'block';
-                    zerarResumo();
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        function toggleDrawer(open) {
-            document.getElementById('body-root').classList.toggle('drawer-active', open);
-        }
-
-        function renderBancosLists(lista) {
-            const btns = lista?.map(c => {
-                const activeClass = filtroCartao === c.id ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-100';
-                return `<button onclick="setFiltroCartao('${c.id}')" class="font-black text-[9px] uppercase shadow-sm border ${activeClass}">${c.nome}</button>`;
-            }).join('') || '';
+            const dInicio = new Date(ano, mes, 1).toISOString(), dFim = new Date(ano, mes + 1, 0, 23, 59, 59).toISOString();
+            const { data: todasDoMes } = await _supabase.from('despesas').select('*').gte('data', dInicio).lte('data', dFim).order('data');
             
-            document.getElementById('sidebar-cartoes').innerHTML = btns;
-            document.getElementById('mobile-lista-bancos').innerHTML = btns;
-        }
-
-        function setFiltroCartao(id) { 
-            filtroCartao = filtroCartao === id ? null : id; 
-            toggleDrawer(false); 
-            atualizarTudo(); 
-        }
-
-        function zerarResumo() {
-            document.getElementById('res-valor-1').innerText = "R$ 0,00";
-            document.getElementById('res-valor-2').innerText = "R$ 0,00";
-            document.getElementById('res-total').innerText = "R$ 0,00";
-            document.getElementById('txt-label-1').innerText = "Saldo em Conta";
-            document.getElementById('txt-label-2').innerText = "Faturas";
-            document.getElementById('txt-label-3').innerText = "Balanço do Mês";
-        }
-
-        function calcularResumo(dados, idCartaoAtivo) {
-            const baseDados = dados.filter(d => d.cartao_id === idCartaoAtivo);
-            const tNaoP = baseDados.filter(d => !d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
-            const tP = baseDados.filter(d => d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
-            document.getElementById('res-valor-1').innerText = `R$ ${tNaoP.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('res-valor-2').innerText = `R$ ${tP.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('res-total').innerText = `R$ ${(tNaoP + tP).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
-            document.getElementById('txt-label-1').innerText = "Contas não Parceladas";
-            document.getElementById('txt-label-2').innerText = "Contas Parceladas";
-            document.getElementById('txt-label-3').innerText = "Somatório Total";
-        }
-
-        function renderTabela(dados) {
-            document.getElementById('lista-corpo').innerHTML = dados?.map(d => {
-                const dF = new Date(d.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
-                return `<tr class="border-t border-slate-50"><td class="p-6 text-[10px] text-slate-400 font-black uppercase">${dF}</td><td class="p-6">${d.descricao}</td><td class="p-6 font-black">R$ ${Number(d.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td><td class="p-6 text-center"><button onclick="excluir('despesas', '${d.id}')" class="text-slate-200 hover:text-red-500"><i class="fas fa-trash-alt"></i></button></td></tr>`
-            }).join('') || '<tr><td colspan="4" class="p-10 text-center text-slate-300 uppercase text-[9px]">Sem gastos</td></tr>';
-        }
-
-        async function confirmarLancamento() {
-            const desc = document.getElementById('f-desc').value;
-            const valorTotal = parseFloat(document.getElementById('f-valor').value);
-            const dataInput = document.getElementById('f-data').value;
-            if(!desc || !valorTotal || !dataInput) return alert("Preencha tudo!");
-            const cartao = document.getElementById('f-cartao').value;
-            const cat = document.getElementById('f-cat').value;
-            const isFixa = document.getElementById('f-fixa').checked;
-            const isParc = document.getElementById('f-parc').checked;
-            const qtdInput = parseInt(document.getElementById('f-qtd-parc').value);
-            let qtdLoop = isParc ? (qtdInput || 1) : 1;
-            const valorParcela = isParc ? (valorTotal / qtdLoop) : valorTotal;
-            const insercoes = [];
-            const dataBase = new Date(dataInput + 'T12:00:00');
-            for(let i=0; i < qtdLoop; i++) {
-                let dV = new Date(dataBase); dV.setMonth(dataBase.getMonth() + i);
-                insercoes.push({
-                    descricao: isParc ? `${desc} (${i+1}/${qtdLoop})` : desc,
-                    valor: valorParcela, cartao_id: cartao || null, categoria_id: cat || null,
-                    is_fixa: isFixa, is_parcelado: isParc, parcelas: qtdLoop, data: dV.toISOString()
-                });
+            if (filtroCartao) {
+                document.getElementById('view-relatorio').style.display = 'block'; document.getElementById('view-placeholder').style.display = 'none';
+                let dTab = (todasDoMes || []).filter(d => d.cartao_id === filtroCartao);
+                if(filtroParcelado) dTab = dTab.filter(d => d.is_parcelado);
+                renderTabela(dTab); calcularResumo(todasDoMes || [], filtroCartao);
+            } else {
+                document.getElementById('view-relatorio').style.display = 'none'; document.getElementById('view-placeholder').style.display = 'block';
+                zerarResumo();
             }
-            await _supabase.from('despesas').insert(insercoes);
-            fecharModais(); await atualizarTudo();
         }
 
-        async function excluir(tab, id) {
-            if (tab !== 'despesas') {
-                if (confirm("Excluir?")) { await _supabase.from(tab).delete().eq('id', id); await atualizarTudo(); }
-                return;
-            }
-            const { data: d } = await _supabase.from('despesas').select('*').eq('id', id).single();
-            if (d && d.is_parcelado) {
-                itemParaExcluir = d;
-                document.getElementById('opcoes-exclusao-container').innerHTML = `<button onclick="executarExclusao('unica')" class="w-full p-4 bg-slate-100 rounded-xl font-black text-[10px] uppercase">Apenas esta</button><button onclick="executarExclusao('proximas')" class="w-full p-4 bg-orange-50 text-orange-600 rounded-xl font-black text-[10px] uppercase">Esta e próximas</button><button onclick="executarExclusao('todas')" class="w-full p-4 bg-red-50 text-red-600 rounded-xl font-black text-[10px] uppercase">Todas</button>`;
-                abrirModal('modal-excluir-parcelado');
-            } else { if (confirm("Excluir?")) { await _supabase.from('despesas').delete().eq('id', id); await atualizarTudo(); } }
+        async function salvarSalario() {
+            const mes = document.getElementById('f-sal-mes').value, valor = document.getElementById('f-sal-valor').value, ano = document.getElementById('sel-ano').value;
+            if(!valor) return alert("Insira um valor");
+            await _supabase.from('salarios').upsert({ mes_ano: `${ano}-${mes}`, valor: parseFloat(valor) }, { onConflict: 'mes_ano' });
+            alert("Salário salvo!"); fecharModais();
         }
 
-        async function executarExclusao(tipo) {
-            const { descricao, data, cartao_id } = itemParaExcluir;
-            const baseDesc = descricao.split(' (')[0]; 
-            let q = _supabase.from('despesas').delete();
-            if (tipo === 'unica') q = q.eq('id', itemParaExcluir.id);
-            else if (tipo === 'proximas') q = q.ilike('descricao', `${baseDesc}%`).eq('cartao_id', cartao_id).gte('data', data);
-            else if (tipo === 'todas') q = q.ilike('descricao', `${baseDesc}%`).eq('cartao_id', cartao_id);
-            await q; itemParaExcluir = null; fecharModais(); await atualizarTudo();
-        }
+        async function gerarAnaliseGastos() {
+            const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-analise');
+            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Calculando Projeção...</p>';
+            abrirModal('modal-analise');
+            
+            const { data: gastos } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
+            const { data: salarios } = await _supabase.from('salarios').select('*');
 
-        function toggleParcelados() { filtroParcelado = !filtroParcelado; document.getElementById('btn-parcelados').classList.toggle('bg-orange-500'); atualizarTudo(); }
-        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function fecharModais() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
-        async function salvarItem(tab, inputId) { const el = document.getElementById(inputId); if(!el.value) return; await _supabase.from(tab).insert([{ nome: el.value }]); el.value = ''; await atualizarTudo(); }
-        function renderSelects(cartoes, cats) { document.getElementById('f-cartao').innerHTML = '<option value="">Banco?</option>' + cartoes?.map(c => `<option value="${c.id}">${c.nome}</option>`).join(''); document.getElementById('f-cat').innerHTML = '<option value="">Categoria</option>' + cats?.map(c => `<option value="${c.id}">${c.nome}</option>`).join(''); }
-        function renderConfigLists(cartoes, cats) { document.getElementById('lista-bancos-modal').innerHTML = cartoes?.map(c => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${c.nome}</span><button onclick="excluir('cartoes', '${c.id}')"><i class="fas fa-trash text-red-300"></i></button></div>`).join('') || ''; document.getElementById('lista-categorias-modal').innerHTML = cats?.map(c => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${c.nome}</span><button onclick="excluir('categorias', '${c.id}')"><i class="fas fa-trash text-red-300"></i></button></div>`).join('') || ''; }
-        async function gerarResumoAnual() {
-            const ano = document.getElementById('sel-ano').value;
-            const corpo = document.getElementById('corpo-anual');
-            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
-            abrirModal('modal-anual');
-            const { data } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
-            let h = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2"><div class="w-1/4">Mês</div><div class="w-1/4 text-center">Fixas</div><div class="w-1/4 text-center">Normais</div><div class="w-1/4 text-right">Total</div></div>`;
+            let h = '';
             mesesNomes.forEach((n, i) => {
-                const dM = data?.filter(d => new Date(d.data).getMonth() === i) || [];
-                const tF = dM.filter(d => d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
-                const tN = dM.filter(d => !d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
-                h += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${n}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${tF.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${tN.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${(tF+tN).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div>`;
+                const totalGasto = gastos?.filter(d => new Date(d.data).getMonth() === i).reduce((a, b) => a + Number(b.valor), 0) || 0;
+                const salObj = salarios?.find(s => s.mes_ano === `${ano}-${i}`);
+                const valorSal = salObj ? Number(salObj.valor) : 0;
+                const sobra = valorSal - totalGasto;
+                
+                h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div class="flex justify-between items-center mb-2"><span class="font-black text-[10px] uppercase text-slate-800">${n}</span></div>
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div><p class="text-[7px] font-black text-slate-400 uppercase">Gastos</p><p class="text-[10px] font-bold text-red-500">R$ ${totalGasto.toLocaleString('pt-BR')}</p></div>
+                            <div><p class="text-[7px] font-black text-slate-400 uppercase">Salário</p><p class="text-[10px] font-bold text-emerald-600">R$ ${valorSal.toLocaleString('pt-BR')}</p></div>
+                            <div><p class="text-[7px] font-black text-slate-400 uppercase">Sobra</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-700' : 'text-blue-700'}">R$ ${sobra.toLocaleString('pt-BR')}</p></div>
+                        </div>
+                    </div>`;
             });
             corpo.innerHTML = h;
         }
+
+        // Funções auxiliares mantidas
+        function toggleDrawer(open) { document.getElementById('body-root').classList.toggle('drawer-active', open); }
+        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function fecharModais() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
+        function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; toggleDrawer(false); atualizarTudo(); }
+        function toggleParcelados() { filtroParcelado = !filtroParcelado; document.getElementById('btn-parcelados').classList.toggle('bg-orange-500'); atualizarTudo(); }
+        async function salvarItem(tab, id) { const val = document.getElementById(id).value; if(!val) return; await _supabase.from(tab).insert([{nome: val}]); document.getElementById(id).value = ''; atualizarTudo(); }
+        
+        function renderBancosLists(l) {
+            const btns = l?.map(c => `<button onclick="setFiltroCartao('${c.id}')" class="shadow-sm border font-black uppercase ${filtroCartao===c.id?'bg-blue-600 text-white':'bg-white text-slate-400'}">${c.nome}</button>`).join('') || '';
+            document.getElementById('sidebar-cartoes').innerHTML = btns; document.getElementById('mobile-lista-bancos').innerHTML = btns;
+        }
+
+        async function gerarResumoAnual() {
+            const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-anual');
+            abrirModal('modal-anual');
+            const { data } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
+            let h = '';
+            mesesNomes.forEach((n, i) => {
+                const dM = data?.filter(d => new Date(d.data).getMonth() === i) || [];
+                const t = dM.reduce((a, b) => a + Number(b.valor), 0);
+                h += `<div class="flex justify-between p-4 bg-slate-50 rounded-xl"><span class="font-black text-[9px] uppercase text-slate-500">${n}</span><span class="font-black text-slate-800 text-[10px]">R$ ${t.toLocaleString('pt-BR')}</span></div>`;
+            });
+            corpo.innerHTML = h;
+        }
+
+        function renderTabela(d) {
+            document.getElementById('lista-corpo').innerHTML = d?.map(x => `<tr class="border-t"><td class="p-6 text-[9px] font-black uppercase">${new Date(x.data).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td><td class="p-6">${x.descricao}</td><td class="p-6 font-black">R$ ${Number(x.valor).toLocaleString('pt-BR')}</td><td class="p-6 text-center"><button onclick="excluir('despesas', '${x.id}')"><i class="fas fa-trash-alt text-slate-200"></i></button></td></tr>`).join('') || '';
+        }
+
+        function calcularResumo(dados, id) {
+            const b = dados.filter(d => d.cartao_id === id);
+            const tNP = b.filter(d => !d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
+            const tP = b.filter(d => d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
+            document.getElementById('res-valor-1').innerText = `R$ ${tNP.toLocaleString('pt-BR')}`;
+            document.getElementById('res-valor-2').innerText = `R$ ${tP.toLocaleString('pt-BR')}`;
+            document.getElementById('res-total').innerText = `R$ ${(tNP+tP).toLocaleString('pt-BR')}`;
+            document.getElementById('txt-label-1').innerText = "Contas não Parceladas"; document.getElementById('txt-label-2').innerText = "Contas Parceladas"; document.getElementById('txt-label-3').innerText = "Total";
+        }
+
+        function zerarResumo() { 
+            document.getElementById('res-valor-1').innerText = "R$ 0,00"; document.getElementById('res-valor-2').innerText = "R$ 0,00"; document.getElementById('res-total').innerText = "R$ 0,00";
+            document.getElementById('txt-label-1').innerText = "Saldo em Conta"; document.getElementById('txt-label-2').innerText = "Faturas"; document.getElementById('txt-label-3').innerText = "Balanço";
+        }
+
+        function renderSelects(c, t) { 
+            document.getElementById('f-cartao').innerHTML = '<option value="">Banco?</option>' + c?.map(x => `<option value="${x.id}">${x.nome}</option>`).join('');
+            document.getElementById('f-cat').innerHTML = '<option value="">Cat?</option>' + t?.map(x => `<option value="${x.id}">${x.nome}</option>`).join('');
+        }
+
+        function renderConfigLists(c) {
+            document.getElementById('lista-bancos-modal').innerHTML = c?.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${x.nome}</span><button onclick="excluir('cartoes', '${x.id}')"><i class="fas fa-trash"></i></button></div>`).join('');
+        }
+
+        async function confirmarLancamento() {
+            const d = document.getElementById('f-desc').value, v = parseFloat(document.getElementById('f-valor').value), dt = document.getElementById('f-data').value;
+            if(!d || !v || !dt) return;
+            const c = document.getElementById('f-cartao').value, isF = document.getElementById('f-fixa').checked, isP = document.getElementById('f-parc').checked, q = parseInt(document.getElementById('f-qtd-parc').value) || 1;
+            const ins = []; for(let i=0; i<(isP?q:1); i++) {
+                let dV = new Date(dt + 'T12:00:00'); dV.setMonth(dV.getMonth() + i);
+                ins.push({ descricao: isP?`${d} (${i+1}/${q})`:d, valor: isP?v/q:v, cartao_id: c||null, is_fixa: isF, is_parcelado: isP, data: dV.toISOString() });
+            }
+            await _supabase.from('despesas').insert(ins); fecharModais(); atualizarTudo();
+        }
+
+        async function excluir(tab, id) { if(confirm("Excluir?")) { await _supabase.from(tab).delete().eq('id', id); atualizarTudo(); } }
     </script>
 </body>
 </html>
