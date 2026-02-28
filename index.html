@@ -23,8 +23,11 @@
 
     <div class="layout-container">
         <aside class="hidden md:flex flex-col w-[260px] bg-white border-r h-full flex-shrink-0">
-            <div class="p-6 border-b text-center"><h2 class="font-black text-slate-800 text-lg uppercase">Meus Cartões</h2></div>
-            <div id="sidebar-cartoes" class="flex-1 scroll-area p-4 space-y-3 custom-scroll"></div>
+            <div class="p-6 border-b text-center">
+                <h2 class="font-black text-slate-800 text-lg uppercase tracking-tighter italic">Meus Cartões</h2>
+            </div>
+            <div id="sidebar-cartoes" class="flex-1 scroll-area p-4 space-y-3 custom-scroll">
+                </div>
             <div class="p-4 border-t text-center text-[9px] font-bold text-slate-300 uppercase tracking-widest">Finance App 2026</div>
         </aside>
 
@@ -54,15 +57,21 @@
                 </section>
 
                 <div class="flex justify-center gap-4 mb-8">
-                    <button id="btn-parcelados" onclick="toggleParcelados()" class="px-6 py-3 bg-blue-600 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest">Somente Parcelados</button>
+                    <button id="btn-parcelados" onclick="toggleParcelados()" class="px-6 py-3 bg-blue-600 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest transition-all">Somente Parcelados</button>
                 </div>
 
                 <div id="container-lista" class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                    <table class="w-full text-left">
+                    <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                            <tr><th class="p-6">Descrição</th><th class="p-6">Cartão</th><th class="p-6">Valor</th><th class="p-6 text-center">Ações</th></tr>
+                            <tr>
+                                <th class="p-6">Descrição</th>
+                                <th class="p-6">Origem/Cartão</th>
+                                <th class="p-6">Valor</th>
+                                <th class="p-6 text-center">Ações</th>
+                            </tr>
                         </thead>
-                        <tbody id="lista-corpo" class="text-xs font-bold text-slate-700"></tbody>
+                        <tbody id="lista-corpo" class="text-xs font-bold text-slate-700">
+                            </tbody>
                     </table>
                 </div>
             </div>
@@ -94,42 +103,37 @@
         <div class="modal-content p-8">
             <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Novo Lançamento</h3>
             <div class="space-y-4">
-                <input id="f-desc" type="text" placeholder="Ex: Mercado" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none">
-                <input id="f-valor" type="number" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none">
+                <input id="f-desc" type="text" placeholder="Ex: Compra Mercado" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none">
+                <input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none">
                 <div class="grid grid-cols-2 gap-3">
                     <select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select>
                     <select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select>
                 </div>
                 <div class="space-y-3 px-1">
-                    <label class="flex items-center gap-3 text-xs font-bold text-slate-600"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Despesa Fixa?</label>
-                    <label class="flex items-center gap-3 text-xs font-bold text-slate-600"><input type="checkbox" id="f-parc" onchange="document.getElementById('f-qtd-parc').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado?</label>
-                    <input id="f-qtd-parc" type="number" placeholder="Nº de parcelas" style="display:none" class="w-full bg-blue-50 border p-3 rounded-xl text-xs font-bold">
+                    <label class="flex items-center gap-3 text-xs font-bold text-slate-600 cursor-pointer"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Despesa Fixa?</label>
+                    <label class="flex items-center gap-3 text-xs font-bold text-slate-600 cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('f-qtd-parc').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado?</label>
+                    <input id="f-qtd-parc" type="number" placeholder="Quantas parcelas?" style="display:none" class="w-full bg-blue-50 border p-3 rounded-xl text-xs font-bold outline-none">
                 </div>
-                <button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl mt-4 uppercase text-[10px]">Confirmar</button>
-                <button onclick="fecharModais()" class="w-full text-slate-400 font-bold text-[10px] uppercase">Fechar</button>
+                <button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl mt-4 uppercase text-[10px] shadow-lg">Confirmar</button>
+                <button onclick="fecharModais()" class="w-full text-slate-400 font-bold text-[10px] uppercase">Cancelar</button>
             </div>
         </div>
     </div>
 
     <div id="modal-resumo" class="modal-overlay">
-        <div class="modal-content p-8 max-w-[500px]">
-            <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Resumo Mensal</h3>
-            <div class="border rounded-xl overflow-hidden">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-50 font-black text-slate-400 uppercase text-[8px] tracking-widest">
-                        <tr><th class="p-4">Tipo</th><th class="p-4">Total</th></tr>
-                    </thead>
-                    <tbody id="resumo-tabela-corpo" class="font-bold text-slate-700"></tbody>
-                </table>
-            </div>
+        <div class="modal-content p-8">
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Resumo Detalhado</h3>
+            <div id="detalhe-resumo" class="space-y-3">
+                </div>
+            <button onclick="fecharModais()" class="w-full bg-slate-800 text-white font-black py-4 rounded-xl mt-6 uppercase text-[10px]">Fechar</button>
         </div>
     </div>
 
     <div id="modal-cartao" class="modal-overlay">
         <div class="modal-content p-8">
             <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Novo Cartão</h3>
-            <input id="f-nome-cartao" type="text" placeholder="Nome do Banco" class="w-full bg-slate-50 border p-4 rounded-xl font-bold mb-4 outline-none">
-            <button onclick="salvarCartao()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl uppercase text-[10px]">Salvar</button>
+            <input id="f-nome-cartao" type="text" placeholder="Nome do Cartão ou Banco" class="w-full bg-slate-50 border p-4 rounded-xl font-bold mb-4 outline-none">
+            <button onclick="salvarCartao()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl uppercase text-[10px]">Salvar Cartão</button>
         </div>
     </div>
 
@@ -137,7 +141,7 @@
         <div class="modal-content p-8">
             <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Categorias</h3>
             <div class="flex gap-2 mb-4">
-                <input id="f-nome-cat" type="text" placeholder="Nova..." class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold outline-none text-xs">
+                <input id="f-nome-cat" type="text" placeholder="Nova categoria..." class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold outline-none text-xs">
                 <button onclick="salvarCategoria()" class="bg-emerald-600 text-white px-4 rounded-xl font-black uppercase text-[10px]">Add</button>
             </div>
             <div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto custom-scroll"></div>
@@ -145,7 +149,7 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO ---
+        // CONFIGURAÇÕES SUPABASE
         const SUPABASE_URL = 'https://oalkcwquiowfiggdwjmi.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hbGtjd3F1aW93ZmlnZ2R3am1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMTk1MzAsImV4cCI6MjA4Nzc5NTUzMH0.zFGxJ5D3vW1jOdkAvV5S6offZlgQ8eB2l8l9pDas3HU';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -161,8 +165,11 @@
         function setupDatas() {
             const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
             const ms = document.getElementById('sel-mes');
+            ms.innerHTML = '';
             meses.forEach((m, i) => ms.innerHTML += `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`);
+            
             const as = document.getElementById('sel-ano');
+            as.innerHTML = '';
             [2025, 2026, 2027].forEach(a => as.innerHTML += `<option value="${a}" ${a === 2026 ? 'selected' : ''}>${a}</option>`);
         }
 
@@ -170,7 +177,6 @@
             const mes = document.getElementById('sel-mes').value;
             const ano = document.getElementById('sel-ano').value;
             
-            // 1. Carregar Cartões e Categorias
             const { data: cartoes } = await _supabase.from('cartoes').select('*').order('nome');
             const { data: cats } = await _supabase.from('categorias').select('*').order('nome');
             
@@ -178,7 +184,6 @@
             renderSelects(cartoes, cats);
             renderCategoriasModal(cats);
 
-            // 2. Carregar Despesas
             const dataInicio = new Date(ano, mes, 1).toISOString();
             const dataFim = new Date(ano, parseInt(mes) + 1, 0, 23, 59, 59).toISOString();
 
@@ -193,11 +198,11 @@
 
         function renderSidebar(lista) {
             const div = document.getElementById('sidebar-cartoes');
-            div.innerHTML = `<button onclick="setFiltroCartao(null)" class="w-full text-left p-4 rounded-xl font-bold text-[10px] uppercase ${!filtroCartao ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-500'}">Exibir Tudo</button>`;
+            div.innerHTML = `<button onclick="setFiltroCartao(null)" class="w-full text-left p-4 rounded-xl font-bold text-[10px] uppercase ${!filtroCartao ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-500'} transition-all">Exibir Tudo</button>`;
             lista?.forEach(c => {
                 div.innerHTML += `
                 <div class="relative group">
-                    <button onclick="setFiltroCartao('${c.id}')" class="w-full text-left p-4 rounded-xl font-bold text-[10px] uppercase ${filtroCartao === c.id ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-500 hover:bg-blue-50'}">${c.nome}</button>
+                    <button onclick="setFiltroCartao('${c.id}')" class="w-full text-left p-4 rounded-xl font-bold text-[10px] uppercase ${filtroCartao === c.id ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-500 hover:bg-blue-50'} transition-all">${c.nome}</button>
                     <button onclick="excluir('cartoes', '${c.id}')" class="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-red-300 hover:text-red-600 p-2"><i class="fas fa-trash-alt text-[10px]"></i></button>
                 </div>`;
             });
@@ -205,7 +210,7 @@
 
         function renderSelects(cartoes, cats) {
             const sc = document.getElementById('f-cartao');
-            sc.innerHTML = '<option value="">Cartão</option>';
+            sc.innerHTML = '<option value="">Cartão/Origem</option>';
             cartoes?.forEach(c => sc.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
             
             const st = document.getElementById('f-cat');
@@ -216,13 +221,17 @@
         function renderTabela(dados) {
             const tbody = document.getElementById('lista-corpo');
             tbody.innerHTML = '';
-            dados?.forEach(d => {
+            if(!dados || dados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-slate-400 uppercase text-[10px]">Nenhum lançamento encontrado</td></tr>';
+                return;
+            }
+            dados.forEach(d => {
                 tbody.innerHTML += `
                     <tr class="border-t border-slate-50 hover:bg-slate-50/50 transition-all">
                         <td class="p-6">${d.descricao} ${d.is_parcelado ? '<span class="ml-2 text-[8px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded font-black">P</span>' : ''} ${d.is_fixa ? '<span class="ml-2 text-[8px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded font-black">FIXA</span>' : ''}</td>
-                        <td class="p-6 text-[10px] text-slate-400 uppercase">${d.cartoes?.nome || '-'}</td>
+                        <td class="p-6 text-[10px] text-slate-400 uppercase font-black">${d.cartoes?.nome || 'DÉBITO'}</td>
                         <td class="p-6">R$ ${Number(d.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                        <td class="p-6 text-center"><button onclick="excluir('despesas', '${d.id}')" class="text-red-200 hover:text-red-500 p-2"><i class="fas fa-trash-alt"></i></button></td>
+                        <td class="p-6 text-center"><button onclick="excluir('despesas', '${d.id}')" class="text-red-100 hover:text-red-500 transition-colors p-2"><i class="fas fa-trash-alt"></i></button></td>
                     </tr>`;
             });
         }
@@ -236,17 +245,15 @@
             document.getElementById('res-valor-2').innerText = `R$ ${totalParc.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
             document.getElementById('res-total').innerText = `R$ ${totalGeral.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
 
-            // Instrução Salva: Labels dinâmicos
             document.getElementById('txt-label-1').innerText = filtroCartao ? "Contas não Parceladas" : "Saldo em Conta";
             document.getElementById('txt-label-2').innerText = filtroCartao ? "Contas Parceladas" : "Faturas";
-            document.getElementById('txt-label-3').innerText = filtroCartao ? "Valor Total" : "Balanço do Mês";
+            document.getElementById('txt-label-3').innerText = filtroCartao ? "Somatório Total" : "Balanço do Mês";
 
-            // Popular modal de resumo
-            const resCorpo = document.getElementById('resumo-tabela-corpo');
-            resCorpo.innerHTML = `
-                <tr><td class="p-4 uppercase text-slate-400">Cartão / Variáveis</td><td class="p-4">R$ ${totalGeral.toLocaleString('pt-BR')}</td></tr>
-                <tr class="border-t"><td class="p-4 uppercase text-slate-400">Despesas Fixas</td><td class="p-4">R$ ${dados?.filter(d => d.is_fixa).reduce((a,b) => a + Number(b.valor), 0).toLocaleString('pt-BR')}</td></tr>
-                <tr class="bg-blue-50"><td class="p-4 uppercase text-blue-600 font-black">Total</td><td class="p-4 text-blue-600 font-black">R$ ${totalGeral.toLocaleString('pt-BR')}</td></tr>
+            const det = document.getElementById('detalhe-resumo');
+            det.innerHTML = `
+                <div class="flex justify-between p-4 bg-slate-50 rounded-xl font-bold"><span>Variáveis:</span> <span>R$ ${totalNaoParc.toLocaleString('pt-BR')}</span></div>
+                <div class="flex justify-between p-4 bg-slate-50 rounded-xl font-bold"><span>Parcelados:</span> <span>R$ ${totalParc.toLocaleString('pt-BR')}</span></div>
+                <div class="flex justify-between p-4 bg-blue-600 text-white rounded-xl font-black italic uppercase"><span>Total:</span> <span>R$ ${totalGeral.toLocaleString('pt-BR')}</span></div>
             `;
         }
 
@@ -259,9 +266,10 @@
             const isParc = document.getElementById('f-parc').checked;
             const qtd = parseInt(document.getElementById('f-qtd-parc').value) || 1;
             
+            if(!desc || !valor) return alert("Preencha descrição e valor!");
+
             const mesBase = parseInt(document.getElementById('sel-mes').value);
             const anoBase = parseInt(document.getElementById('sel-ano').value);
-
             const insercoes = [];
             const loops = isParc ? qtd : 1;
 
@@ -270,7 +278,7 @@
                 insercoes.push({
                     descricao: isParc ? `${desc} (${i+1}/${qtd})` : desc,
                     valor: valor,
-                    cartao_id: cartao,
+                    cartao_id: cartao || null,
                     categoria_id: cat || null,
                     is_fixa: isFixa,
                     is_parcelado: isParc,
@@ -279,9 +287,13 @@
                 });
             }
 
-            await _supabase.from('despesas').insert(insercoes);
+            const { error } = await _supabase.from('despesas').insert(insercoes);
+            if(error) alert("Erro ao salvar!");
             fecharModais();
             atualizarTudo();
+            // Reset campos
+            document.getElementById('f-desc').value = '';
+            document.getElementById('f-valor').value = '';
         }
 
         async function salvarCartao() {
@@ -302,7 +314,7 @@
         }
 
         async function excluir(tab, id) {
-            if(confirm("Deseja realmente excluir?")) {
+            if(confirm("Deseja realmente excluir este item?")) {
                 await _supabase.from(tab).delete().eq('id', id);
                 atualizarTudo();
             }
@@ -311,8 +323,9 @@
         function setFiltroCartao(id) { filtroCartao = id; atualizarTudo(); }
         function toggleParcelados() { 
             filtroParcelado = !filtroParcelado; 
-            document.getElementById('btn-parcelados').className = filtroParcelado ? 
-                "px-6 py-3 bg-orange-500 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest" : 
+            const btn = document.getElementById('btn-parcelados');
+            btn.className = filtroParcelado ? 
+                "px-6 py-3 bg-orange-500 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest scale-110" : 
                 "px-6 py-3 bg-blue-600 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest";
             atualizarTudo(); 
         }
@@ -322,7 +335,7 @@
             const div = document.getElementById('lista-categorias-modal');
             div.innerHTML = '';
             cats?.forEach(c => {
-                div.innerHTML += `<div class="flex justify-between p-3 bg-slate-50 rounded-xl text-[10px] font-bold uppercase"><span>${c.nome}</span><button onclick="excluir('categorias', '${c.id}')" class="text-red-400"><i class="fas fa-trash-alt"></i></button></div>`;
+                div.innerHTML += `<div class="flex justify-between p-3 bg-slate-50 rounded-xl text-[10px] font-bold uppercase"><span>${c.nome}</span><button onclick="excluir('categorias', '${c.id}')" class="text-red-400 hover:text-red-600"><i class="fas fa-trash-alt"></i></button></div>`;
             });
         }
     </script>
