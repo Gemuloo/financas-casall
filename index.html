@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance App 2026 - Novo Banco</title>
+    <title>Finance App 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -15,7 +15,7 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .floating-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1.2rem; z-index: 50; }
         .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; padding: 1.5rem; }
-        .modal-content { background-color: white; width: 100%; max-width: 400px; border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-height: 85vh; overflow-y: auto; position: relative; }
+        .modal-content { background-color: white; width: 100%; max-width: 500px; border-radius: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); max-height: 85vh; overflow-y: auto; position: relative; }
         .btn-close-modal { position: absolute; top: 1.5rem; right: 1.5rem; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; }
         .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.6rem 2rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
     </style>
@@ -67,7 +67,7 @@
     </div>
 
     <div class="floating-controls">
-        <button onclick="alert('Resumo Anual em desenvolvimento')" class="bg-white w-20 h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center hover:scale-105 transition-all">
+        <button onclick="gerarResumoAnual()" class="bg-white w-20 h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center hover:scale-105 transition-all">
             <i class="fas fa-calendar-alt text-slate-300 text-xl"></i>
             <span class="text-[9px] font-black mt-1 text-slate-400 uppercase">Anual</span>
         </button>
@@ -81,18 +81,27 @@
         </button>
     </div>
 
+    <div id="modal-anual" class="modal-overlay">
+        <div class="modal-content p-10">
+            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Resumo de Todos os Meses</h3>
+            <div id="corpo-anual" class="space-y-3">
+                </div>
+        </div>
+    </div>
+
     <div id="modal-menu-config" class="modal-overlay">
         <div class="modal-content p-8">
             <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
             <h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Ajustes</h3>
             <div class="grid grid-cols-1 gap-4">
-                <button onclick="fecharModais(); abrirModal('modal-bancos')" class="p-6 bg-blue-50 hover:bg-blue-100 rounded-2xl flex items-center gap-4 transition-all">
+                <button onclick="fecharModais(); abrirModal('modal-bancos')" class="p-6 bg-blue-50 hover:bg-blue-100 rounded-2xl flex items-center gap-4">
                     <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-credit-card"></i></div>
-                    <span class="font-black text-blue-700 uppercase text-xs tracking-widest">Meus Bancos</span>
+                    <span class="font-black text-blue-700 uppercase text-xs">Meus Bancos</span>
                 </button>
-                <button onclick="fecharModais(); abrirModal('modal-categorias')" class="p-6 bg-emerald-50 hover:bg-emerald-100 rounded-2xl flex items-center gap-4 transition-all">
+                <button onclick="fecharModais(); abrirModal('modal-categorias')" class="p-6 bg-emerald-50 hover:bg-emerald-100 rounded-2xl flex items-center gap-4">
                     <div class="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-tags"></i></div>
-                    <span class="font-black text-emerald-700 uppercase text-xs tracking-widest">Categorias</span>
+                    <span class="font-black text-emerald-700 uppercase text-xs">Categorias</span>
                 </button>
             </div>
         </div>
@@ -107,7 +116,7 @@
                 <input id="f-nome-cartao" type="text" placeholder="Nome do Banco" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none">
                 <button onclick="salvarSimples('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button>
             </div>
-            <div id="lista-bancos-modal" class="space-y-2 max-h-60 overflow-y-auto custom-scroll"></div>
+            <div id="lista-bancos-modal" class="space-y-2 max-h-60 overflow-y-auto"></div>
         </div>
     </div>
 
@@ -120,7 +129,7 @@
                 <input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none">
                 <button onclick="salvarSimples('categorias', 'f-nome-cat')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button>
             </div>
-            <div id="lista-categorias-modal" class="space-y-2 max-h-60 overflow-y-auto custom-scroll"></div>
+            <div id="lista-categorias-modal" class="space-y-2 max-h-60 overflow-y-auto"></div>
         </div>
     </div>
 
@@ -146,11 +155,9 @@
     </div>
 
     <script>
-        // --- COLOQUE SEUS NOVOS DADOS AQUI ---
-        const SUPABASE_URL = 'https://rwowvvpobywtokcqfxve.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3b3d2dnBvYnl3dG9rY3FmeHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNDY3MTgsImV4cCI6MjA4NzgyMjcxOH0.AJVmEKeUk22L4eT_FMLls0-xAJhMrAITOazM_1XmUaM';
-        // -------------------------------------
-
+        // COLOQUE SEUS DADOS DO NOVO PROJETO AQUI
+        const SUPABASE_URL = 'https://oalkcwquiowfiggdwjmi.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hbGtjd3F1aW93ZmlnZ2R3am1pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMTk1MzAsImV4cCI6MjA4Nzc5NTUzMH0.zFGxJ5D3vW1jOdkAvV5S6offZlgQ8eB2l8l9pDas3HU';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let filtroCartao = null;
@@ -187,12 +194,32 @@
             calcularResumo(despesas);
         }
 
+        async function gerarResumoAnual() {
+            const ano = document.getElementById('sel-ano').value;
+            const corpo = document.getElementById('corpo-anual');
+            corpo.innerHTML = '<p class="text-center font-bold text-slate-400 p-10 uppercase text-[10px]">Calculando...</p>';
+            abrirModal('modal-anual');
+
+            const { data: despesas } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
+            
+            let html = '';
+            mesesNomes.forEach((nome, i) => {
+                const totalMes = despesas?.filter(d => new Date(d.data).getMonth() === i).reduce((a, b) => a + Number(b.valor), 0) || 0;
+                html += `
+                    <div class="flex justify-between items-center p-5 bg-slate-50 rounded-2xl">
+                        <span class="font-black text-[10px] uppercase text-slate-500 tracking-widest">${nome}</span>
+                        <span class="font-black text-slate-800">R$ ${totalMes.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </div>`;
+            });
+            corpo.innerHTML = html;
+        }
+
         async function salvarSimples(tabela, inputId) {
             const el = document.getElementById(inputId);
             const nome = el.value.trim();
             if(!nome) return;
             const { error } = await _supabase.from(tabela).insert([{ nome }]);
-            if(error) alert("Erro ao salvar: " + error.message);
+            if(error) alert(error.message);
             else { el.value = ''; await atualizarTudo(); }
         }
 
