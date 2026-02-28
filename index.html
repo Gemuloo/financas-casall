@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance App 2026</title>
+    <title>Finance App 2026 - Turbo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -145,6 +145,7 @@
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let filtroCartao = null, filtroParcelado = false;
+        let cacheBancos = [], cacheCategorias = [], cacheSalarios = [];
         const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
         window.onload = () => { setupDatas(); document.getElementById('f-data').valueAsDate = new Date(); atualizarTudo(); };
@@ -166,13 +167,24 @@
 
         async function atualizarTudo() {
             try {
+                // PERFORMANCE: Dispara todas as consultas ao mesmo tempo
+                const [resBancos, resCats, resSals] = await Promise.all([
+                    _supabase.from('cartoes').select('*').order('nome'),
+                    _supabase.from('categorias').select('*').order('nome'),
+                    _supabase.from('salarios').select('*')
+                ]);
+
+                cacheBancos = resBancos.data || [];
+                cacheCategorias = resCats.data || [];
+                cacheSalarios = resSals.data || [];
+
                 const mes = parseInt(document.getElementById('sel-mes').value), ano = parseInt(document.getElementById('sel-ano').value);
-                const { data: cartoes } = await _supabase.from('cartoes').select('*').order('nome');
-                const { data: cats } = await _supabase.from('categorias').select('*').order('nome');
-                const { data: sals } = await _supabase.from('salarios').select('*');
-                renderBancosLists(cartoes); renderSelects(cartoes, cats); renderConfigLists(cartoes, cats, sals || []);
                 const dInicio = new Date(ano, mes, 1).toISOString(), dFim = new Date(ano, mes + 1, 0, 23, 59, 59).toISOString();
+                
                 const { data: todasDoMes } = await _supabase.from('despesas').select('*').gte('data', dInicio).lte('data', dFim).order('data');
+
+                renderBancosLists(cacheBancos); renderSelects(cacheBancos, cacheCategorias); renderConfigLists(cacheBancos, cacheCategorias, cacheSalarios);
+
                 if (filtroCartao) {
                     document.getElementById('view-relatorio').style.display = 'block'; document.getElementById('view-placeholder').style.display = 'none';
                     let dTab = (todasDoMes || []).filter(d => d.cartao_id === filtroCartao);
@@ -194,8 +206,8 @@
 
         async function gerarResumoAnual() {
             const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-anual');
-            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Carregando...</p>';
             abrirModal('modal-anual');
+            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Carregando...</p>';
             const { data } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
             let h = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2"><div class="w-1/4">Mês</div><div class="w-1/4 text-center">Fixas</div><div class="w-1/4 text-center">Normais</div><div class="w-1/4 text-right">Total</div></div>`;
             mesesNomes.forEach((n, i) => {
@@ -209,14 +221,13 @@
 
         async function gerarAnaliseGastos() {
             const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-analise');
-            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
             abrirModal('modal-analise');
+            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
             const { data: gastos } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
-            const { data: salarios } = await _supabase.from('salarios').select('*');
             let h = '';
             mesesNomes.forEach((n, i) => {
                 const tG = gastos?.filter(d => new Date(d.data).getUTCMonth() === i).reduce((a, b) => a + Number(b.valor), 0) || 0;
-                const salData = salarios?.find(s => s.mes_ano === `${ano}-${i}`);
+                const salData = cacheSalarios.find(s => s.mes_ano === `${ano}-${i}`);
                 const valorSal = salData ? Number(salData.valor) : 0;
                 const sobra = valorSal - tG;
                 h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${valorSal.toLocaleString('pt-BR')}</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS: R$ ${tG.toLocaleString('pt-BR')}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${sobra.toLocaleString('pt-BR')}</p></div></div>`;
@@ -226,21 +237,20 @@
 
         async function gerarResumoCategoriasAnual() {
             const ano = document.getElementById('sel-ano').value, mesSel = document.getElementById('sel-cat-mes').value, corpo = document.getElementById('corpo-cat-anual');
-            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Agrupando...</p>';
             abrirModal('modal-cat-anual');
+            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Agrupando...</p>';
             let dIn = `${ano}-01-01`, dFi = `${ano}-12-31`;
             if(mesSel !== 'todos') { 
                 dIn = new Date(ano, mesSel, 1).toISOString(); 
                 dFi = new Date(ano, parseInt(mesSel) + 1, 0, 23, 59, 59).toISOString(); 
             }
             const { data: gastos } = await _supabase.from('despesas').select('valor, categoria_id').gte('data', dIn).lte('data', dFi);
-            const { data: categorias } = await _supabase.from('categorias').select('*');
             const agrupado = {};
             (gastos || []).forEach(g => { agrupado[g.categoria_id] = (agrupado[g.categoria_id] || 0) + Number(g.valor); });
             let h = '';
             const sorted = Object.entries(agrupado).sort((a,b) => b[1] - a[1]);
             sorted.forEach(([id, total]) => {
-                const catNome = categorias.find(c => c.id == id)?.nome || 'Sem Categoria';
+                const catNome = cacheCategorias.find(c => c.id == id)?.nome || 'Sem Categoria';
                 h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><span class="font-black text-[10px] uppercase text-slate-600">${catNome}</span><span class="font-black text-blue-700">R$ ${total.toLocaleString('pt-BR')}</span></div>`;
             });
             corpo.innerHTML = h || '<p class="text-center text-[10px] font-black text-slate-300 py-10 uppercase">Nenhum gasto encontrado</p>';
