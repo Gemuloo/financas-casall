@@ -177,9 +177,12 @@
                   a = document.getElementById('f-sal-ano').value;
             if(!v) return; 
             const key = `${a}-${m}`;
+            
+            // Alteração para garantir inserção/atualização correta
             await _supabase.from('salarios').upsert({ mes_ano: key, valor: parseFloat(v) }, { onConflict: 'mes_ano' });
+            
             document.getElementById('f-sal-valor').value = '';
-            atualizarTudo();
+            await atualizarTudo(); // Recarrega os dados para a lista aparecer
         }
 
         async function gerarResumoAnual() {
@@ -239,12 +242,14 @@
             document.getElementById('lista-bancos-modal').innerHTML = c?.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${x.nome}</span><button onclick="excluir('cartoes', '${x.id}')"><i class="fas fa-trash"></i></button></div>`).join('');
             document.getElementById('lista-categorias-modal').innerHTML = t?.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${x.nome}</span><button onclick="excluir('categorias', '${x.id}')"><i class="fas fa-trash"></i></button></div>`).join('');
             
-            // Lista de salários igual a categoria
-            document.getElementById('lista-salarios-modal').innerHTML = s?.sort((a,b) => b.mes_ano.localeCompare(a.mes_ano)).map(x => {
-                const [ano, mes] = x.mes_ano.split('-');
+            // Renderização da lista de salários com verificação de segurança no ID
+            document.getElementById('lista-salarios-modal').innerHTML = (s || []).sort((a,b) => b.mes_ano.localeCompare(a.mes_ano)).map(x => {
+                const parts = x.mes_ano.split('-');
+                const ano = parts[0];
+                const mesIdx = parts[1];
                 return `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]">
-                    <span>${mesesNomes[mes]} / ${ano} - R$ ${Number(x.valor).toLocaleString('pt-BR')}</span>
-                    <button onclick="excluir('salarios', '${x.id}')"><i class="fas fa-trash"></i></button>
+                    <span>${mesesNomes[mesIdx] || 'Mês'} / ${ano} - R$ ${Number(x.valor).toLocaleString('pt-BR')}</span>
+                    <button onclick="excluir('salarios', '${x.id}')"><i class="fas fa-trash text-slate-300"></i></button>
                 </div>`;
             }).join('');
         }
@@ -259,7 +264,7 @@
             }
             await _supabase.from('despesas').insert(ins); fecharModais(); atualizarTudo();
         }
-        async function excluir(tab, id) { if(confirm("Excluir?")) { await _supabase.from(tab).delete().eq('id', id); atualizarTudo(); } }
+        async function excluir(tab, id) { if(confirm("Excluir?")) { await _supabase.from(tab).delete().eq('id', id); await atualizarTudo(); } }
     </script>
 </body>
 </html>
