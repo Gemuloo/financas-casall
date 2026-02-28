@@ -31,23 +31,30 @@
         .btn-close-modal { position: absolute; top: 1.5rem; right: 1.5rem; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; }
         .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1.5rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
 
-        /* AJUSTE DE RESPONSIVIDADE PARA OS BOTÕES DE BANCO */
+        /* MANTÉM COMPUTADOR IGUAL */
         #sidebar-cartoes { display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; }
-        #sidebar-cartoes button { width: 100%; padding: 1rem; border-radius: 1rem; text-align: left; transition: all 0.2s; }
+        #sidebar-cartoes button { width: 100%; padding: 1rem; border-radius: 1rem; text-align: left; }
 
         @media (max-width: 768px) {
             .layout-container { flex-direction: column; }
             aside { width: 100%; height: auto; border-bottom: 0; display: block !important; }
+            
+            /* AJUSTE PARA NÃO CORTAR NO CELULAR */
             #sidebar-cartoes { 
-                flex-direction: row; 
-                justify-content: center; 
-                flex-wrap: wrap; 
-                padding: 1.5rem 1rem 0.5rem 1rem; 
+                display: grid; 
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); 
+                gap: 0.5rem; 
+                padding: 1.5rem 1rem;
+                width: 100%;
             }
             #sidebar-cartoes button { 
-                width: auto; 
-                padding: 0.7rem 1.5rem; 
+                width: 100%; 
+                padding: 0.8rem 0.5rem; 
                 text-align: center;
+                border-radius: 1rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
             .content-wrapper { padding: 1rem; padding-bottom: 280px; }
         }
