@@ -15,27 +15,26 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .floating-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1.5rem; z-index: 50; }
         
-        /* Ajuste do menu suspenso para não sumir */
-        .group:hover .group-hover\:block { display: block !important; bottom: 85px; padding-bottom: 20px; }
-        
-        .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 60; align-items: center; justify-content: center; padding: 1.5rem; }
-        .modal-content { background-color: white; width: 100%; max-width: 450px; border-radius: 1.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); max-height: 85vh; overflow-y: auto; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; padding: 1.5rem; }
+        .modal-content { background-color: white; width: 100%; max-width: 450px; border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); max-height: 90vh; overflow-y: auto; position: relative; }
         .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.6rem 2rem 0.6rem 1.2rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; outline: none; }
+        
+        .btn-close-modal { position: absolute; top: 1.5rem; right: 1.5rem; color: #cbd5e1; cursor: pointer; font-size: 1.2rem; transition: color 0.2s; }
+        .btn-close-modal:hover { color: #64748b; }
     </style>
 </head>
 <body>
 
     <div class="layout-container">
         <aside class="hidden md:flex flex-col w-[260px] bg-white border-r h-full flex-shrink-0">
-            <div class="p-6 border-b text-center"><h2 class="font-black text-slate-800 text-lg uppercase tracking-tighter">Bancos</h2></div>
-            <div id="sidebar-cartoes" class="flex-1 scroll-area p-4 space-y-3 custom-scroll">
-                </div>
+            <div class="p-8 border-b text-center"><h2 class="font-black text-slate-800 text-lg uppercase tracking-tighter italic">Bancos</h2></div>
+            <div id="sidebar-cartoes" class="flex-1 scroll-area p-4 space-y-3 custom-scroll"></div>
         </aside>
 
         <main class="flex-1 h-full relative overflow-hidden flex flex-col">
             <div class="flex-1 scroll-area p-6 md:p-8 custom-scroll">
                 
-                <div class="flex flex-col items-center gap-4 mb-6">
+                <div class="flex flex-col items-center gap-4 mb-8">
                     <div class="flex items-center justify-center gap-2">
                         <select id="sel-mes" class="date-select" onchange="atualizarTudo()"></select>
                         <select id="sel-ano" class="date-select" onchange="atualizarTudo()"></select>
@@ -43,22 +42,22 @@
                 </div>
 
                 <section class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
-                    <div class="bg-white p-8 rounded-[1.2rem] shadow-sm border border-slate-100">
-                        <p id="txt-label-1" class="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest italic">Saldo em Conta</p>
+                    <div class="bg-white p-8 rounded-[1.5rem] shadow-sm border border-slate-100">
+                        <p id="txt-label-1" class="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Saldo em Conta</p>
                         <h3 id="res-valor-1" class="text-3xl font-black text-slate-800 tracking-tighter">R$ 0,00</h3>
                     </div>
-                    <div class="bg-white p-8 rounded-[1.2rem] shadow-sm border border-slate-100">
-                        <p id="txt-label-2" class="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest italic">Faturas</p>
+                    <div class="bg-white p-8 rounded-[1.5rem] shadow-sm border border-slate-100">
+                        <p id="txt-label-2" class="text-[9px] font-black text-slate-400 uppercase mb-1 tracking-widest">Faturas</p>
                         <h3 id="res-valor-2" class="text-3xl font-black text-slate-800 tracking-tighter">R$ 0,00</h3>
                     </div>
-                    <div class="bg-white p-8 rounded-[1.2rem] shadow-sm border border-blue-100 bg-blue-50/20">
-                        <p id="txt-label-3" class="text-[9px] font-black text-blue-600 uppercase mb-1 tracking-widest italic">Balanço do Mês</p>
+                    <div class="bg-white p-8 rounded-[1.5rem] shadow-sm border border-blue-100 bg-blue-50/20">
+                        <p id="txt-label-3" class="text-[9px] font-black text-blue-600 uppercase mb-1 tracking-widest">Balanço do Mês</p>
                         <h3 id="res-total" class="text-3xl font-black text-blue-700 tracking-tighter">R$ 0,00</h3>
                     </div>
                 </section>
 
                 <div class="flex justify-center mb-8">
-                    <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-3 bg-slate-800 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest transition-all hover:bg-blue-600">Somente Parcelados</button>
+                    <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white shadow-lg uppercase tracking-widest transition-all hover:bg-blue-600 active:scale-95">Somente Parcelados</button>
                 </div>
 
                 <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
@@ -74,73 +73,75 @@
     </div>
 
     <div class="floating-controls">
-        <button onclick="gerarResumoAnual()" class="bg-white w-20 h-20 rounded-[1.2rem] shadow-2xl flex flex-col items-center justify-center hover:scale-105 transition-all">
+        <button onclick="gerarResumoAnual()" class="bg-white w-20 h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center hover:scale-105 transition-all">
             <i class="fas fa-calendar-alt text-slate-300 text-xl"></i>
             <span class="text-[9px] font-black mt-1 text-slate-400 uppercase">Anual</span>
         </button>
         
-        <button onclick="abrirModal('modal-lancar')" class="bg-blue-600 w-28 h-28 rounded-[1.8rem] shadow-2xl border-8 border-white flex flex-col items-center justify-center -translate-y-4 hover:scale-105 transition-all">
+        <button onclick="abrirModal('modal-lancar')" class="bg-blue-600 w-28 h-28 rounded-[2rem] shadow-2xl border-8 border-white flex flex-col items-center justify-center -translate-y-4 hover:scale-105 transition-all">
             <i class="fas fa-plus text-white text-4xl"></i>
             <span class="text-[10px] font-black mt-1 text-white uppercase tracking-widest">Lançar</span>
         </button>
 
-        <div class="relative group">
-            <button class="bg-white w-20 h-20 rounded-[1.2rem] shadow-2xl flex flex-col items-center justify-center hover:scale-105 transition-all">
-                <i class="fas fa-cog text-slate-300 text-xl"></i>
-                <span class="text-[9px] font-black mt-1 text-slate-400 uppercase">Config</span>
-            </button>
-            <div class="absolute right-0 w-48 bg-white rounded-[1.2rem] shadow-2xl p-2 hidden border transition-all">
-                <button onclick="abrirModal('modal-cartao')" class="w-full text-left p-3 hover:bg-blue-50 rounded-xl text-[9px] font-black flex items-center gap-3 uppercase"><i class="fas fa-credit-card text-blue-500"></i> Novo Banco</button>
-                <button onclick="abrirModal('modal-categoria')" class="w-full text-left p-3 hover:bg-blue-50 rounded-xl text-[9px] font-black flex items-center gap-3 uppercase"><i class="fas fa-tags text-emerald-500"></i> Categorias</button>
+        <button onclick="abrirModal('modal-config')" class="bg-white w-20 h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center hover:scale-105 transition-all">
+            <i class="fas fa-cog text-slate-300 text-xl"></i>
+            <span class="text-[9px] font-black mt-1 text-slate-400 uppercase">Config</span>
+        </button>
+    </div>
+
+    <div id="modal-lancar" class="modal-overlay">
+        <div class="modal-content p-8">
+            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3>
+            <div class="space-y-4">
+                <input id="f-desc" type="text" placeholder="O que você comprou?" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none">
+                <input id="f-valor" type="number" step="0.01" placeholder="R$ 0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none">
+                <div class="grid grid-cols-2 gap-3">
+                    <select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select>
+                    <select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select>
+                </div>
+                <div class="p-5 bg-slate-50 rounded-2xl space-y-4">
+                    <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Gasto Fixo Mensal</label>
+                    <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('f-qtd-parc').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelar Compra</label>
+                    <input id="f-qtd-parc" type="number" placeholder="Quantas parcelas?" style="display:none" class="w-full bg-white border p-4 rounded-xl text-xs font-bold outline-none border-blue-100">
+                </div>
+                <button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] shadow-xl hover:bg-blue-700 transition-all">Confirmar e Salvar</button>
+                <button onclick="fecharModais()" class="w-full text-slate-400 font-black py-2 uppercase text-[9px]">Cancelar</button>
             </div>
         </div>
     </div>
 
     <div id="modal-resumo" class="modal-overlay">
         <div class="modal-content p-8">
+            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
             <h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Resumo 2026</h3>
-            <div id="corpo-resumo-anual" class="space-y-2">
-                </div>
-            <button onclick="fecharModais()" class="w-full bg-slate-800 text-white font-black py-4 rounded-xl mt-6 uppercase text-[10px]">Fechar</button>
+            <div id="corpo-resumo-anual" class="space-y-2"></div>
         </div>
     </div>
 
-    <div id="modal-lancar" class="modal-overlay">
+    <div id="modal-config" class="modal-overlay">
         <div class="modal-content p-8">
-            <h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3>
-            <div class="space-y-4">
-                <input id="f-desc" type="text" placeholder="O que você comprou?" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none">
-                <input id="f-valor" type="number" step="0.01" placeholder="R$ 0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none">
-                <div class="grid grid-cols-2 gap-3">
-                    <select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select>
-                    <select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select>
+            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-8 italic text-center">Configurações</h3>
+            
+            <div class="space-y-8">
+                <div>
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Bancos / Cartões</h4>
+                    <div class="flex gap-2 mb-4">
+                        <input id="f-nome-cartao" type="text" placeholder="Nome do Banco" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none">
+                        <button onclick="salvarCartao()" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button>
+                    </div>
                 </div>
-                <div class="p-4 bg-slate-50 rounded-xl space-y-3">
-                    <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-fixa" class="w-4 h-4 accent-emerald-500"> Gasto Fixo Mensal</label>
-                    <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('f-qtd-parc').style.display = this.checked ? 'block' : 'none'" class="w-4 h-4 accent-blue-500"> Parcelar Compra</label>
-                    <input id="f-qtd-parc" type="number" placeholder="Quantas parcelas?" style="display:none" class="w-full bg-white border p-3 rounded-lg text-xs font-bold">
+
+                <div>
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase mb-3 tracking-widest">Categorias</h4>
+                    <div class="flex gap-2 mb-4">
+                        <input id="f-nome-cat" type="text" placeholder="Nova Categoria" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none">
+                        <button onclick="salvarCategoria()" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button>
+                    </div>
+                    <div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto custom-scroll"></div>
                 </div>
-                <button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[10px] shadow-xl">Salvar Lançamento</button>
             </div>
-        </div>
-    </div>
-
-    <div id="modal-cartao" class="modal-overlay">
-        <div class="modal-content p-8">
-            <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Cadastrar Banco</h3>
-            <input id="f-nome-cartao" type="text" placeholder="Ex: Nubank, Itaú..." class="w-full bg-slate-50 border p-4 rounded-xl font-bold mb-4 outline-none">
-            <button onclick="salvarCartao()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl uppercase text-[10px]">Salvar</button>
-        </div>
-    </div>
-
-    <div id="modal-categoria" class="modal-overlay">
-        <div class="modal-content p-8">
-            <h3 class="font-black text-slate-800 text-xl uppercase mb-6">Categorias</h3>
-            <div class="flex gap-2 mb-4">
-                <input id="f-nome-cat" type="text" placeholder="Nova..." class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold outline-none text-xs">
-                <button onclick="salvarCategoria()" class="bg-emerald-600 text-white px-4 rounded-xl font-black uppercase text-[10px]">Add</button>
-            </div>
-            <div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto custom-scroll"></div>
         </div>
     </div>
 
@@ -160,8 +161,10 @@
 
         function setupDatas() {
             const ms = document.getElementById('sel-mes');
+            ms.innerHTML = '';
             mesesNomes.forEach((m, i) => ms.innerHTML += `<option value="${i}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`);
             const as = document.getElementById('sel-ano');
+            as.innerHTML = '';
             [2025, 2026, 2027].forEach(a => as.innerHTML += `<option value="${a}" ${a === 2026 ? 'selected' : ''}>${a}</option>`);
         }
 
@@ -194,7 +197,7 @@
             lista?.forEach(c => {
                 div.innerHTML += `
                 <div class="relative group">
-                    <button onclick="setFiltroCartao('${c.id}')" class="w-full text-left p-4 rounded-xl font-bold text-[10px] uppercase ${filtroCartao === c.id ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-500 hover:bg-blue-50'} transition-all">${c.nome}</button>
+                    <button onclick="setFiltroCartao('${c.id}')" class="w-full text-left p-4 rounded-2xl font-bold text-[10px] uppercase ${filtroCartao === c.id ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-50 text-slate-500 hover:bg-blue-50'} transition-all">${c.nome}</button>
                     <button onclick="excluir('cartoes', '${c.id}')" class="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-red-300 hover:text-red-600 p-2"><i class="fas fa-trash-alt text-[10px]"></i></button>
                 </div>`;
             });
@@ -217,7 +220,7 @@
         async function gerarResumoAnual() {
             abrirModal('modal-resumo');
             const corpo = document.getElementById('corpo-resumo-anual');
-            corpo.innerHTML = '<p class="text-center p-4 text-xs font-bold text-slate-400">Calculando ano...</p>';
+            corpo.innerHTML = '<p class="text-center p-4 text-xs font-bold text-slate-400">Calculando...</p>';
             
             const ano = document.getElementById('sel-ano').value;
             const { data } = await _supabase.from('despesas').select('valor, data').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
@@ -256,7 +259,7 @@
             const isParc = document.getElementById('f-parc').checked;
             const qtd = parseInt(document.getElementById('f-qtd-parc').value) || 1;
             
-            if(!desc || !valor) return alert("Ops! Esqueceu a descrição ou valor.");
+            if(!desc || !valor) return alert("Por favor, informe descrição e valor!");
 
             const mesBase = parseInt(document.getElementById('sel-mes').value);
             const anoBase = parseInt(document.getElementById('sel-ano').value);
@@ -286,7 +289,7 @@
 
         function renderSelects(cartoes, cats) {
             const sc = document.getElementById('f-cartao');
-            sc.innerHTML = '<option value="">Banco</option>';
+            sc.innerHTML = '<option value="">Qual Banco?</option>';
             cartoes?.forEach(c => sc.innerHTML += `<option value="${c.id}">${c.nome}</option>`);
             const st = document.getElementById('f-cat');
             st.innerHTML = '<option value="">Categoria</option>';
@@ -296,17 +299,19 @@
         async function salvarCartao() {
             const nome = document.getElementById('f-nome-cartao').value;
             if(nome) await _supabase.from('cartoes').insert([{nome}]);
-            fecharModais(); atualizarTudo();
+            document.getElementById('f-nome-cartao').value = '';
+            atualizarTudo();
         }
 
         async function salvarCategoria() {
             const nome = document.getElementById('f-nome-cat').value;
             if(nome) await _supabase.from('categorias').insert([{nome}]);
-            document.getElementById('f-nome-cat').value = ''; atualizarTudo();
+            document.getElementById('f-nome-cat').value = '';
+            atualizarTudo();
         }
 
         async function excluir(tab, id) {
-            if(confirm("Apagar permanentemente?")) {
+            if(confirm("Deseja apagar permanentemente?")) {
                 await _supabase.from(tab).delete().eq('id', id);
                 if(filtroCartao === id) filtroCartao = null;
                 atualizarTudo();
@@ -324,7 +329,7 @@
         function renderCategoriasModal(cats) {
             const div = document.getElementById('lista-categorias-modal');
             div.innerHTML = '';
-            cats?.forEach(c => div.innerHTML += `<div class="flex justify-between p-3 bg-slate-50 rounded-xl text-[10px] font-bold uppercase"><span>${c.nome}</span><button onclick="excluir('categorias', '${c.id}')" class="text-red-400"><i class="fas fa-trash-alt"></i></button></div>`);
+            cats?.forEach(c => div.innerHTML += `<div class="flex justify-between p-3 bg-slate-50 rounded-xl text-[10px] font-black uppercase"><span>${c.nome}</span><button onclick="excluir('categorias', '${c.id}')" class="text-red-400 p-1 hover:bg-red-50 rounded"><i class="fas fa-trash-alt"></i></button></div>`);
         }
     </script>
 </body>
