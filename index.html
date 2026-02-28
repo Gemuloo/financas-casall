@@ -70,7 +70,9 @@
                 </section>
 
                 <div id="view-relatorio" style="display: none;">
-                    <div class="flex justify-center mb-8"><button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg">Somente Parcelados</button></div>
+                    <div class="flex justify-center mb-8">
+                        <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg">Somente Parcelados</button>
+                    </div>
                     <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-x-auto">
                         <table class="w-full text-left min-w-[400px]">
                             <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-widest"><tr><th class="p-6">Data</th><th class="p-6">Descrição</th><th class="p-6">Valor</th><th class="p-6 text-center">Ações</th></tr></thead>
@@ -156,10 +158,10 @@
             if(!v) return; 
             const key = `${a}-${m}`;
             await _supabase.from('salarios').upsert({ mes_ano: key, valor: parseFloat(v) }, { onConflict: 'mes_ano' });
-            alert("Salário atualizado!");
-            fecharModais(); 
-            // Se o modal de análise estiver aberto, atualizamos ele.
-            if(document.getElementById('modal-analise').style.display === 'flex') gerarAnaliseGastos();
+            alert("Salário salvo!");
+            fecharModais();
+            // Atualiza a análise se o modal estiver aberto ou para futuras aberturas
+            if (document.getElementById('modal-analise').style.display === 'flex') gerarAnaliseGastos();
         }
 
         async function gerarResumoAnual() {
@@ -189,12 +191,11 @@
                 const salData = salarios?.find(s => s.mes_ano === `${ano}-${i}`);
                 const valorSal = salData ? Number(salData.valor) : 0;
                 const sobra = valorSal - tG;
-                h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${valorSal.toLocaleString('pt-BR')}</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS: R$ ${tG.toLocaleString('pt-BR')}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${sobra.toLocaleString('pt-BR')}</p></div></div>`;
+                h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${valorSal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS: R$ ${tG.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${sobra.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p></div></div>`;
             });
             corpo.innerHTML = h;
         }
 
-        // Funções auxiliares (Iguais)
         function toggleDrawer(open) { document.getElementById('body-root').classList.toggle('drawer-active', open); }
         function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
         function fecharModais() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
