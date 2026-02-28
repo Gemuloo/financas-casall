@@ -70,17 +70,24 @@
                     </div>
                 </section>
 
-                <div class="flex justify-center mb-8">
-                    <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg transition-all">Somente Parcelados</button>
+                <div id="view-relatorio" style="display: none;">
+                    <div class="flex justify-center mb-8">
+                        <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg transition-all">Somente Parcelados</button>
+                    </div>
+
+                    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-x-auto">
+                        <table class="w-full text-left min-w-[400px]">
+                            <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                <tr><th class="p-6">Data</th><th class="p-6">Descrição</th><th class="p-6">Valor</th><th class="p-6 text-center">Ações</th></tr>
+                            </thead>
+                            <tbody id="lista-corpo" class="text-xs font-bold text-slate-700"></tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-x-auto">
-                    <table class="w-full text-left min-w-[500px]">
-                        <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                            <tr><th class="p-6">Data</th><th class="p-6">Descrição</th><th class="p-6">Banco</th><th class="p-6">Valor</th><th class="p-6 text-center">Ações</th></tr>
-                        </thead>
-                        <tbody id="lista-corpo" class="text-xs font-bold text-slate-700"></tbody>
-                    </table>
+                <div id="view-placeholder" class="py-20 text-center">
+                    <i class="fas fa-hand-pointer text-slate-200 text-4xl mb-4"></i>
+                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Selecione um banco para ver os detalhes</p>
                 </div>
             </div>
         </main>
@@ -108,23 +115,19 @@
             <div class="space-y-4">
                 <input id="f-desc" type="text" placeholder="Descrição" class="w-full bg-slate-50 border p-4 rounded-xl font-bold outline-none">
                 <input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none">
-                
                 <div>
                     <p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data do Gasto</p>
                     <input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs outline-none">
                 </div>
-
                 <div class="grid grid-cols-2 gap-3">
                     <select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select>
                     <select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase outline-none"></select>
                 </div>
-
                 <div class="p-5 bg-slate-50 rounded-2xl space-y-4">
                     <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Gasto Fixo</label>
                     <label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase cursor-pointer"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label>
                     <div id="box-qtd" style="display:none">
-                        <p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Qtd Parcelas</p>
-                        <input id="f-qtd-parc" type="number" placeholder="Ex: 12" class="w-full bg-white border p-4 rounded-xl text-xs font-bold outline-none">
+                        <input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold outline-none">
                     </div>
                 </div>
                 <button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] shadow-xl">Confirmar</button>
@@ -132,11 +135,58 @@
         </div>
     </div>
 
-    <div id="modal-anual" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Resumo Anual</h3><div id="corpo-anual" class="space-y-2"></div></div></div>
-    <div id="modal-menu-config" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4"><div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-credit-card"></i></div><span class="font-black text-blue-700 uppercase text-xs">Meus Bancos</span></button><button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4"><div class="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-tags"></i></div><span class="font-black text-emerald-700 uppercase text-xs">Categorias</span></button></div></div></div>
-    <div id="modal-bancos" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none"><button onclick="salvarItem('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
-    <div id="modal-categorias" class="modal-overlay"><div class="modal-content p-8"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none"><button onclick="salvarItem('categorias', 'f-nome-cat')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
-    <div id="modal-excluir-parcelado" class="modal-overlay"><div class="modal-content p-8 text-center"><i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-6 italic">Excluir Parcelamento</h3><div class="space-y-3" id="opcoes-exclusao-container"></div></div></div>
+    <div id="modal-menu-config" class="modal-overlay">
+        <div class="modal-content p-8">
+            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
+            <h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3>
+            <div class="space-y-4">
+                <button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4"><div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-credit-card"></i></div><span class="font-black text-blue-700 uppercase text-xs">Meus Bancos</span></button>
+                <button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4"><div class="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center text-white"><i class="fas fa-tags"></i></div><span class="font-black text-emerald-700 uppercase text-xs">Categorias</span></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-bancos" class="modal-overlay">
+        <div class="modal-content p-8">
+            <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
+            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3>
+            <div class="flex gap-2 mb-6">
+                <input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none">
+                <button onclick="salvarItem('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button>
+            </div>
+            <div id="lista-bancos-modal" class="space-y-2 max-h-60 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="modal-categorias" class="modal-overlay">
+        <div class="modal-content p-8">
+            <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
+            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3>
+            <div class="flex gap-2 mb-6">
+                <input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs outline-none">
+                <button onclick="salvarItem('categorias', 'f-nome-cat')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button>
+            </div>
+            <div id="lista-categorias-modal" class="space-y-2 max-h-60 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="modal-excluir-parcelado" class="modal-overlay">
+        <div class="modal-content p-8 text-center">
+            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
+            <h3 class="font-black text-slate-800 text-lg uppercase mb-6 italic">Excluir Parcelamento</h3>
+            <div class="space-y-3" id="opcoes-exclusao-container"></div>
+        </div>
+    </div>
+
+    <div id="modal-anual" class="modal-overlay">
+        <div class="modal-content p-8">
+            <i class="fas fa-times btn-close-modal" onclick="fecharModais()"></i>
+            <h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Resumo Anual</h3>
+            <div id="corpo-anual" class="space-y-2"></div>
+        </div>
+    </div>
 
     <script>
         const SUPABASE_URL = 'https://rwowvvpobywtokcqfxve.supabase.co';
@@ -150,7 +200,7 @@
 
         window.onload = () => { 
             setupDatas(); 
-            document.getElementById('f-data').valueAsDate = new Date(); // Sugere data de hoje no modal
+            document.getElementById('f-data').valueAsDate = new Date();
             atualizarTudo(); 
         };
 
@@ -175,16 +225,23 @@
                 const dFim = new Date(ano, mes + 1, 0, 23, 59, 59).toISOString();
                 
                 const { data: todasDoMes } = await _supabase.from('despesas')
-                    .select('*, cartoes(nome)')
+                    .select('*')
                     .gte('data', dInicio)
                     .lte('data', dFim)
                     .order('data', { ascending: true });
                 
-                let despesasTabela = todasDoMes || [];
-                if(filtroCartao) despesasTabela = despesasTabela.filter(d => d.cartao_id === filtroCartao);
-                if(filtroParcelado) despesasTabela = despesasTabela.filter(d => d.is_parcelado);
+                // Controle de visibilidade do relatório
+                if (filtroCartao) {
+                    document.getElementById('view-relatorio').style.display = 'block';
+                    document.getElementById('view-placeholder').style.display = 'none';
+                    let despesasTabela = (todasDoMes || []).filter(d => d.cartao_id === filtroCartao);
+                    if(filtroParcelado) despesasTabela = despesasTabela.filter(d => d.is_parcelado);
+                    renderTabela(despesasTabela);
+                } else {
+                    document.getElementById('view-relatorio').style.display = 'none';
+                    document.getElementById('view-placeholder').style.display = 'block';
+                }
 
-                renderTabela(despesasTabela);
                 calcularResumo(todasDoMes || [], filtroCartao);
             } catch (e) { console.error(e); }
         }
@@ -213,54 +270,40 @@
             const desc = document.getElementById('f-desc').value;
             const valorTotal = parseFloat(document.getElementById('f-valor').value);
             const dataInput = document.getElementById('f-data').value;
-            
-            if(!desc || !valorTotal || !dataInput) return alert("Preencha descrição, valor e data!");
-
+            if(!desc || !valorTotal || !dataInput) return alert("Preencha tudo!");
             const cartao = document.getElementById('f-cartao').value;
             const cat = document.getElementById('f-cat').value;
             const isFixa = document.getElementById('f-fixa').checked;
             const isParc = document.getElementById('f-parc').checked;
             const qtdInput = parseInt(document.getElementById('f-qtd-parc').value);
-            
-            let qtdLoop = 1;
-            if (isParc) qtdLoop = qtdInput || 1;
+            let qtdLoop = isParc ? (qtdInput || 1) : 1;
             const valorParcela = isParc ? (valorTotal / qtdLoop) : valorTotal;
-
             const insercoes = [];
-            const dataBase = new Date(dataInput + 'T12:00:00'); // T12:00 evita erros de fuso horário
-
+            const dataBase = new Date(dataInput + 'T12:00:00');
             for(let i=0; i < qtdLoop; i++) {
-                let dataVenc = new Date(dataBase);
-                dataVenc.setMonth(dataBase.getMonth() + i);
-                
+                let dV = new Date(dataBase); dV.setMonth(dataBase.getMonth() + i);
                 insercoes.push({
                     descricao: isParc ? `${desc} (${i+1}/${qtdLoop})` : desc,
                     valor: valorParcela, cartao_id: cartao || null, categoria_id: cat || null,
-                    is_fixa: isFixa, is_parcelado: isParc, parcelas: isParc ? qtdLoop : 1, 
-                    data: dataVenc.toISOString()
+                    is_fixa: isFixa, is_parcelado: isParc, parcelas: qtdLoop, data: dV.toISOString()
                 });
             }
             await _supabase.from('despesas').insert(insercoes);
             fecharModais(); await atualizarTudo();
-            // Resetar campos
-            document.getElementById('f-desc').value = ''; document.getElementById('f-valor').value = '';
-            document.getElementById('f-data').valueAsDate = new Date();
         }
 
         function renderTabela(dados) {
             document.getElementById('lista-corpo').innerHTML = dados?.map(d => {
-                const dataFormatada = new Date(d.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
+                const dF = new Date(d.data).toLocaleDateString('pt-BR', {timeZone: 'UTC'});
                 return `<tr class="border-t border-slate-50">
-                    <td class="p-6 text-[10px] text-slate-400 font-black uppercase">${dataFormatada}</td>
+                    <td class="p-6 text-[10px] text-slate-400 font-black uppercase">${dF}</td>
                     <td class="p-6">${d.descricao}</td>
-                    <td class="p-6 text-[9px] uppercase text-slate-400">${d.cartoes?.nome || 'DÉBITO'}</td>
-                    <td class="p-6">R$ ${Number(d.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="p-6 font-black">R$ ${Number(d.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                     <td class="p-6 text-center"><button onclick="excluir('despesas', '${d.id}')" class="text-slate-200 hover:text-red-500"><i class="fas fa-trash-alt"></i></button></td>
                 </tr>`
-            }).join('') || '<tr><td colspan="5" class="p-10 text-center text-slate-300 uppercase text-[9px]">Vazio</td></tr>';
+            }).join('') || '<tr><td colspan="4" class="p-10 text-center text-slate-300 uppercase text-[9px]">Sem gastos</td></tr>';
         }
 
-        // Funções de apoio (Sidebar, Selects, Exclusão, etc) seguem a mesma lógica anterior
         async function excluir(tab, id) {
             if (tab !== 'despesas') {
                 if (confirm("Excluir?")) { await _supabase.from(tab).delete().eq('id', id); await atualizarTudo(); }
@@ -276,6 +319,7 @@
                 abrirModal('modal-excluir-parcelado');
             } else { if (confirm("Excluir?")) { await _supabase.from('despesas').delete().eq('id', id); await atualizarTudo(); } }
         }
+
         async function executarExclusao(tipo) {
             const { descricao, data, cartao_id } = itemParaExcluir;
             const baseDesc = descricao.split(' (')[0]; 
@@ -285,23 +329,28 @@
             else if (tipo === 'todas') q = q.ilike('descricao', `${baseDesc}%`).eq('cartao_id', cartao_id);
             await q; itemParaExcluir = null; fecharModais(); await atualizarTudo();
         }
+
         async function salvarItem(tab, inputId) {
             const el = document.getElementById(inputId);
             if(!el.value) return;
             await _supabase.from(tab).insert([{ nome: el.value }]);
             el.value = ''; await atualizarTudo();
         }
-        function renderConfigLists(cartoes, cats) {
-            document.getElementById('lista-bancos-modal').innerHTML = cartoes?.map(c => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${c.nome}</span><button onclick="excluir('cartoes', '${c.id}')"><i class="fas fa-trash text-red-300"></i></button></div>`).join('') || '';
-            document.getElementById('lista-categorias-modal').innerHTML = cats?.map(c => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${c.nome}</span><button onclick="excluir('categorias', '${c.id}')"><i class="fas fa-trash text-red-300"></i></button></div>`).join('') || '';
-        }
+
         function renderSidebar(lista) {
             document.getElementById('sidebar-cartoes').innerHTML = lista?.map(c => `<button onclick="setFiltroCartao('${c.id}')" class="w-full text-left p-4 rounded-2xl font-black text-[9px] uppercase ${filtroCartao === c.id ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-500'}">${c.nome}</button>`).join('') || '';
         }
+
         function renderSelects(cartoes, cats) {
             document.getElementById('f-cartao').innerHTML = '<option value="">Banco?</option>' + cartoes?.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
             document.getElementById('f-cat').innerHTML = '<option value="">Categoria</option>' + cats?.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
         }
+
+        function renderConfigLists(cartoes, cats) {
+            document.getElementById('lista-bancos-modal').innerHTML = cartoes?.map(c => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${c.nome}</span><button onclick="excluir('cartoes', '${c.id}')"><i class="fas fa-trash text-red-300"></i></button></div>`).join('') || '';
+            document.getElementById('lista-categorias-modal').innerHTML = cats?.map(c => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${c.nome}</span><button onclick="excluir('categorias', '${c.id}')"><i class="fas fa-trash text-red-300"></i></button></div>`).join('') || '';
+        }
+
         function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; atualizarTudo(); }
         function toggleParcelados() { filtroParcelado = !filtroParcelado; document.getElementById('btn-parcelados').classList.toggle('bg-orange-500'); atualizarTudo(); }
         function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -312,14 +361,14 @@
             corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
             abrirModal('modal-anual');
             const { data } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
-            let html = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2"><div class="w-1/4">Mês</div><div class="w-1/4 text-center">Fixas</div><div class="w-1/4 text-center">Normais</div><div class="w-1/4 text-right">Total</div></div>`;
-            mesesNomes.forEach((nome, i) => {
-                const dMes = data?.filter(d => new Date(d.data).getMonth() === i) || [];
-                const tFix = dMes.filter(d => d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
-                const tNorm = dMes.filter(d => !d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
-                html += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${nome}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${tFix.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${tNorm.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${(tFix+tNorm).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div>`;
+            let h = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2"><div class="w-1/4">Mês</div><div class="w-1/4 text-center">Fixas</div><div class="w-1/4 text-center">Normais</div><div class="w-1/4 text-right">Total</div></div>`;
+            mesesNomes.forEach((n, i) => {
+                const dM = data?.filter(d => new Date(d.data).getMonth() === i) || [];
+                const tF = dM.filter(d => d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
+                const tN = dM.filter(d => !d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
+                h += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${n}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${tF.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${tN.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${(tF+tN).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span></div>`;
             });
-            corpo.innerHTML = html;
+            corpo.innerHTML = h;
         }
     </script>
 </body>
