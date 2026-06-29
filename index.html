@@ -1,358 +1,642 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance App 2026 - Turbo</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        html { height: -webkit-fill-available; }
-        body { min-height: 100vh; margin: 0; background-color: #f8fafc; font-size: 14px; overflow-x: hidden; display: flex; flex-direction: column; }
-        .layout-container { display: flex; flex: 1; width: 100vw; overflow: hidden; }
-        main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; }
-        .content-wrapper { padding: 1.5rem; padding-bottom: 300px; }
-        aside { width: 260px; background: white; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; }
-        #sidebar-cartoes { display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; }
-        #sidebar-cartoes button { width: 100%; padding: 1rem; border-radius: 1rem; text-align: left; font-weight: 900; font-size: 10px; text-transform: uppercase; }
-        #btn-menu-bancos { display: none; position: fixed; top: 1.5rem; left: 1.5rem; z-index: 100; width: 50px; height: 50px; background: #1e293b; color: white; border-radius: 15px; align-items: center; justify-content: center; }
-        .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 110; }
-        .drawer-content { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; z-index: 120; transition: left 0.3s ease; padding: 2rem; }
-        .drawer-active .drawer-content { left: 0; }
-        .drawer-active .drawer-overlay { display: block; }
-        .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1.5rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; }
-        .floating-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1rem; z-index: 90; width: max-content; pointer-events: none; }
-        .floating-controls button { pointer-events: auto; }
-        .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); z-index: 150; align-items: center; justify-content: center; padding: 1rem; }
-        .modal-content { background-color: white; width: 100%; max-width: 480px; border-radius: 2.5rem; max-height: 90vh; overflow-y: auto; position: relative; padding: 2rem; }
-        @media (max-width: 768px) { aside { display: none !important; } #btn-menu-bancos { display: flex; } .content-wrapper { padding-top: 5rem; } }
-    </style>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Painel Gemulo</title>
+   <script src="https://cdn.tailwindcss.com"></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; }
+      body { background: #f8fafc; }
+      .view { display: none; min-height: 100vh; }
+      .view.active { display: flex; }
+
+      /* LOGIN */
+      #view-login { align-items: center; justify-content: center; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f172a 100%); position: relative; overflow: hidden; }
+      #view-login::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(59,130,246,0.18) 0%, transparent 70%); pointer-events: none; }
+      .login-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px); border-radius: 2rem; padding: 2.5rem 2rem; width: 100%; max-width: 360px; position: relative; z-index: 1; }
+      .login-card input { width: 100%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: white; border-radius: 0.75rem; padding: 0.85rem 1rem; font-size: 0.85rem; font-weight: 600; outline: none; margin-bottom: 0.75rem; transition: border-color 0.2s; }
+      .login-card input::placeholder { color: rgba(255,255,255,0.3); }
+      .login-card input:focus { border-color: rgba(59,130,246,0.6); }
+      .btn-login { width: 100%; background: #2563eb; color: white; font-weight: 900; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; border: none; border-radius: 0.75rem; padding: 1rem; cursor: pointer; transition: background 0.2s; margin-top: 0.5rem; }
+      .btn-login:hover { background: #1d4ed8; }
+      .login-error { color: #f87171; font-size: 0.7rem; font-weight: 700; text-align: center; margin-top: 0.5rem; min-height: 1rem; }
+
+      /* HUB */
+      #view-hub { flex-direction: column; align-items: center; justify-content: center; background: linear-gradient(145deg, #0f172a 0%, #1e3a5f 100%); min-height: 100vh; padding: 2rem; position: relative; overflow: hidden; }
+      #view-hub::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 40% at 50% 20%, rgba(59,130,246,0.12) 0%, transparent 70%); pointer-events: none; }
+      .hub-header { text-align: center; margin-bottom: 3rem; position: relative; z-index: 1; }
+      .hub-header .welcome { color: rgba(255,255,255,0.45); font-size: 0.65rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 0.5rem; }
+      .hub-header h1 { color: white; font-size: 1.8rem; font-weight: 900; margin: 0; }
+      .hub-header h1 span { color: #60a5fa; }
+      .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; width: 100%; max-width: 480px; position: relative; z-index: 1; }
+      .hub-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 1.75rem; padding: 2rem 1.25rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s; }
+      .hub-card:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); transform: translateY(-2px); }
+      .hub-card .icon-wrap { width: 64px; height: 64px; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
+      .hub-card .card-label { color: white; font-size: 0.7rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; }
+      .hub-card .card-sub { color: rgba(255,255,255,0.35); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; text-align: center; margin-top: -0.5rem; }
+      .ic-finance { background: rgba(37,99,235,0.25); color: #60a5fa; }
+      .ic-auto { background: rgba(234,88,12,0.25); color: #fb923c; }
+      .hub-logout { position: absolute; top: 1.5rem; right: 1.5rem; z-index: 2; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; padding: 0.6rem 1rem; color: rgba(255,255,255,0.5); font-size: 0.65rem; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+      .hub-logout:hover { background: rgba(255,255,255,0.14); color: white; }
+
+      /* FINANCE */
+      #view-finance { flex-direction: column; background: #f8fafc; }
+      .app-topbar { display: flex; align-items: center; justify-content: space-between; background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 50; }
+      .app-topbar h2 { margin: 0; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: #1e293b; letter-spacing: 0.1em; }
+      .btn-back { background: none; border: none; cursor: pointer; color: #64748b; font-size: 0.65rem; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: 0.5rem; transition: background 0.15s; }
+      .btn-back:hover { background: #f1f5f9; }
+      .finance-layout { display: flex; flex: 1; overflow: hidden; }
+      .finance-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+      .content-wrapper { padding: 1.5rem; padding-bottom: 200px; }
+      aside#f-aside { width: 260px; background: white; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow-y: auto; }
+      #sidebar-cartoes { display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; }
+      .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1.5rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
+      .floating-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1rem; z-index: 90; width: max-content; pointer-events: none; }
+      .floating-controls button { pointer-events: auto; }
+      .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15,23,42,0.7); backdrop-filter: blur(8px); z-index: 150; align-items: center; justify-content: center; padding: 1rem; }
+      .modal-content { background-color: white; width: 100%; max-width: 480px; border-radius: 2.5rem; max-height: 90vh; overflow-y: auto; position: relative; padding: 2rem; }
+      #btn-menu-bancos { display: none; position: fixed; top: 4.5rem; left: 1rem; z-index: 100; width: 44px; height: 44px; background: #1e293b; color: white; border-radius: 12px; align-items: center; justify-content: center; border: none; cursor: pointer; }
+      .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 110; }
+      .drawer-panel { position: fixed; top: 0; left: -290px; width: 280px; height: 100%; background: white; z-index: 120; transition: left 0.3s ease; padding: 2rem; overflow-y: auto; }
+      .drawer-open .drawer-panel { left: 0; }
+      .drawer-open .drawer-overlay { display: block; }
+      @media (max-width: 768px) { aside#f-aside { display: none !important; } #btn-menu-bancos { display: flex; } .content-wrapper { padding-top: 1rem; } }
+
+      /* AUTO */
+      #view-auto { flex-direction: column; background: #f8fafc; }
+      .auto-body { flex: 1; overflow-y: auto; padding: 1.5rem; padding-bottom: 180px; }
+      .auto-card { background: white; border-radius: 1.5rem; border: 1px solid #e2e8f0; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+      .auto-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.6rem; font-weight: 900; text-transform: uppercase; padding: 0.25rem 0.75rem; border-radius: 9999px; letter-spacing: 0.08em; }
+      .badge-manut { background: #fef3c7; color: #92400e; }
+      .badge-troca { background: #dbeafe; color: #1e40af; }
+      .badge-revisao { background: #d1fae5; color: #065f46; }
+      .badge-seguro { background: #fce7f3; color: #9d174d; }
+      .badge-outro { background: #f1f5f9; color: #475569; }
+      .auto-fab { position: fixed; bottom: 2rem; right: 2rem; z-index: 80; width: 64px; height: 64px; background: #ea580c; color: white; border-radius: 1.25rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: 0 8px 24px rgba(234,88,12,0.4); transition: transform 0.15s; }
+      .auto-fab:hover { transform: scale(1.05); }
+      .auto-veiculo-pill { display: flex; align-items: center; gap: 0.5rem; background: white; border: 1px solid #e2e8f0; border-radius: 9999px; padding: 0.4rem 1rem; cursor: pointer; font-size: 0.65rem; font-weight: 900; text-transform: uppercase; color: #1e293b; transition: border-color 0.15s; }
+      .auto-veiculo-pill.active { border-color: #ea580c; color: #ea580c; }
+      .km-chip { background: #f1f5f9; border-radius: 0.5rem; padding: 0.2rem 0.6rem; font-size: 0.65rem; font-weight: 900; color: #475569; }
+   </style>
 </head>
-<body id="body-root">
+<body>
 
-    <button id="btn-menu-bancos" onclick="toggleDrawer(true)"><i class="fas fa-university"></i></button>
+<!-- LOGIN -->
+<div id="view-login" class="view active">
+   <div class="login-card">
+      <div style="text-align:center; margin-bottom:2rem;">
+         <div style="width:56px;height:56px;background:rgba(59,130,246,0.15);border-radius:1rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+            <i class="fas fa-shield-alt" style="color:#60a5fa;font-size:1.4rem;"></i>
+         </div>
+         <h2 style="color:white;margin:0;font-weight:900;font-size:1.3rem;letter-spacing:-0.02em;">Gemulo</h2>
+         <p style="color:rgba(255,255,255,0.35);font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;margin:0.25rem 0 0;">Painel Pessoal</p>
+      </div>
+      <input type="text" id="login-user" placeholder="Usuário" autocomplete="username" />
+      <input type="password" id="login-pass" placeholder="Senha" autocomplete="current-password" onkeydown="if(event.key==='Enter') fazerLogin()" />
+      <button class="btn-login" onclick="fazerLogin()">Entrar</button>
+      <p class="login-error" id="login-erro"></p>
+   </div>
+</div>
 
-    <div id="drawer-container">
-        <div class="drawer-overlay" onclick="toggleDrawer(false)"></div>
-        <div class="drawer-content">
-            <h3 class="font-black text-slate-800 text-lg uppercase mb-6 italic">Bancos</h3>
-            <div id="mobile-lista-bancos" class="flex flex-col gap-3"></div>
-        </div>
-    </div>
+<!-- HUB -->
+<div id="view-hub" class="view">
+   <button class="hub-logout" onclick="fazerLogout()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+   <div class="hub-header">
+      <p class="welcome">Bem-vindo,</p>
+      <h1 id="hub-nome-usuario">Usuário <span>✦</span></h1>
+   </div>
+   <div class="hub-grid">
+      <div class="hub-card" onclick="irPara('finance')">
+         <div class="icon-wrap ic-finance"><i class="fas fa-wallet"></i></div>
+         <div><p class="card-label">Finanças</p><p class="card-sub">Gastos & Parcelas</p></div>
+      </div>
+      <div class="hub-card" onclick="irPara('auto')">
+         <div class="icon-wrap ic-auto"><i class="fas fa-car"></i></div>
+         <div><p class="card-label">Automóvel</p><p class="card-sub">Manutenções</p></div>
+      </div>
+   </div>
+</div>
 
-    <div class="layout-container">
-        <aside>
-            <div class="p-6 border-b text-center"><h2 class="font-black text-slate-800 text-lg uppercase italic">Bancos</h2></div>
-            <div id="sidebar-cartoes" class="overflow-y-auto"></div>
-        </aside>
+<!-- FINANCE APP -->
+<div id="view-finance" class="view">
+   <div class="app-topbar">
+      <button class="btn-back" onclick="voltarHub()"><i class="fas fa-chevron-left"></i> Hub</button>
+      <h2><i class="fas fa-wallet" style="color:#2563eb;margin-right:0.5rem;"></i>Finanças</h2>
+      <div style="width:80px;"></div>
+   </div>
 
-        <main>
-            <div class="content-wrapper">
-                <div class="flex justify-center mb-6 gap-2">
-                    <select id="sel-mes" class="date-select" onchange="atualizarTudo()"></select>
-                    <select id="sel-ano" class="date-select" onchange="atualizarTudo()"></select>
-                </div>
+   <button id="btn-menu-bancos" onclick="toggleDrawer(true)"><i class="fas fa-university"></i></button>
+   <div id="drawer-container">
+      <div class="drawer-overlay" onclick="toggleDrawer(false)"></div>
+      <div class="drawer-panel">
+         <h3 style="font-weight:900;font-size:1rem;text-transform:uppercase;color:#1e293b;margin-bottom:1.25rem;font-style:italic;">Bancos</h3>
+         <div id="mobile-lista-bancos" class="flex flex-col gap-3"></div>
+      </div>
+   </div>
 
-                <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-slate-100 text-center">
-                        <p id="txt-label-1" class="text-[9px] font-black text-slate-400 uppercase mb-1">Saldo em Conta</p>
-                        <h3 id="res-valor-1" class="text-2xl font-black text-slate-800 tracking-tighter">R$ 0,00</h3>
-                    </div>
-                    <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-slate-100 text-center">
-                        <p id="txt-label-2" class="text-[9px] font-black text-slate-400 uppercase mb-1">Faturas</p>
-                        <h3 id="res-valor-2" class="text-2xl font-black text-slate-800 tracking-tighter">R$ 0,00</h3>
-                    </div>
-                    <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-blue-100 bg-blue-50/20 text-center">
-                        <p id="txt-label-3" class="text-[9px] font-black text-blue-600 uppercase mb-1">Balanço do Mês</p>
-                        <h3 id="res-total" class="text-2xl font-black text-blue-700 tracking-tighter">R$ 0,00</h3>
-                    </div>
-                </section>
-
-                <div id="view-relatorio" style="display: none;">
-                    <div class="flex justify-center mb-8">
-                        <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg">Somente Parcelados</button>
-                    </div>
-                    <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-x-auto">
-                        <table class="w-full text-left min-w-[400px]">
-                            <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-widest"><tr><th class="p-6">Data</th><th class="p-6">Descrição</th><th class="p-6">Valor</th><th class="p-6 text-center">Ações</th></tr></thead>
-                            <tbody id="lista-corpo" class="text-xs font-bold text-slate-700"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="view-placeholder" class="py-20 text-center">
-                    <i class="fas fa-hand-pointer text-slate-200 text-4xl mb-4"></i>
-                    <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Selecione um banco</p>
-                </div>
+   <div class="finance-layout">
+      <aside id="f-aside">
+         <div class="p-5 border-b text-center"><h2 style="font-size:0.75rem;font-weight:900;text-transform:uppercase;color:#1e293b;margin:0;">Bancos</h2></div>
+         <div id="sidebar-cartoes"></div>
+      </aside>
+      <div class="finance-body">
+         <div class="content-wrapper">
+            <div class="flex justify-center mb-6 gap-2">
+               <select id="sel-mes" class="date-select" onchange="atualizarTudo()"></select>
+               <select id="sel-ano" class="date-select" onchange="atualizarTudo()"></select>
             </div>
-        </main>
-    </div>
-
-    <div class="floating-controls">
-        <button onclick="gerarResumoAnual()" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center"><i class="fas fa-calendar-alt text-slate-300"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Anual</span></button>
-        <button onclick="abrirModal('modal-lancar')" class="bg-blue-600 w-24 h-24 md:w-28 md:h-28 rounded-[2rem] shadow-2xl border-4 md:border-8 border-white flex flex-col items-center justify-center -translate-y-4 text-white"><i class="fas fa-plus text-3xl"></i><span class="text-[9px] font-black uppercase">Lancar</span></button>
-        <button onclick="abrirModal('modal-menu-config')" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center"><i class="fas fa-cog text-slate-300"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Config</span></button>
-    </div>
-
-    <div id="modal-excluir-parcela" class="modal-overlay">
-        <div class="modal-content">
-            <h3 class="font-black text-slate-800 text-lg uppercase mb-6 text-center italic">Como deseja excluir?</h3>
-            <div id="opcoes-exclusao" class="space-y-3">
-                </div>
-            <button onclick="fecharModais()" class="w-full mt-4 p-4 text-[10px] font-black text-slate-400 uppercase">Cancelar</button>
-        </div>
-    </div>
-
-    <div id="modal-menu-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4">
-        <button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4 text-blue-700 font-black uppercase text-xs"><i class="fas fa-credit-card"></i> Bancos</button>
-        <button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4 text-emerald-700 font-black uppercase text-xs"><i class="fas fa-tags"></i> Categorias</button>
-        <button onclick="fecharModais(); abrirModal('modal-salario')" class="w-full p-6 bg-orange-50 rounded-2xl flex items-center gap-4 text-orange-700 font-black uppercase text-xs"><i class="fas fa-money-bill-wave"></i> Salário</button>
-    </div></div></div>
-
-    <div id="modal-salario" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Salários</h3>
-        <div class="space-y-4 mb-6">
-            <div class="grid grid-cols-2 gap-2">
-                <select id="f-sal-mes" class="bg-slate-50 border p-3 rounded-xl font-bold text-xs"></select>
-                <select id="f-sal-ano" class="bg-slate-50 border p-3 rounded-xl font-bold text-xs"></select>
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+               <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-slate-100 text-center">
+                  <p id="txt-label-1" class="text-[9px] font-black text-slate-400 uppercase mb-1">Saldo em Conta</p>
+                  <h3 id="res-valor-1" class="text-2xl font-black text-slate-800 tracking-tighter">R$ 0,00</h3>
+               </div>
+               <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-slate-100 text-center">
+                  <p id="txt-label-2" class="text-[9px] font-black text-slate-400 uppercase mb-1">Faturas</p>
+                  <h3 id="res-valor-2" class="text-2xl font-black text-slate-800 tracking-tighter">R$ 0,00</h3>
+               </div>
+               <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-blue-100 bg-blue-50/20 text-center">
+                  <p id="txt-label-3" class="text-[9px] font-black text-blue-600 uppercase mb-1">Balanço do Mês</p>
+                  <h3 id="res-total" class="text-2xl font-black text-blue-700 tracking-tighter">R$ 0,00</h3>
+               </div>
+            </section>
+            <div id="view-relatorio" style="display: none;">
+               <div class="flex justify-center mb-8">
+                  <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg">Somente Parcelados</button>
+               </div>
+               <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-x-auto">
+                  <table class="w-full text-left min-w-[400px]">
+                     <thead class="bg-slate-50 text-[9px] font-black text-slate-400 uppercase tracking-widest"><tr><th class="p-6">Data</th><th class="p-6">Descrição</th><th class="p-6">Valor</th><th class="p-6 text-center">Ações</th></tr></thead>
+                     <tbody id="lista-corpo" class="text-xs font-bold text-slate-700"></tbody>
+                  </table>
+               </div>
             </div>
-            <div class="flex gap-2">
-                <input id="f-sal-valor" type="number" placeholder="Valor" class="flex-1 bg-slate-50 border p-3 rounded-xl font-black text-blue-600 outline-none">
-                <button onclick="salvarSalario()" class="bg-orange-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button>
+            <div id="view-placeholder" class="py-20 text-center">
+               <i class="fas fa-hand-pointer text-slate-200 text-4xl mb-4"></i>
+               <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Selecione um banco</p>
             </div>
-        </div>
-        <div id="lista-salarios-modal" class="space-y-2 max-h-60 overflow-y-auto"></div>
-    </div></div>
+         </div>
+      </div>
+   </div>
 
-    <div id="modal-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i>
-        <h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Resumo Anual</h3>
-        <div class="space-y-2 mb-6">
-            <button onclick="gerarAnaliseGastos()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">O quanto posso gastar?</button>
-            <button onclick="gerarResumoCategoriasAnual()" class="w-full bg-emerald-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">Resumo por Categoria</button>
-        </div>
-        <div id="corpo-anual" class="space-y-2"></div>
-    </div></div>
+   <div class="floating-controls">
+      <button onclick="gerarResumoAnual()" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center border border-slate-100"><i class="fas fa-calendar-alt text-slate-300"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Anual</span></button>
+      <button onclick="abrirModal('modal-lancar')" class="bg-blue-600 w-24 h-24 md:w-28 md:h-28 rounded-[2rem] shadow-2xl border-4 md:border-8 border-white flex flex-col items-center justify-center -translate-y-4 text-white"><i class="fas fa-plus text-3xl"></i><span class="text-[9px] font-black uppercase">Lançar</span></button>
+      <button onclick="abrirModal('modal-menu-config')" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center border border-slate-100"><i class="fas fa-cog text-slate-300"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Config</span></button>
+   </div>
 
-    <div id="modal-analise" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Projeção de Gastos</h3><div id="corpo-analise" class="space-y-3"></div></div></div>
-    
-    <div id="modal-cat-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Gastos por Categoria</h3>
-        <div class="mb-6">
-            <select id="sel-cat-mes" class="w-full bg-slate-50 border p-3 rounded-xl font-black text-[10px] uppercase text-slate-600" onchange="gerarResumoCategoriasAnual()">
-                <option value="todos">O Ano Todo</option>
-            </select>
-        </div>
-        <div id="corpo-cat-anual" class="space-y-3"></div>
-    </div></div>
+   <!-- Finance Modals -->
+   <div id="modal-excluir-parcela" class="modal-overlay"><div class="modal-content"><h3 class="font-black text-slate-800 text-lg uppercase mb-6 text-center italic">Como deseja excluir?</h3><div id="opcoes-exclusao" class="space-y-3"></div><button onclick="fecharModais()" class="w-full mt-4 p-4 text-[10px] font-black text-slate-400 uppercase">Cancelar</button></div></div>
+   <div id="modal-menu-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4 text-blue-700 font-black uppercase text-xs"><i class="fas fa-credit-card"></i> Bancos</button><button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4 text-emerald-700 font-black uppercase text-xs"><i class="fas fa-tags"></i> Categorias</button><button onclick="fecharModais(); abrirModal('modal-salario')" class="w-full p-6 bg-orange-50 rounded-2xl flex items-center gap-4 text-orange-700 font-black uppercase text-xs"><i class="fas fa-money-bill-wave"></i> Salário</button></div></div></div>
+   <div id="modal-salario" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Salários</h3><div class="space-y-4 mb-6"><div class="grid grid-cols-2 gap-2"><select id="f-sal-mes" class="bg-slate-50 border p-3 rounded-xl font-bold text-xs"></select><select id="f-sal-ano" class="bg-slate-50 border p-3 rounded-xl font-bold text-xs"></select></div><div class="flex gap-2"><input id="f-sal-valor" type="number" placeholder="Valor" class="flex-1 bg-slate-50 border p-3 rounded-xl font-black text-blue-600 outline-none"><button onclick="salvarSalario()" class="bg-orange-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div></div><div id="lista-salarios-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
+   <div id="modal-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Resumo Anual</h3><div class="space-y-2 mb-6"><button onclick="gerarAnaliseGastos()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">O quanto posso gastar?</button><button onclick="gerarResumoCategoriasAnual()" class="w-full bg-emerald-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">Resumo por Categoria</button></div><div id="corpo-anual" class="space-y-2"></div></div></div>
+   <div id="modal-analise" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Projeção de Gastos</h3><div id="corpo-analise" class="space-y-3"></div></div></div>
+   <div id="modal-cat-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Gastos por Categoria</h3><div class="mb-6"><select id="sel-cat-mes" class="w-full bg-slate-50 border p-3 rounded-xl font-black text-[10px] uppercase text-slate-600" onchange="gerarResumoCategoriasAnual()"><option value="todos">O Ano Todo</option></select></div><div id="corpo-cat-anual" class="space-y-3"></div></div></div>
+   <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><input id="f-desc" type="text" placeholder="Descrição" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select><select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select></div><div class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold"></div></div><button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px]">Confirmar</button></div></div></div>
+   <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarItem('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
+   <div id="modal-categorias" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarItem('categorias', 'f-nome-cat')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
+</div>
 
-    <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><input id="f-desc" type="text" placeholder="Descrição" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select><select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"></select></div><div class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold"></div></div><button onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px]">Confirmar</button></div></div></div>
-    <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarItem('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
-    <div id="modal-categorias" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarItem('categorias', 'f-nome-cat')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
+<!-- AUTO APP -->
+<div id="view-auto" class="view" style="flex-direction:column;">
+   <div class="app-topbar">
+      <button class="btn-back" onclick="voltarHub()"><i class="fas fa-chevron-left"></i> Hub</button>
+      <h2><i class="fas fa-car" style="color:#ea580c;margin-right:0.5rem;"></i>Automóvel</h2>
+      <div style="width:80px;"></div>
+   </div>
+   <div class="auto-body" id="auto-body">
+      <div id="auto-veiculos-bar" class="flex gap-2 flex-wrap mb-5"></div>
+      <div id="auto-stats" class="grid grid-cols-2 gap-3 mb-5">
+         <div class="auto-card text-center">
+            <p style="font-size:0.6rem;font-weight:900;text-transform:uppercase;color:#94a3b8;margin-bottom:0.25rem;">Total Gasto</p>
+            <p id="auto-total-gasto" style="font-size:1.5rem;font-weight:900;color:#1e293b;">R$ 0</p>
+         </div>
+         <div class="auto-card text-center">
+            <p style="font-size:0.6rem;font-weight:900;text-transform:uppercase;color:#94a3b8;margin-bottom:0.25rem;">Registros</p>
+            <p id="auto-total-regs" style="font-size:1.5rem;font-weight:900;color:#1e293b;">0</p>
+         </div>
+      </div>
+      <div id="auto-lista"></div>
+   </div>
+   <button class="auto-fab" onclick="abrirModalAuto('modal-auto-lancar')"><i class="fas fa-plus"></i></button>
 
-    <script>
-        const SUPABASE_URL = 'https://rwowvvpobywtokcqfxve.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3b3d2dnBvYnl3dG9rY3FmeHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNDY3MTgsImV4cCI6MjA4NzgyMjcxOH0.AJVmEKeUk22L4eT_FMLls0-xAJhMrAITOazM_1XmUaM';
-        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+   <!-- Auto Modals -->
+   <div id="modal-auto-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisAuto()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Registro</h3><div class="space-y-3"><input id="a-desc" type="text" placeholder="Descrição (ex: Troca de óleo)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><input id="a-valor" type="number" step="0.01" placeholder="Valor (R$)" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-orange-600 text-xl outline-none"><div class="grid grid-cols-2 gap-3"><select id="a-veiculo" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"><option value="">Veículo?</option></select><select id="a-tipo" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase"><option value="manut">Manutenção</option><option value="troca">Troca de Peça</option><option value="revisao">Revisão</option><option value="seguro">Seguro</option><option value="outro">Outro</option></select></div><input id="a-km" type="number" placeholder="KM no momento (opcional)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="a-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><input id="a-obs" type="text" placeholder="Observação (opcional)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><button onclick="confirmarAutoLancamento()" class="w-full bg-orange-600 text-white font-black py-5 rounded-2xl uppercase text-[11px]">Confirmar</button></div></div></div>
+   <div id="modal-auto-veiculos" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisAuto()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Veículos</h3><div class="flex gap-2 mb-6"><input id="a-nome-veiculo" type="text" placeholder="Nome ou placa" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarVeiculo()" class="bg-orange-600 text-white px-5 rounded-xl font-black uppercase text-[10px]">Add</button></div><div id="lista-veiculos-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
+   <div id="modal-auto-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisAuto()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModaisAuto(); abrirModalAuto('modal-auto-veiculos')" class="w-full p-6 bg-orange-50 rounded-2xl flex items-center gap-4 text-orange-700 font-black uppercase text-xs"><i class="fas fa-car"></i> Gerenciar Veículos</button></div></div></div>
 
-        let filtroCartao = null, filtroParcelado = false;
-        let cacheBancos = [], cacheCategorias = [], cacheSalarios = [];
-        const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+   <div style="position:fixed;bottom:2rem;left:2rem;z-index:80;">
+      <button onclick="abrirModalAuto('modal-auto-config')" style="width:56px;height:56px;background:white;border:1px solid #e2e8f0;border-radius:1rem;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.08);"><i class="fas fa-cog" style="color:#94a3b8;"></i></button>
+   </div>
+</div>
 
-        window.onload = () => { setupDatas(); document.getElementById('f-data').valueAsDate = new Date(); atualizarTudo(); };
+<script>
+// =================== AUTH ===================
+const USERS = [
+   { login: 'gemulo',  senha: '123',  nome: 'Gemulo' },
+   { login: 'gemulox', senha: '1234', nome: 'Gemulo X' }
+];
 
-        function setupDatas() {
-            const ms = document.getElementById('sel-mes'), fs = document.getElementById('f-sal-mes'), scm = document.getElementById('sel-cat-mes');
-            mesesNomes.forEach((m, i) => { 
-                const opt = `<option value="${i}">${m}</option>`;
-                ms.innerHTML += (i === new Date().getMonth() ? opt.replace('value', 'selected value') : opt);
-                fs.innerHTML += (i === new Date().getMonth() ? opt.replace('value', 'selected value') : opt);
-                scm.innerHTML += opt;
-            });
-            const as = document.getElementById('sel-ano'), fsa = document.getElementById('f-sal-ano'); 
-            [2025, 2026, 2027].forEach(a => {
-                const opt = `<option value="${a}" ${a === 2026 ? 'selected' : ''}>${a}</option>`;
-                as.innerHTML += opt; fsa.innerHTML += opt;
-            });
-        }
+let usuarioAtual = null; // guarda o objeto do usuário logado
 
-        async function atualizarTudo() {
-            try {
-                const [resBancos, resCats, resSals] = await Promise.all([
-                    _supabase.from('cartoes').select('*').order('nome'),
-                    _supabase.from('categorias').select('*').order('nome'),
-                    _supabase.from('salarios').select('*')
-                ]);
-                cacheBancos = resBancos.data || [];
-                cacheCategorias = resCats.data || [];
-                cacheSalarios = resSals.data || [];
-                const mes = parseInt(document.getElementById('sel-mes').value), ano = parseInt(document.getElementById('sel-ano').value);
-                const dInicio = new Date(ano, mes, 1).toISOString(), dFim = new Date(ano, mes + 1, 0, 23, 59, 59).toISOString();
-                const { data: todasDoMes } = await _supabase.from('despesas').select('*').gte('data', dInicio).lte('data', dFim).order('data');
-                renderBancosLists(cacheBancos); renderSelects(cacheBancos, cacheCategorias); renderConfigLists(cacheBancos, cacheCategorias, cacheSalarios);
-                if (filtroCartao) {
-                    document.getElementById('view-relatorio').style.display = 'block'; document.getElementById('view-placeholder').style.display = 'none';
-                    let dTab = (todasDoMes || []).filter(d => d.cartao_id === filtroCartao);
-                    if(filtroParcelado) dTab = dTab.filter(d => d.is_parcelado);
-                    renderTabela(dTab); calcularResumo(todasDoMes || [], filtroCartao);
-                } else {
-                    document.getElementById('view-relatorio').style.display = 'none'; document.getElementById('view-placeholder').style.display = 'block';
-                    zerarResumo();
-                }
-            } catch (e) { console.error(e); }
-        }
+function fazerLogin() {
+   const u = document.getElementById('login-user').value.trim();
+   const s = document.getElementById('login-pass').value;
+   const found = USERS.find(x => x.login === u && x.senha === s);
+   if (found) {
+      usuarioAtual = found;
+      document.getElementById('login-erro').textContent = '';
+      mostrarView('hub');
+      document.getElementById('hub-nome-usuario').innerHTML = `${found.nome} <span style="color:#60a5fa">✦</span>`;
+   } else {
+      document.getElementById('login-erro').textContent = 'Usuário ou senha incorretos.';
+   }
+}
 
-        async function salvarSalario() {
-            const m = document.getElementById('f-sal-mes').value, v = document.getElementById('f-sal-valor').value, a = document.getElementById('f-sal-ano').value;
-            if(!v) return; 
-            await _supabase.from('salarios').upsert({ mes_ano: `${a}-${m}`, valor: parseFloat(v) }, { onConflict: 'mes_ano' });
-            document.getElementById('f-sal-valor').value = ''; await atualizarTudo();
-        }
+function fazerLogout() {
+   usuarioAtual = null;
+   filtroCartao = null;
+   filtroParcelado = false;
+   filtroVeiculo = null;
+   datasSetadas = false;
+   document.getElementById('login-user').value = '';
+   document.getElementById('login-pass').value = '';
+   // Limpa selects de datas para resetar no próximo login
+   ['sel-mes','sel-ano','f-sal-mes','f-sal-ano','sel-cat-mes'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '';
+   });
+   mostrarView('login');
+}
 
-        async function gerarResumoAnual() {
-            const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-anual');
-            abrirModal('modal-anual');
-            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Carregando...</p>';
-            const { data } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
-            let h = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2"><div class="w-1/4">Mês</div><div class="w-1/4 text-center">Fixas</div><div class="w-1/4 text-center">Normais</div><div class="w-1/4 text-right">Total</div></div>`;
-            mesesNomes.forEach((n, i) => {
-                const dM = data?.filter(d => new Date(d.data).getUTCMonth() === i) || [];
-                const tF = dM.filter(d => d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
-                const tN = dM.filter(d => !d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
-                h += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${n}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${tF.toLocaleString('pt-BR')}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${tN.toLocaleString('pt-BR')}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${(tF+tN).toLocaleString('pt-BR')}</span></div>`;
-            });
-            corpo.innerHTML = h;
-        }
+// =================== NAVIGATION ===================
+function mostrarView(nome) {
+   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+   document.getElementById('view-' + nome).classList.add('active');
+}
 
-        async function gerarAnaliseGastos() {
-            const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-analise');
-            abrirModal('modal-analise');
-            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
-            const { data: gastos } = await _supabase.from('despesas').select('*').gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
-            let h = '';
-            mesesNomes.forEach((n, i) => {
-                const tG = gastos?.filter(d => new Date(d.data).getUTCMonth() === i).reduce((a, b) => a + Number(b.valor), 0) || 0;
-                const salData = cacheSalarios.find(s => s.mes_ano === `${ano}-${i}`);
-                const valorSal = salData ? Number(salData.valor) : 0;
-                const sobra = valorSal - tG;
-                h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${valorSal.toLocaleString('pt-BR')}</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS: R$ ${tG.toLocaleString('pt-BR')}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${sobra.toLocaleString('pt-BR')}</p></div></div>`;
-            });
-            corpo.innerHTML = h;
-        }
+function irPara(app) {
+   mostrarView(app);
+   if (app === 'finance') {
+      setupDatas();
+      document.getElementById('f-data').valueAsDate = new Date();
+      atualizarTudo();
+   }
+   if (app === 'auto') {
+      document.getElementById('a-data').valueAsDate = new Date();
+      carregarAuto();
+   }
+}
 
-        async function gerarResumoCategoriasAnual() {
-            const ano = document.getElementById('sel-ano').value, mesSel = document.getElementById('sel-cat-mes').value, corpo = document.getElementById('corpo-cat-anual');
-            abrirModal('modal-cat-anual');
-            corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Agrupando...</p>';
-            let dIn = `${ano}-01-01`, dFi = `${ano}-12-31`;
-            if(mesSel !== 'todos') { 
-                dIn = new Date(ano, mesSel, 1).toISOString(); 
-                dFi = new Date(ano, parseInt(mesSel) + 1, 0, 23, 59, 59).toISOString(); 
-            }
-            const { data: gastos } = await _supabase.from('despesas').select('valor, categoria_id').gte('data', dIn).lte('data', dFi);
-            const agrupado = {};
-            (gastos || []).forEach(g => { agrupado[g.categoria_id] = (agrupado[g.categoria_id] || 0) + Number(g.valor); });
-            let h = '';
-            const sorted = Object.entries(agrupado).sort((a,b) => b[1] - a[1]);
-            sorted.forEach(([id, total]) => {
-                const catNome = cacheCategorias.find(c => c.id == id)?.nome || 'Sem Categoria';
-                h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><span class="font-black text-[10px] uppercase text-slate-600">${catNome}</span><span class="font-black text-blue-700">R$ ${total.toLocaleString('pt-BR')}</span></div>`;
-            });
-            corpo.innerHTML = h || '<p class="text-center text-[10px] font-black text-slate-300 py-10 uppercase">Nenhum gasto encontrado</p>';
-        }
+function voltarHub() {
+   fecharModais();
+   fecharModaisAuto();
+   mostrarView('hub');
+}
 
-        function toggleDrawer(open) { document.getElementById('body-root').classList.toggle('drawer-active', open); }
-        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function fecharModais() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
-        function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; toggleDrawer(false); atualizarTudo(); }
-        function toggleParcelados() { filtroParcelado = !filtroParcelado; document.getElementById('btn-parcelados').classList.toggle('bg-orange-500'); atualizarTudo(); }
-        async function salvarItem(tab, id) { const val = document.getElementById(id).value; if(!val) return; await _supabase.from(tab).insert([{nome: val}]); document.getElementById(id).value = ''; atualizarTudo(); }
-        function renderBancosLists(l) { const btns = l?.map(c => `<button onclick="setFiltroCartao('${c.id}')" class="shadow-sm border font-black uppercase ${filtroCartao===c.id?'bg-blue-600 text-white':'bg-white text-slate-400'}">${c.nome}</button>`).join('') || ''; document.getElementById('sidebar-cartoes').innerHTML = btns; document.getElementById('mobile-lista-bancos').innerHTML = btns; }
-        
-        function renderTabela(d) { 
-            document.getElementById('lista-corpo').innerHTML = d?.map(x => `
-                <tr class="border-t">
-                    <td class="p-6 text-[9px] font-black uppercase">${new Date(x.data).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td>
-                    <td class="p-6">${x.descricao}</td>
-                    <td class="p-6 font-black">R$ ${Number(x.valor).toLocaleString('pt-BR')}</td>
-                    <td class="p-6 text-center">
-                        <button onclick="tentarExcluir('${x.id}', ${x.is_parcelado}, '${x.descricao}', '${x.data}')">
-                            <i class="fas fa-trash-alt text-slate-200"></i>
-                        </button>
-                    </td>
-                </tr>`).join('') || ''; 
-        }
+// =================== SUPABASE ===================
+const SUPABASE_URL = 'https://rwowvvpobywtokcqfxve.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3b3d2dnBvYnl3dG9rY3FmeHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNDY3MTgsImV4cCI6MjA4NzgyMjcxOH0.AJVmEKeUk22L4eT_FMLls0-xAJhMrAITOazM_1XmUaM';
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // NOVA LÓGICA DE EXCLUSÃO
-        async function tentarExcluir(id, isP, desc, data) {
-            if (!isP) {
-                if(confirm("Excluir este gasto?")) { await _supabase.from('despesas').delete().eq('id', id); await atualizarTudo(); }
-                return;
-            }
+// Helper: sempre filtra pelo usuário logado
+function eu() { return usuarioAtual.login; }
 
-            // Se for parcelado, abre o modal de opções
-            // Limpa o nome para pegar a base do parcelamento ex: "Compra (1/5)" vira "Compra"
-            const descBase = desc.split(' (')[0];
-            const divOpcoes = document.getElementById('opcoes-exclusao');
-            divOpcoes.innerHTML = `
-                <button onclick="confirmarExclusaoParcela('${id}')" class="w-full p-4 bg-slate-50 rounded-xl text-slate-700 font-black uppercase text-[10px] text-left">Apenas esta parcela</button>
-                <button onclick="confirmarExclusaoParcela('${descBase}', 'futuras', '${data}')" class="w-full p-4 bg-orange-50 rounded-xl text-orange-700 font-black uppercase text-[10px] text-left">Esta e as próximas</button>
-                <button onclick="confirmarExclusaoParcela('${descBase}', 'todas')" class="w-full p-4 bg-red-50 rounded-xl text-red-700 font-black uppercase text-[10px] text-left">Todo o parcelamento</button>
-            `;
-            abrirModal('modal-excluir-parcela');
-        }
+// =================== FINANCE ===================
+let filtroCartao = null, filtroParcelado = false;
+let cacheBancos = [], cacheCategorias = [], cacheSalarios = [];
+const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+let datasSetadas = false;
 
-        async function confirmarExclusaoParcela(idOuDesc, tipo = 'unica', dataRef = '') {
-            fecharModais();
-            if (tipo === 'unica') {
-                await _supabase.from('despesas').delete().eq('id', idOuDesc);
-            } else if (tipo === 'futuras') {
-                // Deleta itens com a mesma descrição base e data maior ou igual
-                await _supabase.from('despesas').delete().ilike('descricao', `${idOuDesc}%`).gte('data', dataRef);
-            } else if (tipo === 'todas') {
-                // Deleta todos que começam com aquela descrição
-                await _supabase.from('despesas').delete().ilike('descricao', `${idOuDesc}%`);
-            }
-            await atualizarTudo();
-        }
+function setupDatas() {
+   if (datasSetadas) return;
+   datasSetadas = true;
+   const ms = document.getElementById('sel-mes'), fs = document.getElementById('f-sal-mes'), scm = document.getElementById('sel-cat-mes');
+   mesesNomes.forEach((m, i) => {
+      const opt = `<option value="${i}">${m}</option>`;
+      ms.innerHTML += (i === new Date().getMonth() ? opt.replace('value', 'selected value') : opt);
+      fs.innerHTML += (i === new Date().getMonth() ? opt.replace('value', 'selected value') : opt);
+      scm.innerHTML += opt;
+   });
+   const as = document.getElementById('sel-ano'), fsa = document.getElementById('f-sal-ano');
+   [2025, 2026, 2027].forEach(a => {
+      const opt = `<option value="${a}" ${a === 2026 ? 'selected' : ''}>${a}</option>`;
+      as.innerHTML += opt; fsa.innerHTML += opt;
+   });
+}
 
-        function renderConfigLists(c, t, s) { 
-            document.getElementById('lista-bancos-modal').innerHTML = c.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${x.nome}</span><button onclick="excluirConfig('cartoes', '${x.id}')"><i class="fas fa-trash"></i></button></div>`).join('');
-            document.getElementById('lista-categorias-modal').innerHTML = t.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${x.nome}</span><button onclick="excluirConfig('categorias', '${x.id}')"><i class="fas fa-trash"></i></button></div>`).join('');
-            document.getElementById('lista-salarios-modal').innerHTML = s.sort((a,b) => b.mes_ano.localeCompare(a.mes_ano)).map(x => {
-                const p = x.mes_ano.split('-');
-                return `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${mesesNomes[p[1]]} / ${p[0]} - R$ ${Number(x.valor).toLocaleString('pt-BR')}</span><button onclick="excluirConfig('salarios', '${x.id}')"><i class="fas fa-trash text-slate-300"></i></button></div>`;
-            }).join('');
-        }
+async function atualizarTudo() {
+   try {
+      const [resBancos, resCats, resSals] = await Promise.all([
+         _supabase.from('cartoes').select('*').eq('usuario', eu()).order('nome'),
+         _supabase.from('categorias').select('*').eq('usuario', eu()).order('nome'),
+         _supabase.from('salarios').select('*').eq('usuario', eu())
+      ]);
+      cacheBancos = resBancos.data || [];
+      cacheCategorias = resCats.data || [];
+      cacheSalarios = resSals.data || [];
+      const mes = parseInt(document.getElementById('sel-mes').value), ano = parseInt(document.getElementById('sel-ano').value);
+      const dInicio = new Date(ano, mes, 1).toISOString(), dFim = new Date(ano, mes + 1, 0, 23, 59, 59).toISOString();
+      const { data: todasDoMes } = await _supabase.from('despesas').select('*').eq('usuario', eu()).gte('data', dInicio).lte('data', dFim).order('data');
+      renderBancosLists(cacheBancos); renderSelects(cacheBancos, cacheCategorias); renderConfigLists(cacheBancos, cacheCategorias, cacheSalarios);
+      if (filtroCartao) {
+         document.getElementById('view-relatorio').style.display = 'block';
+         document.getElementById('view-placeholder').style.display = 'none';
+         let dTab = (todasDoMes || []).filter(d => d.cartao_id === filtroCartao);
+         if(filtroParcelado) dTab = dTab.filter(d => d.is_parcelado);
+         renderTabela(dTab); calcularResumo(todasDoMes || [], filtroCartao);
+      } else {
+         document.getElementById('view-relatorio').style.display = 'none';
+         document.getElementById('view-placeholder').style.display = 'block';
+         zerarResumo();
+      }
+   } catch (e) { console.error(e); }
+}
 
-        async function excluirConfig(tab, id) { if(confirm("Excluir?")) { await _supabase.from(tab).delete().eq('id', id); await atualizarTudo(); } }
-        
-        function calcularResumo(dados, id) {
-            const b = dados.filter(d => d.cartao_id === id);
-            const tNP = b.filter(d => !d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
-            const tP = b.filter(d => d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
-            document.getElementById('res-valor-1').innerText = `R$ ${tNP.toLocaleString('pt-BR')}`;
-            document.getElementById('res-valor-2').innerText = `R$ ${tP.toLocaleString('pt-BR')}`;
-            document.getElementById('res-total').innerText = `R$ ${(tNP+tP).toLocaleString('pt-BR')}`;
-            document.getElementById('txt-label-1').innerText = "Contas não Parceladas"; document.getElementById('txt-label-2').innerText = "Contas Parceladas"; document.getElementById('txt-label-3').innerText = "Somatório Total";
-        }
-        function zerarResumo() { document.getElementById('res-valor-1').innerText = "R$ 0,00"; document.getElementById('res-valor-2').innerText = "R$ 0,00"; document.getElementById('res-total').innerText = "R$ 0,00"; document.getElementById('txt-label-1').innerText = "Saldo em Conta"; document.getElementById('txt-label-2').innerText = "Faturas"; document.getElementById('txt-label-3').innerText = "Balanço do Mês"; }
-        function renderSelects(c, t) { document.getElementById('f-cartao').innerHTML = '<option value="">Banco?</option>' + c?.map(x => `<option value="${x.id}">${x.nome}</option>`).join(''); document.getElementById('f-cat').innerHTML = '<option value="">Cat?</option>' + t?.map(x => `<option value="${x.id}">${x.nome}</option>`).join(''); }
-        
-        async function confirmarLancamento() {
-            const d = document.getElementById('f-desc').value, v = parseFloat(document.getElementById('f-valor').value), dt = document.getElementById('f-data').value;
-            if(!d || !v || !dt) return;
-            const c = document.getElementById('f-cartao').value, ct = document.getElementById('f-cat').value, isF = document.getElementById('f-fixa').checked, isP = document.getElementById('f-parc').checked, q = parseInt(document.getElementById('f-qtd-parc').value) || 1;
-            const ins = []; for(let i=0; i<(isP?q:1); i++) {
-                let dV = new Date(dt + 'T12:00:00'); dV.setMonth(dV.getUTCMonth() + i);
-                ins.push({ descricao: isP?`${d} (${i+1}/${q})`:d, valor: isP?v/q:v, cartao_id: c||null, categoria_id: ct||null, is_fixa: isF, is_parcelado: isP, data: dV.toISOString() });
-            }
-            await _supabase.from('despesas').insert(ins); 
-            document.getElementById('f-desc').value = ''; document.getElementById('f-valor').value = '';
-            document.getElementById('f-data').valueAsDate = new Date(); document.getElementById('f-cartao').value = '';
-            document.getElementById('f-cat').value = ''; document.getElementById('f-fixa').checked = false;
-            document.getElementById('f-parc').checked = false; document.getElementById('box-qtd').style.display = 'none';
-            document.getElementById('f-qtd-parc').value = '';
-            fecharModais(); atualizarTudo();
-        }
-    </script>
+async function salvarSalario() {
+   const m = document.getElementById('f-sal-mes').value, v = document.getElementById('f-sal-valor').value, a = document.getElementById('f-sal-ano').value;
+   if(!v) return;
+   // upsert por usuario + mes_ano
+   const { data: exist } = await _supabase.from('salarios').select('id').eq('usuario', eu()).eq('mes_ano', `${a}-${m}`).maybeSingle();
+   if (exist) {
+      await _supabase.from('salarios').update({ valor: parseFloat(v) }).eq('id', exist.id);
+   } else {
+      await _supabase.from('salarios').insert([{ mes_ano: `${a}-${m}`, valor: parseFloat(v), usuario: eu() }]);
+   }
+   document.getElementById('f-sal-valor').value = '';
+   await atualizarTudo();
+}
+
+async function gerarResumoAnual() {
+   const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-anual');
+   abrirModal('modal-anual');
+   corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Carregando...</p>';
+   const { data } = await _supabase.from('despesas').select('*').eq('usuario', eu()).gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
+   let h = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2"><div class="w-1/4">Mês</div><div class="w-1/4 text-center">Fixas</div><div class="w-1/4 text-center">Normais</div><div class="w-1/4 text-right">Total</div></div>`;
+   mesesNomes.forEach((n, i) => {
+      const dM = data?.filter(d => new Date(d.data).getUTCMonth() === i) || [];
+      const tF = dM.filter(d => d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
+      const tN = dM.filter(d => !d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
+      h += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${n}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${tF.toLocaleString('pt-BR')}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${tN.toLocaleString('pt-BR')}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${(tF+tN).toLocaleString('pt-BR')}</span></div>`;
+   });
+   corpo.innerHTML = h;
+}
+
+async function gerarAnaliseGastos() {
+   const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-analise');
+   abrirModal('modal-analise');
+   corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
+   const { data: gastos } = await _supabase.from('despesas').select('*').eq('usuario', eu()).gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`);
+   let h = '';
+   mesesNomes.forEach((n, i) => {
+      const tG = gastos?.filter(d => new Date(d.data).getUTCMonth() === i).reduce((a, b) => a + Number(b.valor), 0) || 0;
+      const salData = cacheSalarios.find(s => s.mes_ano === `${ano}-${i}`);
+      const valorSal = salData ? Number(salData.valor) : 0;
+      const sobra = valorSal - tG;
+      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${valorSal.toLocaleString('pt-BR')}</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS: R$ ${tG.toLocaleString('pt-BR')}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${sobra.toLocaleString('pt-BR')}</p></div></div>`;
+   });
+   corpo.innerHTML = h;
+}
+
+async function gerarResumoCategoriasAnual() {
+   const ano = document.getElementById('sel-ano').value, mesSel = document.getElementById('sel-cat-mes').value, corpo = document.getElementById('corpo-cat-anual');
+   abrirModal('modal-cat-anual');
+   corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Agrupando...</p>';
+   let dIn = `${ano}-01-01`, dFi = `${ano}-12-31`;
+   if(mesSel !== 'todos') { dIn = new Date(ano, mesSel, 1).toISOString(); dFi = new Date(ano, parseInt(mesSel) + 1, 0, 23, 59, 59).toISOString(); }
+   const { data: gastos } = await _supabase.from('despesas').select('valor, categoria_id').eq('usuario', eu()).gte('data', dIn).lte('data', dFi);
+   const agrupado = {};
+   (gastos || []).forEach(g => { agrupado[g.categoria_id] = (agrupado[g.categoria_id] || 0) + Number(g.valor); });
+   let h = '';
+   Object.entries(agrupado).sort((a,b) => b[1] - a[1]).forEach(([id, total]) => {
+      const catNome = cacheCategorias.find(c => c.id == id)?.nome || 'Sem Categoria';
+      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><span class="font-black text-[10px] uppercase text-slate-600">${catNome}</span><span class="font-black text-blue-700">R$ ${total.toLocaleString('pt-BR')}</span></div>`;
+   });
+   corpo.innerHTML = h || '<p class="text-center text-[10px] font-black text-slate-300 py-10 uppercase">Nenhum gasto encontrado</p>';
+}
+
+function toggleDrawer(open) { document.getElementById('drawer-container').classList.toggle('drawer-open', open); }
+function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+function fecharModais() { document.querySelectorAll('#view-finance .modal-overlay').forEach(m => m.style.display = 'none'); }
+function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; toggleDrawer(false); atualizarTudo(); }
+function toggleParcelados() { filtroParcelado = !filtroParcelado; document.getElementById('btn-parcelados').classList.toggle('bg-orange-500'); atualizarTudo(); }
+
+async function salvarItem(tab, inputId) {
+   const val = document.getElementById(inputId).value.trim();
+   if(!val) return;
+   await _supabase.from(tab).insert([{ nome: val, usuario: eu() }]);
+   document.getElementById(inputId).value = '';
+   atualizarTudo();
+}
+
+function renderBancosLists(l) {
+   const btns = l?.map(c => `<button onclick="setFiltroCartao('${c.id}')" style="width:100%;padding:1rem;border-radius:1rem;text-align:left;font-weight:900;font-size:10px;text-transform:uppercase;border:1px solid #e2e8f0;cursor:pointer;${filtroCartao===c.id?'background:#2563eb;color:white;':'background:white;color:#94a3b8;'}">${c.nome}</button>`).join('') || '';
+   document.getElementById('sidebar-cartoes').innerHTML = btns;
+   document.getElementById('mobile-lista-bancos').innerHTML = btns;
+}
+
+function renderTabela(d) {
+   document.getElementById('lista-corpo').innerHTML = d?.map(x => `
+      <tr class="border-t">
+         <td class="p-6 text-[9px] font-black uppercase">${new Date(x.data).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td>
+         <td class="p-6">${x.descricao}</td>
+         <td class="p-6 font-black">R$ ${Number(x.valor).toLocaleString('pt-BR')}</td>
+         <td class="p-6 text-center"><button onclick="tentarExcluir('${x.id}', ${x.is_parcelado}, '${x.descricao}', '${x.data}')"><i class="fas fa-trash-alt text-slate-200"></i></button></td>
+      </tr>`).join('') || '';
+}
+
+async function tentarExcluir(id, isP, desc, data) {
+   if (!isP) {
+      if(confirm("Excluir este gasto?")) { await _supabase.from('despesas').delete().eq('id', id); await atualizarTudo(); }
+      return;
+   }
+   const descBase = desc.split(' (')[0];
+   document.getElementById('opcoes-exclusao').innerHTML = `
+      <button onclick="confirmarExclusaoParcela('${id}')" class="w-full p-4 bg-slate-50 rounded-xl text-slate-700 font-black uppercase text-[10px] text-left">Apenas esta parcela</button>
+      <button onclick="confirmarExclusaoParcela('${descBase}', 'futuras', '${data}')" class="w-full p-4 bg-orange-50 rounded-xl text-orange-700 font-black uppercase text-[10px] text-left">Esta e as próximas</button>
+      <button onclick="confirmarExclusaoParcela('${descBase}', 'todas')" class="w-full p-4 bg-red-50 rounded-xl text-red-700 font-black uppercase text-[10px] text-left">Todo o parcelamento</button>`;
+   abrirModal('modal-excluir-parcela');
+}
+
+async function confirmarExclusaoParcela(idOuDesc, tipo = 'unica', dataRef = '') {
+   fecharModais();
+   if (tipo === 'unica') {
+      await _supabase.from('despesas').delete().eq('id', idOuDesc);
+   } else if (tipo === 'futuras') {
+      await _supabase.from('despesas').delete().eq('usuario', eu()).ilike('descricao', `${idOuDesc}%`).gte('data', dataRef);
+   } else if (tipo === 'todas') {
+      await _supabase.from('despesas').delete().eq('usuario', eu()).ilike('descricao', `${idOuDesc}%`);
+   }
+   await atualizarTudo();
+}
+
+function renderConfigLists(c, t, s) {
+   document.getElementById('lista-bancos-modal').innerHTML = c.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${x.nome}</span><button onclick="excluirConfig('cartoes', '${x.id}')"><i class="fas fa-trash text-slate-300"></i></button></div>`).join('') || '<p style="text-align:center;color:#cbd5e1;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhum banco</p>';
+   document.getElementById('lista-categorias-modal').innerHTML = t.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${x.nome}</span><button onclick="excluirConfig('categorias', '${x.id}')"><i class="fas fa-trash text-slate-300"></i></button></div>`).join('') || '<p style="text-align:center;color:#cbd5e1;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhuma categoria</p>';
+   document.getElementById('lista-salarios-modal').innerHTML = s.sort((a,b) => b.mes_ano.localeCompare(a.mes_ano)).map(x => {
+      const p = x.mes_ano.split('-');
+      return `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${mesesNomes[p[1]]} / ${p[0]} — R$ ${Number(x.valor).toLocaleString('pt-BR')}</span><button onclick="excluirConfig('salarios', '${x.id}')"><i class="fas fa-trash text-slate-300"></i></button></div>`;
+   }).join('') || '<p style="text-align:center;color:#cbd5e1;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhum salário</p>';
+}
+
+async function excluirConfig(tab, id) {
+   if(confirm("Excluir?")) { await _supabase.from(tab).delete().eq('id', id); await atualizarTudo(); }
+}
+
+function calcularResumo(dados, id) {
+   const b = dados.filter(d => d.cartao_id === id);
+   const tNP = b.filter(d => !d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
+   const tP = b.filter(d => d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
+   document.getElementById('res-valor-1').innerText = `R$ ${tNP.toLocaleString('pt-BR')}`;
+   document.getElementById('res-valor-2').innerText = `R$ ${tP.toLocaleString('pt-BR')}`;
+   document.getElementById('res-total').innerText = `R$ ${(tNP+tP).toLocaleString('pt-BR')}`;
+   document.getElementById('txt-label-1').innerText = "Contas não Parceladas";
+   document.getElementById('txt-label-2').innerText = "Contas Parceladas";
+   document.getElementById('txt-label-3').innerText = "Somatório Total";
+}
+function zerarResumo() {
+   document.getElementById('res-valor-1').innerText = "R$ 0,00";
+   document.getElementById('res-valor-2').innerText = "R$ 0,00";
+   document.getElementById('res-total').innerText = "R$ 0,00";
+   document.getElementById('txt-label-1').innerText = "Saldo em Conta";
+   document.getElementById('txt-label-2').innerText = "Faturas";
+   document.getElementById('txt-label-3').innerText = "Balanço do Mês";
+}
+function renderSelects(c, t) {
+   document.getElementById('f-cartao').innerHTML = '<option value="">Banco?</option>' + c?.map(x => `<option value="${x.id}">${x.nome}</option>`).join('');
+   document.getElementById('f-cat').innerHTML = '<option value="">Cat?</option>' + t?.map(x => `<option value="${x.id}">${x.nome}</option>`).join('');
+}
+
+async function confirmarLancamento() {
+   const d = document.getElementById('f-desc').value.trim(), v = parseFloat(document.getElementById('f-valor').value), dt = document.getElementById('f-data').value;
+   if(!d || !v || !dt) return;
+   const c = document.getElementById('f-cartao').value, ct = document.getElementById('f-cat').value;
+   const isF = document.getElementById('f-fixa').checked, isP = document.getElementById('f-parc').checked;
+   const q = parseInt(document.getElementById('f-qtd-parc').value) || 1;
+   const ins = [];
+   for(let i=0; i<(isP?q:1); i++) {
+      let dV = new Date(dt + 'T12:00:00'); dV.setMonth(dV.getUTCMonth() + i);
+      ins.push({ descricao: isP?`${d} (${i+1}/${q})`:d, valor: isP?v/q:v, cartao_id: c||null, categoria_id: ct||null, is_fixa: isF, is_parcelado: isP, data: dV.toISOString(), usuario: eu() });
+   }
+   await _supabase.from('despesas').insert(ins);
+   ['f-desc','f-valor','f-qtd-parc'].forEach(id => document.getElementById(id).value = '');
+   document.getElementById('f-data').valueAsDate = new Date();
+   document.getElementById('f-cartao').value = ''; document.getElementById('f-cat').value = '';
+   document.getElementById('f-fixa').checked = false; document.getElementById('f-parc').checked = false;
+   document.getElementById('box-qtd').style.display = 'none';
+   fecharModais(); atualizarTudo();
+}
+
+// =================== AUTO APP ===================
+let cacheVeiculos = [], cacheAutoRegistros = [];
+let filtroVeiculo = null;
+
+function abrirModalAuto(id) { document.getElementById(id).style.display = 'flex'; }
+function fecharModaisAuto() { document.querySelectorAll('#view-auto .modal-overlay').forEach(m => m.style.display = 'none'); }
+
+async function carregarAuto() {
+   const { data: veiculos } = await _supabase.from('veiculos').select('*').eq('usuario', eu()).order('nome');
+   const { data: registros } = await _supabase.from('manutencoes').select('*').eq('usuario', eu()).order('data', { ascending: false });
+   cacheVeiculos = veiculos || [];
+   cacheAutoRegistros = registros || [];
+   renderVeiculosFiltro();
+   renderAutoLista();
+   renderVeiculosModal();
+   renderAutoSelect();
+}
+
+function renderVeiculosFiltro() {
+   const bar = document.getElementById('auto-veiculos-bar');
+   const todos = `<div class="auto-veiculo-pill ${filtroVeiculo===null?'active':''}" onclick="setFiltroVeiculo(null)">Todos</div>`;
+   const pills = cacheVeiculos.map(v => `<div class="auto-veiculo-pill ${filtroVeiculo===v.id?'active':''}" onclick="setFiltroVeiculo('${v.id}')">${v.nome}</div>`).join('');
+   bar.innerHTML = todos + pills;
+}
+
+function setFiltroVeiculo(id) { filtroVeiculo = id; renderVeiculosFiltro(); renderAutoLista(); }
+
+function renderAutoLista() {
+   const lista = document.getElementById('auto-lista');
+   let regs = cacheAutoRegistros;
+   if (filtroVeiculo) regs = regs.filter(r => r.veiculo_id === filtroVeiculo);
+   const totalGasto = regs.reduce((a, b) => a + Number(b.valor || 0), 0);
+   document.getElementById('auto-total-gasto').textContent = `R$ ${totalGasto.toLocaleString('pt-BR', {minimumFractionDigits:0})}`;
+   document.getElementById('auto-total-regs').textContent = regs.length;
+   if (!regs.length) { lista.innerHTML = '<p style="text-align:center;font-size:0.65rem;font-weight:900;text-transform:uppercase;color:#cbd5e1;padding:3rem 0;">Nenhum registro</p>'; return; }
+   const tipoLabel = { manut:'Manutenção', troca:'Troca de Peça', revisao:'Revisão', seguro:'Seguro', outro:'Outro' };
+   const tipoClass = { manut:'badge-manut', troca:'badge-troca', revisao:'badge-revisao', seguro:'badge-seguro', outro:'badge-outro' };
+   lista.innerHTML = regs.map(r => {
+      const vNome = cacheVeiculos.find(v => v.id === r.veiculo_id)?.nome || '—';
+      const kmStr = r.km ? `<span class="km-chip">${Number(r.km).toLocaleString('pt-BR')} km</span>` : '';
+      return `<div class="auto-card">
+         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;">
+            <div>
+               <p style="font-size:0.85rem;font-weight:900;color:#1e293b;margin:0 0 0.25rem;">${r.descricao}</p>
+               <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+                  <span class="auto-badge ${tipoClass[r.tipo]||'badge-outro'}">${tipoLabel[r.tipo]||r.tipo}</span>
+                  ${kmStr}
+                  <span style="font-size:0.6rem;font-weight:700;color:#94a3b8;">${vNome}</span>
+               </div>
+            </div>
+            <div style="text-align:right;">
+               <p style="font-size:1rem;font-weight:900;color:#ea580c;margin:0;">R$ ${Number(r.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</p>
+               <p style="font-size:0.6rem;font-weight:700;color:#94a3b8;margin:0;">${new Date(r.data).toLocaleDateString('pt-BR',{timeZone:'UTC'})}</p>
+            </div>
+         </div>
+         ${r.obs ? `<p style="font-size:0.7rem;font-weight:600;color:#64748b;margin:0;padding-top:0.5rem;border-top:1px solid #f1f5f9;">${r.obs}</p>` : ''}
+         <div style="text-align:right;margin-top:0.5rem;">
+            <button onclick="excluirManutencao('${r.id}')" style="font-size:0.65rem;font-weight:900;text-transform:uppercase;color:#e2e8f0;background:none;border:none;cursor:pointer;"><i class="fas fa-trash"></i></button>
+         </div>
+      </div>`;
+   }).join('');
+}
+
+function renderVeiculosModal() {
+   document.getElementById('lista-veiculos-modal').innerHTML = cacheVeiculos.map(v =>
+      `<div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;background:#f8fafc;border-radius:0.75rem;font-size:0.7rem;font-weight:900;text-transform:uppercase;">
+         <span>${v.nome}</span>
+         <button onclick="excluirVeiculo('${v.id}')" style="background:none;border:none;cursor:pointer;color:#e2e8f0;"><i class="fas fa-trash"></i></button>
+      </div>`
+   ).join('') || '<p style="text-align:center;font-size:0.65rem;font-weight:900;text-transform:uppercase;color:#cbd5e1;padding:1rem;">Nenhum veículo</p>';
+}
+
+function renderAutoSelect() {
+   document.getElementById('a-veiculo').innerHTML = '<option value="">Veículo?</option>' + cacheVeiculos.map(v => `<option value="${v.id}">${v.nome}</option>`).join('');
+}
+
+async function salvarVeiculo() {
+   const nome = document.getElementById('a-nome-veiculo').value.trim();
+   if (!nome) return;
+   await _supabase.from('veiculos').insert([{ nome, usuario: eu() }]);
+   document.getElementById('a-nome-veiculo').value = '';
+   await carregarAuto();
+}
+
+async function excluirVeiculo(id) {
+   if (confirm('Excluir veículo?')) { await _supabase.from('veiculos').delete().eq('id', id); await carregarAuto(); }
+}
+
+async function confirmarAutoLancamento() {
+   const desc = document.getElementById('a-desc').value.trim();
+   const valor = parseFloat(document.getElementById('a-valor').value);
+   const veiculo = document.getElementById('a-veiculo').value;
+   const tipo = document.getElementById('a-tipo').value;
+   const km = document.getElementById('a-km').value;
+   const data = document.getElementById('a-data').value;
+   const obs = document.getElementById('a-obs').value.trim();
+   if (!desc || !valor || !data) return;
+   await _supabase.from('manutencoes').insert([{ descricao: desc, valor, veiculo_id: veiculo || null, tipo, km: km ? parseInt(km) : null, data: new Date(data + 'T12:00:00').toISOString(), obs: obs || null, usuario: eu() }]);
+   ['a-desc','a-valor','a-km','a-obs'].forEach(id => document.getElementById(id).value = '');
+   document.getElementById('a-data').valueAsDate = new Date();
+   fecharModaisAuto();
+   await carregarAuto();
+}
+
+async function excluirManutencao(id) {
+   if (confirm('Excluir registro?')) { await _supabase.from('manutencoes').delete().eq('id', id); await carregarAuto(); }
+}
+</script>
 </body>
 </html>
