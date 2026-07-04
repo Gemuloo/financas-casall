@@ -277,6 +277,7 @@
          </label>
          <input id="imp-arquivo" type="file" accept="application/pdf" style="display:none;" onchange="if(this.files[0]) processarArquivoFatura(this.files[0])">
          <p id="imp-status" style="display:none; font-size:0.7rem; font-weight:800; color:#475569; text-align:center;"></p>
+         <div id="imp-cancelamentos"></div>
          <div id="imp-revisao" style="display:none;">
             <div id="imp-lista" style="max-height:280px; overflow-y:auto; border:1px solid #f1f5f9; border-radius:1rem;"></div>
             <button id="btn-confirmar-importacao" onclick="confirmarImportacaoFatura()" class="w-full bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[11px] btn-confirm mt-4">Importar Selecionados</button>
@@ -630,8 +631,47 @@ function processarLinhasDeParcelaEExtrairRestante(daFatura, existentesNoBanco) {
    return { novasParcelas, linhasNormais, atualizacoesSilenciosas, existentesRestantes: existentesDisp.filter(e => !e.usado) };
 }
 
+// Extrai o nome entre aspas de uma linha "Estorno de "X"".
+function extrairNomeEstorno(descricao) {
+   const m = (descricao || '').match(/^Estorno de "(.+)"$/i);
+   return m ? m[1].trim() : null;
+}
+
+// Cruza estornos da MESMA fatura com compras parceladas recém-detectadas nesta importação,
+// pra avisar que a projeção de parcelas futuras pode precisar ser cancelada.
+function detectarCancelamentosMesmaFatura(daFatura, novasParcelas) {
+   const estornos = daFatura
+      .map(t => ({ ...t, nomeEstorno: extrairNomeEstorno(t.descricao) }))
+      .filter(t => t.nomeEstorno && t.valor < 0);
+   const cancelamentos = [];
+   estornos.forEach(estorno => {
+      const alvo = novasParcelas.find(p => {
+         const info = extrairInfoParcela(p.descricao);
+         return info && normalizarTexto(info.base) === normalizarTexto(estorno.nomeEstorno)
+            && round2(Math.abs(estorno.valor)) === round2(p.valor) && p.projecoesFuturas && p.projecoesFuturas.length;
+      });
+      if (alvo) cancelamentos.push({ estorno, parcelaAlvo: alvo, origem: 'nova' });
+   });
+   return cancelamentos;
+}
+
+// Busca no Supabase parcelas FUTURAS de um parcelamento já existente (criado numa
+// importação de mês anterior) cujo nome bate com o estorno encontrado agora.
+async function buscarParcelasFuturasParaCancelar(baseNome, dataEstorno, cartaoId) {
+   const { data } = await chamarSupabase(
+      _supabase.from('despesas').select('id, descricao, valor, data, grupo_id')
+         .eq('usuario', eu()).eq('cartao_id', cartaoId)
+         .not('grupo_id', 'is', null)
+         .ilike('descricao', `${baseNome}%Parcela%`)
+         .gt('data', dataEstorno + 'T23:59:59'),
+      'Erro ao buscar parcelas futuras relacionadas ao estorno'
+   );
+   return data || [];
+}
+
 // Estado da importação em andamento (transações revisadas antes de confirmar).
 let importacaoFaturaAtual = [];
+let cancelamentosPorEstorno = [];
 
 async function processarArquivoFatura(arquivo) {
    const cartaoId = document.getElementById('imp-cartao').value;
@@ -696,19 +736,61 @@ async function processarArquivoFatura(arquivo) {
          categoria_id: resolverSugestaoCategoria(t.descricao, historico, cacheCategorias) || ''
       }));
 
+      // 3) Detecta estornos que parecem cancelar uma compra parcelada.
+      cancelamentosPorEstorno = [];
+      // 3a) Estorno na MESMA fatura, cancelando uma parcela recém-criada nesta importação.
+      detectarCancelamentosMesmaFatura(daFatura, novas).forEach(c => {
+         const idxNaLista = novas.indexOf(c.parcelaAlvo);
+         if (idxNaLista >= 0) {
+            cancelamentosPorEstorno.push({
+               tipo: 'nova', idxNaLista, incluirCancelamento: true,
+               nomeEstorno: c.estorno.nomeEstorno, qtdParcelas: importacaoFaturaAtual[idxNaLista].projecoesFuturas.length
+            });
+         }
+      });
+      // 3b) Estorno cancelando um parcelamento criado em uma importação de mês ANTERIOR.
+      const nomesJaTratados = new Set(cancelamentosPorEstorno.map(c => normalizarTexto(c.nomeEstorno)));
+      const estornosDaFatura = daFatura
+         .map(t => ({ ...t, nomeEstorno: extrairNomeEstorno(t.descricao) }))
+         .filter(t => t.nomeEstorno && t.valor < 0 && !nomesJaTratados.has(normalizarTexto(t.nomeEstorno)));
+      for (const estorno of estornosDaFatura) {
+         const linhasFuturas = await buscarParcelasFuturasParaCancelar(estorno.nomeEstorno, estorno.data, cartaoId);
+         if (linhasFuturas.length > 0) {
+            cancelamentosPorEstorno.push({ tipo: 'existente', linhasFuturas, incluirCancelamento: true, nomeEstorno: estorno.nomeEstorno, qtdParcelas: linhasFuturas.length });
+         }
+      }
+
       const qtdSuspeitas = novas.filter(t => t.possivelDuplicata).length;
       const qtdComProjecao = novas.filter(t => t.projecoesFuturas && t.projecoesFuturas.length).length;
       let msg = `${daFatura.length} transações encontradas — ${qtdJaLancadas} já estavam lançadas, ${novas.length} são novas`;
       if (qtdSuspeitas > 0) msg += `<br><span style="color:#b45309;">⚠️ ${qtdSuspeitas} podem já ter sido lançadas manualmente com outro texto — revise antes de confirmar.</span>`;
       if (atualizacoesSilenciosas.length > 0) msg += `<br><span style="color:#0891b2;">🔄 ${atualizacoesSilenciosas.length} parcela(s) já projetada(s) tiveram data/valor confirmados com a fatura real.</span>`;
       if (qtdComProjecao > 0) msg += `<br><span style="color:#7c3aed;">📅 ${qtdComProjecao} compra(s) parcelada(s) nova(s) vão gerar as próximas parcelas automaticamente.</span>`;
+      if (cancelamentosPorEstorno.length > 0) msg += `<br><span style="color:#dc2626;">🔁 ${cancelamentosPorEstorno.length} estorno(s) parecem cancelar compra(s) parcelada(s) — revise abaixo.</span>`;
       document.getElementById('imp-status').innerHTML = msg;
       renderRevisaoImportacao();
+      renderCancelamentosEstorno();
       document.getElementById('imp-revisao').style.display = novas.length ? 'block' : 'none';
    } catch (e) {
       console.error(e);
       document.getElementById('imp-status').textContent = 'Não consegui ler esse PDF. Confira se é uma fatura Nubank exportada em PDF.';
    }
+}
+
+function renderCancelamentosEstorno() {
+   const container = document.getElementById('imp-cancelamentos');
+   if (cancelamentosPorEstorno.length === 0) { container.innerHTML = ''; return; }
+   container.innerHTML = cancelamentosPorEstorno.map((c, idx) => `
+      <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:1rem; padding:1rem; margin-bottom:0.75rem;">
+         <p style="font-size:0.7rem; font-weight:800; color:#991b1b; margin:0 0 0.5rem;">
+            <i class="fas fa-rotate-left"></i> Estorno de "${escapeHtml(c.nomeEstorno)}" parece cancelar essa compra parcelada.
+         </p>
+         <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.65rem; font-weight:700; color:#7f1d1d; cursor:pointer;">
+            <input type="checkbox" ${c.incluirCancelamento ? 'checked' : ''} onchange="cancelamentosPorEstorno[${idx}].incluirCancelamento = this.checked" style="width:16px;height:16px;">
+            Cancelar ${c.qtdParcelas} parcela(s) futura(s) desta compra junto com a importação
+         </label>
+      </div>
+   `).join('');
 }
 
 function renderRevisaoImportacao() {
@@ -731,6 +813,19 @@ function renderRevisaoImportacao() {
 
 async function confirmarImportacaoFatura() {
    const cartaoId = document.getElementById('imp-cartao').value;
+
+   // Aplica os cancelamentos por estorno que a pessoa deixou marcados.
+   for (const c of cancelamentosPorEstorno) {
+      if (!c.incluirCancelamento) continue;
+      if (c.tipo === 'nova') {
+         importacaoFaturaAtual[c.idxNaLista].projecoesFuturas = [];
+      } else if (c.tipo === 'existente') {
+         await Promise.all(c.linhasFuturas.map(l => chamarSupabase(
+            _supabase.from('despesas').delete().eq('id', l.id), 'Erro ao cancelar parcela futura'
+         )));
+      }
+   }
+
    const selecionadas = importacaoFaturaAtual.filter(t => t.incluir);
    if (selecionadas.length === 0) { mostrarToast('Nenhuma transação selecionada.'); return; }
 
@@ -765,6 +860,8 @@ async function confirmarImportacaoFatura() {
 
 function abrirImportarFatura() {
    importacaoFaturaAtual = [];
+   cancelamentosPorEstorno = [];
+   document.getElementById('imp-cancelamentos').innerHTML = '';
    document.getElementById('imp-status').style.display = 'none';
    document.getElementById('imp-revisao').style.display = 'none';
    document.getElementById('imp-aviso-manual').style.display = 'none';
