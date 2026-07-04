@@ -359,6 +359,52 @@ function sugerirCategoriaPorHistorico(descricaoNova, historico) {
    return entradas.length ? entradas[0][0] : null;
 }
 
+// Dicionário de palavras-chave -> nome de categoria padrão (2ª camada de sugestão,
+// usada só quando o histórico pessoal não encontrou nada parecido). A ordem importa:
+// a primeira combinação que bater vale.
+const DICIONARIO_CATEGORIAS = [
+   [['uber','99','ride','posto','combustivel','estacionamento','pedagio','onibus','metro'], 'Transporte'],
+   [['amazon','mercadolivre','shopee','aliexpress','magalu','shein'], 'Compras Online'],
+   [['mercado','supermercado','hortifruti','frutaria','padaria','acougue','sacolao'], 'Alimentação'],
+   [['restaurante','lanchonete','pizzaria','ifood','rappi','pastelaria','hamburgueria'], 'Alimentação'],
+   [['drogasil','farmacia','droga','unimed','hospital','clinica','laboratorio','dentista'], 'Saúde'],
+   [['netflix','spotify','chatgpt','openai','disney','hbo','amazon prime','youtube premium'], 'Assinaturas'],
+   [['seguro','seguros','hdi','porto seguro','azul seguros'], 'Seguros'],
+   [['cinema','ingresso','shopping','parque','show','teatro'], 'Lazer'],
+   [['aluguel','condominio','energia','luz','agua','gas','iptu'], 'Moradia'],
+   [['escola','faculdade','curso','livro','material escolar'], 'Educação'],
+   [['roupa','calcado','loja','vestuario','moda'], 'Vestuário'],
+   [['petshop','veterinario','racao'], 'Pets'],
+];
+
+// Sugere um NOME de categoria padrão com base em palavras-chave (não retorna id ainda,
+// porque não sabemos se a pessoa tem uma categoria com esse nome — isso é resolvido depois).
+function sugerirNomeCategoriaPorPalavraChave(descricao) {
+   const d = normalizarTexto(descricao);
+   for (const [chaves, nomeCategoria] of DICIONARIO_CATEGORIAS) {
+      if (chaves.some(k => d.includes(k))) return nomeCategoria;
+   }
+   return null;
+}
+
+// Resolve um NOME sugerido para um categoria_id real, só se a pessoa já tiver uma
+// categoria com esse nome cadastrada. Nunca cria categoria sozinho, nunca força.
+function resolverNomeParaCategoriaId(nomeSugerido, categoriasDisponiveis) {
+   if (!nomeSugerido) return null;
+   const alvo = normalizarTexto(nomeSugerido);
+   const achou = (categoriasDisponiveis || []).find(c => normalizarTexto(c.nome) === alvo);
+   return achou ? achou.id : null;
+}
+
+// Hierarquia completa de sugestão: 1) histórico pessoal, 2) dicionário de palavras-chave
+// (resolvido contra as categorias que a pessoa realmente tem), 3) nada (fica em branco).
+function resolverSugestaoCategoria(descricao, historico, categoriasDisponiveis) {
+   const porHistorico = sugerirCategoriaPorHistorico(descricao, historico);
+   if (porHistorico) return porHistorico;
+   const nomeSugerido = sugerirNomeCategoriaPorPalavraChave(descricao);
+   return resolverNomeParaCategoriaId(nomeSugerido, categoriasDisponiveis);
+}
+
 // Cache do histórico de descrições+categorias, carregado sob demanda (uma vez por
 // sessão) e invalidado sempre que um lançamento novo é salvo, pra já entrar no cálculo.
 let cacheHistoricoCategorizacao = null;
@@ -383,7 +429,7 @@ function sugerirCategoriaAoDigitar() {
       const desc = document.getElementById('f-desc').value.trim();
       if (desc.length < 3 || categoriaEscolhidaManualmente) return;
       const historico = await carregarHistoricoCategorizacao();
-      const catId = sugerirCategoriaPorHistorico(desc, historico);
+      const catId = resolverSugestaoCategoria(desc, historico, cacheCategorias);
       const select = document.getElementById('f-cat');
       const dica = document.getElementById('dica-sugestao-cat');
       if (catId && !categoriaEscolhidaManualmente && [...select.options].some(o => o.value === catId)) {
@@ -579,7 +625,7 @@ async function processarArquivoFatura(arquivo) {
       const historico = await carregarHistoricoCategorizacao();
       importacaoFaturaAtual = novas.map((t, idx) => ({
          id: `tmp_${idx}`, ...t, incluir: !t.possivelDuplicata,
-         categoria_id: sugerirCategoriaPorHistorico(t.descricao, historico) || ''
+         categoria_id: resolverSugestaoCategoria(t.descricao, historico, cacheCategorias) || ''
       }));
 
       const qtdSuspeitas = novas.filter(t => t.possivelDuplicata).length;
