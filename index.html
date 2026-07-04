@@ -4,6 +4,15 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Painel Gemulo</title>
+
+   <!-- PWA: permite "Adicionar à Tela de Início" com ícone e tela cheia (sem barra do navegador) -->
+   <link rel="manifest" href="manifest.json">
+   <meta name="theme-color" content="#0f172a">
+   <link rel="icon" href="icon-192.png">
+   <link rel="apple-touch-icon" href="icon-192.png">
+   <meta name="apple-mobile-web-app-capable" content="yes">
+   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+   <meta name="apple-mobile-web-app-title" content="Gemulo">
    <script src="https://cdn.tailwindcss.com"></script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -59,8 +68,10 @@
       .floating-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1rem; z-index: 90; width: max-content; pointer-events: none; }
       .floating-controls button { pointer-events: auto; }
       .floating-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
-      .modal-overlay { display: none; position: fixed; inset: 0; background-color: rgba(15,23,42,0.7); backdrop-filter: blur(8px); z-index: 150; align-items: center; justify-content: center; padding: 1rem; }
-      .modal-content { background-color: white; width: 100%; max-width: 480px; border-radius: 2.5rem; max-height: 90vh; overflow-y: auto; position: relative; padding: 2rem; }
+      .modal-overlay { display: flex; position: fixed; inset: 0; background-color: rgba(15,23,42,0.7); backdrop-filter: blur(8px); z-index: 150; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
+      .modal-overlay.open { opacity: 1; pointer-events: auto; }
+      .modal-content { background-color: white; width: 100%; max-width: 480px; border-radius: 2.5rem; max-height: 90vh; overflow-y: auto; position: relative; padding: 2rem; transform: scale(0.96) translateY(8px); transition: transform 0.2s ease; }
+      .modal-overlay.open .modal-content { transform: scale(1) translateY(0); }
       #btn-menu-bancos { display: none; position: fixed; top: 4.5rem; left: 1rem; z-index: 100; width: 44px; height: 44px; background: #1e293b; color: white; border-radius: 12px; align-items: center; justify-content: center; border: none; cursor: pointer; }
       .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 110; }
       .drawer-panel { position: fixed; top: 0; left: -290px; width: 280px; height: 100%; background: white; z-index: 120; transition: left 0.3s ease; padding: 2rem; overflow-y: auto; }
@@ -68,6 +79,8 @@
       .drawer-open .drawer-overlay { display: block; }
       .btn-confirm:disabled { opacity: 0.55; cursor: not-allowed; }
       .field-label { display:block; font-size:0.6rem; font-weight:900; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin: 0 0 0.35rem 0.15rem; }
+      .skeleton-bar { background: linear-gradient(90deg, #e2e8f0 25%, #edf1f5 37%, #e2e8f0 63%); background-size: 400% 100%; border-radius: 0.75rem; animation: skeleton-pulse 1.4s ease infinite; }
+      @keyframes skeleton-pulse { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
       .toast-container { position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 300; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; pointer-events: none; }
       .toast { pointer-events: auto; padding: 0.85rem 1.25rem; border-radius: 0.85rem; font-size: 0.7rem; font-weight: 800; box-shadow: 0 10px 30px rgba(0,0,0,0.15); max-width: 90vw; animation: toast-in 0.2s ease; }
       .toast-erro { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
@@ -95,6 +108,20 @@
 <body>
 
 <div class="toast-container" id="toast-container"></div>
+
+<!-- CONFIRMAÇÃO CUSTOMIZADA (substitui confirm() nativo do navegador) -->
+<div id="modal-confirmar-acao" class="modal-overlay" style="z-index:400;">
+   <div class="modal-content" style="max-width:340px; text-align:center; padding:2rem 1.75rem;">
+      <div style="width:52px;height:52px;background:#fef2f2;border-radius:1rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;">
+         <i class="fas fa-exclamation-triangle" style="color:#dc2626;font-size:1.2rem;"></i>
+      </div>
+      <p id="texto-confirmar-acao" style="font-size:0.85rem;font-weight:800;color:#1e293b;margin:0 0 1.5rem;line-height:1.4;">Tem certeza?</p>
+      <div style="display:flex;gap:0.75rem;">
+         <button onclick="fecharConfirmacao(false)" style="flex:1;padding:0.85rem;border-radius:0.85rem;background:#f1f5f9;color:#475569;font-weight:900;font-size:0.7rem;text-transform:uppercase;border:none;cursor:pointer;">Cancelar</button>
+         <button id="btn-confirmar-acao-ok" onclick="fecharConfirmacao(true)" style="flex:1;padding:0.85rem;border-radius:0.85rem;background:#dc2626;color:white;font-weight:900;font-size:0.7rem;text-transform:uppercase;border:none;cursor:pointer;">Excluir</button>
+      </div>
+   </div>
+</div>
 
 <!-- LOGIN -->
 <div id="view-login" class="view active">
@@ -157,7 +184,17 @@
          <div id="sidebar-cartoes"></div>
       </aside>
       <div class="finance-body">
-         <div class="content-wrapper">
+         <div class="content-wrapper" id="finance-content">
+            <div id="finance-skeleton" style="display:none;">
+               <div class="flex justify-center mb-6 gap-2"><div class="skeleton-bar" style="width:90px;height:32px;"></div><div class="skeleton-bar" style="width:70px;height:32px;"></div></div>
+               <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                  <div class="skeleton-bar" style="height:88px;"></div>
+                  <div class="skeleton-bar" style="height:88px;"></div>
+                  <div class="skeleton-bar" style="height:88px;"></div>
+               </div>
+               <div class="skeleton-bar" style="height:220px;"></div>
+            </div>
+            <div id="finance-real-content">
             <div class="flex justify-center mb-6 gap-2">
                <select id="sel-mes" class="date-select" onchange="atualizarTudo()" aria-label="Mês"></select>
                <select id="sel-ano" class="date-select" onchange="atualizarTudo()" aria-label="Ano"></select>
@@ -177,8 +214,14 @@
                </div>
             </section>
             <div id="view-relatorio" style="display: none;">
-               <div class="flex justify-center mb-8">
+               <div class="flex justify-center mb-4">
                   <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg">Somente Parcelados</button>
+               </div>
+               <div class="flex justify-center mb-6">
+                  <div style="position:relative; width:100%; max-width:340px;">
+                     <i class="fas fa-search" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:#cbd5e1; font-size:0.75rem;"></i>
+                     <input id="busca-lancamento" type="text" placeholder="Buscar por descrição..." oninput="filtrarBuscaDescricao()" aria-label="Buscar lançamento por descrição" style="width:100%; padding:0.75rem 1rem 0.75rem 2.25rem; border-radius:9999px; border:1px solid #e2e8f0; font-size:0.75rem; font-weight:700; outline:none;">
+                  </div>
                </div>
                <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-x-auto">
                   <table class="w-full text-left min-w-[400px]">
@@ -189,7 +232,8 @@
             </div>
             <div id="view-placeholder" class="py-20 text-center">
                <i class="fas fa-hand-pointer text-slate-200 text-4xl mb-4"></i>
-               <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Selecione um banco</p>
+               <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selecione um banco</p>
+            </div>
             </div>
          </div>
       </div>
@@ -197,7 +241,7 @@
 
    <div class="floating-controls">
       <button onclick="gerarResumoAnual()" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center border border-slate-100"><i class="fas fa-calendar-alt text-slate-300"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Anual</span></button>
-      <button onclick="abrirModal('modal-lancar')" class="bg-blue-600 w-24 h-24 md:w-28 md:h-28 rounded-[2rem] shadow-2xl border-4 md:border-8 border-white flex flex-col items-center justify-center -translate-y-4 text-white"><i class="fas fa-plus text-3xl"></i><span class="text-[9px] font-black uppercase">Lançar</span></button>
+      <button onclick="abrirNovoLancamento()" class="bg-blue-600 w-24 h-24 md:w-28 md:h-28 rounded-[2rem] shadow-2xl border-4 md:border-8 border-white flex flex-col items-center justify-center -translate-y-4 text-white"><i class="fas fa-plus text-3xl"></i><span class="text-[9px] font-black uppercase">Lançar</span></button>
       <button onclick="abrirModal('modal-menu-config')" class="bg-white w-16 h-16 md:w-20 md:h-20 rounded-[1.5rem] shadow-2xl flex flex-col items-center justify-center border border-slate-100"><i class="fas fa-cog text-slate-300"></i><span class="text-[8px] font-black mt-1 text-slate-400 uppercase">Config</span></button>
    </div>
 
@@ -208,7 +252,7 @@
    <div id="modal-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Resumo Anual</h3><div class="space-y-2 mb-6"><button onclick="gerarAnaliseGastos()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">O quanto posso gastar?</button><button onclick="gerarResumoCategoriasAnual()" class="w-full bg-emerald-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">Resumo por Categoria</button></div><div id="corpo-anual" class="space-y-2"></div></div></div>
    <div id="modal-analise" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Projeção de Gastos</h3><div id="corpo-analise" class="space-y-3"></div></div></div>
    <div id="modal-cat-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Gastos por Categoria</h3><div class="mb-6"><select id="sel-cat-mes" class="w-full bg-slate-50 border p-3 rounded-xl font-black text-[10px] uppercase text-slate-600" onchange="gerarResumoCategoriasAnual()" aria-label="Filtrar mês da categoria"><option value="todos">O Ano Todo</option></select></div><div id="corpo-cat-anual" class="space-y-3"></div></div></div>
-   <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><label class="field-label" for="f-desc">Descrição</label><input id="f-desc" type="text" placeholder="Descrição" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><label class="field-label" for="f-valor">Valor</label><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco"></select><select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Categoria"></select></div><div class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold"></div></div><button id="btn-confirmar-lancamento" onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] btn-confirm">Confirmar</button></div></div></div>
+   <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 id="titulo-modal-lancar" class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><label class="field-label" for="f-desc">Descrição</label><input id="f-desc" type="text" placeholder="Descrição" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><label class="field-label" for="f-valor">Valor</label><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco"></select><select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Categoria"></select></div><div id="bloco-parcelamento" class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold"></div></div><button id="btn-confirmar-lancamento" onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] btn-confirm">Confirmar</button></div></div></div>
    <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-cartao" onclick="salvarItem('cartoes', 'f-nome-cartao', 'btn-add-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
    <div id="modal-categorias" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-categoria" onclick="salvarItem('categorias', 'f-nome-cat', 'btn-add-categoria')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
 </div>
@@ -221,6 +265,16 @@
       <div style="width:80px;"></div>
    </div>
    <div class="auto-body" id="auto-body">
+      <div id="auto-skeleton" style="display:none;">
+         <div class="skeleton-bar" style="width:60%;height:32px;margin-bottom:1.25rem;"></div>
+         <div class="grid grid-cols-2 gap-3 mb-5">
+            <div class="skeleton-bar" style="height:70px;"></div>
+            <div class="skeleton-bar" style="height:70px;"></div>
+         </div>
+         <div class="skeleton-bar" style="height:100px;margin-bottom:1rem;"></div>
+         <div class="skeleton-bar" style="height:100px;"></div>
+      </div>
+      <div id="auto-real-content">
       <div id="auto-veiculos-bar" class="flex gap-2 flex-wrap mb-5"></div>
       <div id="auto-stats" class="grid grid-cols-2 gap-3 mb-5">
          <div class="auto-card text-center">
@@ -233,11 +287,12 @@
          </div>
       </div>
       <div id="auto-lista"></div>
+      </div>
    </div>
-   <button class="auto-fab" onclick="abrirModalAuto('modal-auto-lancar')" aria-label="Novo registro"><i class="fas fa-plus"></i></button>
+   <button class="auto-fab" onclick="abrirNovoRegistroAuto()" aria-label="Novo registro"><i class="fas fa-plus"></i></button>
 
    <!-- Auto Modals -->
-   <div id="modal-auto-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisAuto()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Registro</h3><div class="space-y-3"><label class="field-label" for="a-desc">Descrição</label><input id="a-desc" type="text" placeholder="Descrição (ex: Troca de óleo)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><label class="field-label" for="a-valor">Valor</label><input id="a-valor" type="number" step="0.01" placeholder="Valor (R$)" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-orange-600 text-xl outline-none"><div class="grid grid-cols-2 gap-3"><select id="a-veiculo" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Veículo"><option value="">Veículo?</option></select><select id="a-tipo" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Tipo"><option value="manut">Manutenção</option><option value="troca">Troca de Peça</option><option value="revisao">Revisão</option><option value="seguro">Seguro</option><option value="outro">Outro</option></select></div><input id="a-km" type="number" placeholder="KM no momento (opcional)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="a-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><input id="a-obs" type="text" placeholder="Observação (opcional)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><button id="btn-confirmar-auto" onclick="confirmarAutoLancamento()" class="w-full bg-orange-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] btn-confirm">Confirmar</button></div></div></div>
+   <div id="modal-auto-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisAuto()"></i><h3 id="titulo-modal-auto" class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Registro</h3><div class="space-y-3"><label class="field-label" for="a-desc">Descrição</label><input id="a-desc" type="text" placeholder="Descrição (ex: Troca de óleo)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><label class="field-label" for="a-valor">Valor</label><input id="a-valor" type="number" step="0.01" placeholder="Valor (R$)" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-orange-600 text-xl outline-none"><div class="grid grid-cols-2 gap-3"><select id="a-veiculo" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Veículo"><option value="">Veículo?</option></select><select id="a-tipo" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Tipo"><option value="manut">Manutenção</option><option value="troca">Troca de Peça</option><option value="revisao">Revisão</option><option value="seguro">Seguro</option><option value="outro">Outro</option></select></div><input id="a-km" type="number" placeholder="KM no momento (opcional)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="a-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><input id="a-obs" type="text" placeholder="Observação (opcional)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><button id="btn-confirmar-auto" onclick="confirmarAutoLancamento()" class="w-full bg-orange-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] btn-confirm">Confirmar</button></div></div></div>
    <div id="modal-auto-veiculos" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisAuto()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Veículos</h3><div class="flex gap-2 mb-6"><input id="a-nome-veiculo" type="text" placeholder="Nome ou placa" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-veiculo" onclick="salvarVeiculo()" class="bg-orange-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-veiculos-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
    <div id="modal-auto-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisAuto()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModaisAuto(); abrirModalAuto('modal-auto-veiculos')" class="w-full p-6 bg-orange-50 rounded-2xl flex items-center gap-4 text-orange-700 font-black uppercase text-xs"><i class="fas fa-car"></i> Gerenciar Veículos</button></div></div></div>
 
@@ -248,6 +303,33 @@
 
 <script>
 // =================== HELPERS GERAIS ===================
+
+// Escolhe um emoji para a categoria com base em palavras-chave no nome.
+// É só uma dica visual (heurística); categorias sem palavra reconhecida usam 🏷️.
+function iconeCategoria(nome) {
+   const n = (nome || '').toLowerCase();
+   const mapa = [
+      [['mercado','supermercado','alimenta','comida','restaurante','lanche'], '🍔'],
+      [['transporte','uber','combustivel','combustível','gasolina','carro','onibus','ônibus'], '🚗'],
+      [['casa','aluguel','condominio','condomínio','luz','agua','água','energia'], '🏠'],
+      [['saude','saúde','farmacia','farmácia','remedio','remédio','medico','médico'], '💊'],
+      [['lazer','cinema','jogo','streaming','netflix','viagem'], '🎮'],
+      [['roupa','vestuario','vestuário','moda'], '👕'],
+      [['educa','curso','faculdade','livro'], '📚'],
+      [['assinatura','celular','internet','telefone'], '📺'],
+      [['pet','cachorro','gato','veterinario','veterinário'], '🐾'],
+      [['presente','doacao','doação'], '🎁'],
+   ];
+   for (const [chaves, emoji] of mapa) {
+      if (chaves.some(k => n.includes(k))) return emoji;
+   }
+   return '🏷️';
+}
+
+// Formata um valor em Reais sempre com 2 casas decimais (100 -> "100,00", nunca "100").
+function fmtBRL(v) {
+   return Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 // Retorna a data de hoje no fuso horário LOCAL do navegador, como string 'YYYY-MM-DD'.
 // Não usar `input.valueAsDate = new Date()`: esse setter trabalha em UTC, então no
@@ -270,6 +352,20 @@ function escapeHtml(str) {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+}
+
+// Substitui o confirm() nativo do navegador por um modal no estilo do app.
+// Uso: if (await confirmarAcao("Excluir isto?")) { ... }
+let _resolveConfirmacao = null;
+function confirmarAcao(mensagem, textoBotao = 'Excluir') {
+   document.getElementById('texto-confirmar-acao').textContent = mensagem;
+   document.getElementById('btn-confirmar-acao-ok').textContent = textoBotao;
+   document.getElementById('modal-confirmar-acao').classList.add('open');
+   return new Promise(resolve => { _resolveConfirmacao = resolve; });
+}
+function fecharConfirmacao(resultado) {
+   document.getElementById('modal-confirmar-acao').classList.remove('open');
+   if (_resolveConfirmacao) { _resolveConfirmacao(resultado); _resolveConfirmacao = null; }
 }
 
 // Toast simples de feedback (sucesso / erro), sem depender de libs externas.
@@ -443,6 +539,9 @@ function eu() { return usuarioAtual.login; }
 
 // =================== FINANCE ===================
 let filtroCartao = null, filtroParcelado = false;
+let dTabSemBusca = [];
+let ultimaTabelaRenderizada = [];
+let edicaoDespesaId = null;
 let cacheBancos = [], cacheCategorias = [], cacheSalarios = [];
 const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 let datasSetadas = false;
@@ -475,6 +574,7 @@ function setupDatas() {
 }
 
 async function atualizarTudo() {
+   mostrarSkeleton('finance', true);
    const { data: resBancos, error: e1 } = await chamarSupabase(
       _supabase.from('cartoes').select('*').eq('usuario', eu()).order('nome'), 'Erro ao carregar bancos'
    );
@@ -501,12 +601,24 @@ async function atualizarTudo() {
       document.getElementById('view-placeholder').style.display = 'none';
       let dTab = (todasDoMes || []).filter(d => d.cartao_id === filtroCartao);
       if (filtroParcelado) dTab = dTab.filter(d => d.is_parcelado);
-      renderTabela(dTab); calcularResumo(todasDoMes || [], filtroCartao);
+      dTabSemBusca = dTab;
+      renderTabela(aplicarBuscaDescricao(dTab)); calcularResumo(todasDoMes || [], filtroCartao);
    } else {
       document.getElementById('view-relatorio').style.display = 'none';
       document.getElementById('view-placeholder').style.display = 'block';
       zerarResumo();
    }
+   mostrarSkeleton('finance', false);
+}
+
+// Filtra a lista atual (já filtrada por banco/parcelado) pelo texto digitado na busca.
+function aplicarBuscaDescricao(lista) {
+   const q = (document.getElementById('busca-lancamento')?.value || '').trim().toLowerCase();
+   if (!q) return lista;
+   return lista.filter(x => (x.descricao || '').toLowerCase().includes(q));
+}
+function filtrarBuscaDescricao() {
+   renderTabela(aplicarBuscaDescricao(dTabSemBusca));
 }
 
 async function salvarSalario() {
@@ -535,7 +647,7 @@ async function salvarSalario() {
 async function gerarResumoAnual() {
    const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-anual');
    abrirModal('modal-anual');
-   corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Carregando...</p>';
+   corpo.innerHTML = '<p class="text-center font-black text-slate-400 p-10 uppercase text-[10px]">Carregando...</p>';
    const { data, error } = await chamarSupabase(
       _supabase.from('despesas').select('*').eq('usuario', eu()).gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`),
       'Erro ao carregar resumo anual'
@@ -546,7 +658,7 @@ async function gerarResumoAnual() {
       const dM = data?.filter(d => new Date(d.data).getUTCMonth() === i) || [];
       const tF = dM.filter(d => d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
       const tN = dM.filter(d => !d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
-      h += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${n}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${tF.toLocaleString('pt-BR')}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${tN.toLocaleString('pt-BR')}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${(tF+tN).toLocaleString('pt-BR')}</span></div>`;
+      h += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${n}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${fmtBRL(tF)}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${fmtBRL(tN)}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${fmtBRL(tF+tN)}</span></div>`;
    });
    corpo.innerHTML = h;
 }
@@ -554,7 +666,7 @@ async function gerarResumoAnual() {
 async function gerarAnaliseGastos() {
    const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-analise');
    abrirModal('modal-analise');
-   corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Calculando...</p>';
+   corpo.innerHTML = '<p class="text-center font-black text-slate-400 p-10 uppercase text-[10px]">Calculando...</p>';
    const { data: gastos, error } = await chamarSupabase(
       _supabase.from('despesas').select('*').eq('usuario', eu()).gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`),
       'Erro ao calcular análise de gastos'
@@ -566,7 +678,7 @@ async function gerarAnaliseGastos() {
       const salData = cacheSalarios.find(s => s.mes_ano === `${ano}-${i}`);
       const valorSal = salData ? Number(salData.valor) : 0;
       const sobra = valorSal - tG;
-      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${valorSal.toLocaleString('pt-BR')}</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS: R$ ${tG.toLocaleString('pt-BR')}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${sobra.toLocaleString('pt-BR')}</p></div></div>`;
+      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${fmtBRL(valorSal)}</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS: R$ ${fmtBRL(tG)}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${fmtBRL(sobra)}</p></div></div>`;
    });
    corpo.innerHTML = h;
 }
@@ -574,7 +686,7 @@ async function gerarAnaliseGastos() {
 async function gerarResumoCategoriasAnual() {
    const ano = document.getElementById('sel-ano').value, mesSel = document.getElementById('sel-cat-mes').value, corpo = document.getElementById('corpo-cat-anual');
    abrirModal('modal-cat-anual');
-   corpo.innerHTML = '<p class="text-center font-black text-slate-300 p-10 uppercase text-[10px]">Agrupando...</p>';
+   corpo.innerHTML = '<p class="text-center font-black text-slate-400 p-10 uppercase text-[10px]">Agrupando...</p>';
    let dIn = `${ano}-01-01`, dFi = `${ano}-12-31`;
    if (mesSel !== 'todos') { dIn = new Date(ano, mesSel, 1).toISOString(); dFi = new Date(ano, parseInt(mesSel) + 1, 0, 23, 59, 59).toISOString(); }
    const { data: gastos, error } = await chamarSupabase(
@@ -584,18 +696,31 @@ async function gerarResumoCategoriasAnual() {
    if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível agrupar</p>'; return; }
    const agrupado = {};
    (gastos || []).forEach(g => { agrupado[g.categoria_id] = (agrupado[g.categoria_id] || 0) + Number(g.valor); });
+   const entradas = Object.entries(agrupado).sort((a,b) => b[1] - a[1]);
+   const maxValor = entradas.length ? entradas[0][1] : 0;
+   const cores = ['#2563eb','#059669','#ea580c','#dc2626','#7c3aed','#0891b2','#ca8a04','#db2777'];
    let h = '';
-   Object.entries(agrupado).sort((a,b) => b[1] - a[1]).forEach(([id, total]) => {
+   entradas.forEach(([id, total], i) => {
       const catNome = cacheCategorias.find(c => c.id == id)?.nome || 'Sem Categoria';
-      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><span class="font-black text-[10px] uppercase text-slate-600">${escapeHtml(catNome)}</span><span class="font-black text-blue-700">R$ ${total.toLocaleString('pt-BR')}</span></div>`;
+      const pct = maxValor > 0 ? Math.max(4, Math.round((total / maxValor) * 100)) : 0;
+      const cor = cores[i % cores.length];
+      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+         <div class="flex justify-between items-center mb-2">
+            <span class="font-black text-[10px] uppercase text-slate-600">${iconeCategoria(catNome)} ${escapeHtml(catNome)}</span>
+            <span class="font-black text-blue-700">R$ ${fmtBRL(total)}</span>
+         </div>
+         <div style="background:#e2e8f0; border-radius:9999px; height:8px; overflow:hidden;">
+            <div style="width:${pct}%; height:100%; background:${cor}; border-radius:9999px;"></div>
+         </div>
+      </div>`;
    });
-   corpo.innerHTML = h || '<p class="text-center text-[10px] font-black text-slate-300 py-10 uppercase">Nenhum gasto encontrado</p>';
+   corpo.innerHTML = h || '<p class="text-center text-[10px] font-black text-slate-400 py-10 uppercase">Nenhum gasto encontrado</p>';
 }
 
 function toggleDrawer(open) { document.getElementById('drawer-container').classList.toggle('drawer-open', open); }
-function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
-function fecharModais() { document.querySelectorAll('#view-finance .modal-overlay').forEach(m => m.style.display = 'none'); }
-function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; toggleDrawer(false); atualizarTudo(); }
+function abrirModal(id) { document.getElementById(id).classList.add('open'); }
+function fecharModais() { document.querySelectorAll('#view-finance .modal-overlay').forEach(m => m.classList.remove('open')); }
+function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; const busca = document.getElementById('busca-lancamento'); if (busca) busca.value = ''; toggleDrawer(false); atualizarTudo(); }
 function toggleParcelados() { filtroParcelado = !filtroParcelado; document.getElementById('btn-parcelados').classList.toggle('bg-orange-500'); atualizarTudo(); }
 
 async function salvarItem(tab, inputId, btnId) {
@@ -617,18 +742,26 @@ function renderBancosLists(l) {
 }
 
 function renderTabela(d) {
-   document.getElementById('lista-corpo').innerHTML = d?.map(x => `
+   ultimaTabelaRenderizada = d || [];
+   document.getElementById('lista-corpo').innerHTML = d?.map(x => {
+      const catNome = cacheCategorias.find(c => c.id === x.categoria_id)?.nome;
+      const badgeCat = catNome ? `<span style="font-size:0.6rem;color:#94a3b8;margin-left:0.4rem;">${iconeCategoria(catNome)} ${escapeHtml(catNome)}</span>` : '';
+      return `
       <tr class="border-t">
          <td class="p-6 text-[9px] font-black uppercase">${new Date(x.data).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td>
-         <td class="p-6">${escapeHtml(x.descricao)}</td>
-         <td class="p-6 font-black">R$ ${Number(x.valor).toLocaleString('pt-BR')}</td>
-         <td class="p-6 text-center"><button onclick="tentarExcluir('${x.id}', ${x.is_parcelado}, '${x.grupo_id || ''}', '${x.data}')" aria-label="Excluir lançamento"><i class="fas fa-trash-alt text-slate-200"></i></button></td>
-      </tr>`).join('') || '';
+         <td class="p-6">${escapeHtml(x.descricao)}${badgeCat}</td>
+         <td class="p-6 font-black">R$ ${fmtBRL(x.valor)}</td>
+         <td class="p-6 text-center">
+            <button onclick="abrirEdicaoDespesa('${x.id}')" aria-label="Editar lançamento" style="margin-right:0.75rem;"><i class="fas fa-pen text-slate-300"></i></button>
+            <button onclick="tentarExcluir('${x.id}', ${x.is_parcelado}, '${x.grupo_id || ''}', '${x.data}')" aria-label="Excluir lançamento"><i class="fas fa-trash-alt text-slate-200"></i></button>
+         </td>
+      </tr>`;
+   }).join('') || '';
 }
 
 async function tentarExcluir(id, isP, grupoId, data) {
    if (!isP) {
-      if (confirm("Excluir este gasto?")) {
+      if (await confirmarAcao("Excluir este gasto?")) {
          const { error } = await chamarSupabase(_supabase.from('despesas').delete().eq('id', id), 'Erro ao excluir');
          if (!error) { mostrarToast('Gasto excluído.', 'sucesso', 2000); await atualizarTudo(); }
       }
@@ -665,16 +798,16 @@ async function confirmarExclusaoGrupo(grupoId, tipo, dataRef = '') {
 }
 
 function renderConfigLists(c, t, s) {
-   document.getElementById('lista-bancos-modal').innerHTML = c.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${escapeHtml(x.nome)}</span><button onclick="excluirConfig('cartoes', '${x.id}')" aria-label="Excluir banco"><i class="fas fa-trash text-slate-300"></i></button></div>`).join('') || '<p style="text-align:center;color:#cbd5e1;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhum banco</p>';
-   document.getElementById('lista-categorias-modal').innerHTML = t.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${escapeHtml(x.nome)}</span><button onclick="excluirConfig('categorias', '${x.id}')" aria-label="Excluir categoria"><i class="fas fa-trash text-slate-300"></i></button></div>`).join('') || '<p style="text-align:center;color:#cbd5e1;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhuma categoria</p>';
+   document.getElementById('lista-bancos-modal').innerHTML = c.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${escapeHtml(x.nome)}</span><button onclick="excluirConfig('cartoes', '${x.id}')" aria-label="Excluir banco"><i class="fas fa-trash text-slate-300"></i></button></div>`).join('') || '<p style="text-align:center;color:#94a3b8;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhum banco</p>';
+   document.getElementById('lista-categorias-modal').innerHTML = t.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${iconeCategoria(x.nome)} ${escapeHtml(x.nome)}</span><button onclick="excluirConfig('categorias', '${x.id}')" aria-label="Excluir categoria"><i class="fas fa-trash text-slate-300"></i></button></div>`).join('') || '<p style="text-align:center;color:#94a3b8;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhuma categoria</p>';
    document.getElementById('lista-salarios-modal').innerHTML = s.sort((a,b) => b.mes_ano.localeCompare(a.mes_ano)).map(x => {
       const p = x.mes_ano.split('-');
-      return `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${mesesNomes[p[1]]} / ${p[0]} — R$ ${Number(x.valor).toLocaleString('pt-BR')}</span><button onclick="excluirConfig('salarios', '${x.id}')" aria-label="Excluir salário"><i class="fas fa-trash text-slate-300"></i></button></div>`;
-   }).join('') || '<p style="text-align:center;color:#cbd5e1;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhum salário</p>';
+      return `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${mesesNomes[p[1]]} / ${p[0]} — R$ ${fmtBRL(x.valor)}</span><button onclick="excluirConfig('salarios', '${x.id}')" aria-label="Excluir salário"><i class="fas fa-trash text-slate-300"></i></button></div>`;
+   }).join('') || '<p style="text-align:center;color:#94a3b8;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhum salário</p>';
 }
 
 async function excluirConfig(tab, id) {
-   if (confirm("Excluir?")) {
+   if (await confirmarAcao("Excluir?")) {
       const { error } = await chamarSupabase(_supabase.from(tab).delete().eq('id', id), 'Erro ao excluir');
       if (!error) await atualizarTudo();
    }
@@ -684,9 +817,9 @@ function calcularResumo(dados, id) {
    const b = dados.filter(d => d.cartao_id === id);
    const tNP = b.filter(d => !d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
    const tP = b.filter(d => d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
-   document.getElementById('res-valor-1').innerText = `R$ ${tNP.toLocaleString('pt-BR')}`;
-   document.getElementById('res-valor-2').innerText = `R$ ${tP.toLocaleString('pt-BR')}`;
-   document.getElementById('res-total').innerText = `R$ ${(tNP+tP).toLocaleString('pt-BR')}`;
+   document.getElementById('res-valor-1').innerText = `R$ ${fmtBRL(tNP)}`;
+   document.getElementById('res-valor-2').innerText = `R$ ${fmtBRL(tP)}`;
+   document.getElementById('res-total').innerText = `R$ ${fmtBRL(tNP+tP)}`;
    document.getElementById('txt-label-1').innerText = "Contas não Parceladas";
    document.getElementById('txt-label-2').innerText = "Contas Parceladas";
    document.getElementById('txt-label-3').innerText = "Somatório Total";
@@ -728,10 +861,63 @@ function montarLancamentos({ desc, valorTotal, dataBase, cartaoId, categoriaId, 
    return registros;
 }
 
+// Abre o modal de lançamento já limpo, garantindo que não ficou em "modo edição"
+// de uma vez anterior (ex: usuário editou algo, cancelou, e clicou em Lançar de novo).
+function abrirNovoLancamento() {
+   edicaoDespesaId = null;
+   document.getElementById('titulo-modal-lancar').textContent = 'Novo Gasto';
+   document.getElementById('btn-confirmar-lancamento').textContent = 'Confirmar';
+   document.getElementById('bloco-parcelamento').style.display = 'block';
+   ['f-desc','f-valor','f-qtd-parc'].forEach(id => document.getElementById(id).value = '');
+   document.getElementById('f-data').value = hojeLocalISO();
+   document.getElementById('f-cartao').value = ''; document.getElementById('f-cat').value = '';
+   document.getElementById('f-fixa').checked = false; document.getElementById('f-parc').checked = false;
+   document.getElementById('box-qtd').style.display = 'none';
+   abrirModal('modal-lancar');
+}
+
+// Abre o modal de lançamento pré-preenchido para editar uma despesa existente.
+// Edição não recria parcelas: se o lançamento fizer parte de um parcelamento,
+// só aquela parcela específica é alterada (descrição/valor/data/banco/categoria).
+function abrirEdicaoDespesa(id) {
+   const item = ultimaTabelaRenderizada.find(x => x.id === id);
+   if (!item) { mostrarToast('Não foi possível localizar o lançamento para editar.'); return; }
+   edicaoDespesaId = id;
+   document.getElementById('titulo-modal-lancar').textContent = 'Editar Gasto';
+   document.getElementById('btn-confirmar-lancamento').textContent = 'Salvar Alterações';
+   document.getElementById('bloco-parcelamento').style.display = 'none'; // edição não mexe em parcelamento
+   document.getElementById('f-desc').value = item.descricao || '';
+   document.getElementById('f-valor').value = item.valor;
+   document.getElementById('f-data').value = new Date(item.data).toISOString().slice(0, 10);
+   document.getElementById('f-cartao').value = item.cartao_id || '';
+   document.getElementById('f-cat').value = item.categoria_id || '';
+   abrirModal('modal-lancar');
+}
+
 async function confirmarLancamento() {
    const d = document.getElementById('f-desc').value.trim(), v = parseFloat(document.getElementById('f-valor').value), dt = document.getElementById('f-data').value;
    if (!d || !v || !dt) { mostrarToast('Preencha descrição, valor e data.'); return; }
    const c = document.getElementById('f-cartao').value, ct = document.getElementById('f-cat').value;
+
+   // ---- MODO EDIÇÃO: atualiza só o registro selecionado, sem mexer em parcelas ----
+   if (edicaoDespesaId) {
+      await comBotaoOcupado('btn-confirmar-lancamento', 'Salvando...', async () => {
+         const { error } = await chamarSupabase(
+            _supabase.from('despesas').update({
+               descricao: d, valor: round2(v), data: new Date(dt + 'T12:00:00').toISOString(),
+               cartao_id: c || null, categoria_id: ct || null
+            }).eq('id', edicaoDespesaId),
+            'Erro ao salvar edição'
+         );
+         if (error) return;
+         mostrarToast('Lançamento atualizado.', 'sucesso', 2000);
+         edicaoDespesaId = null;
+         fecharModais(); await atualizarTudo();
+      });
+      return;
+   }
+
+   // ---- MODO NOVO LANÇAMENTO ----
    const isF = document.getElementById('f-fixa').checked, isP = document.getElementById('f-parc').checked;
    const q = parseInt(document.getElementById('f-qtd-parc').value) || 1;
    if (isP && q < 2) { mostrarToast('Informe pelo menos 2 parcelas.'); return; }
@@ -760,11 +946,23 @@ async function confirmarLancamento() {
 // =================== AUTO APP ===================
 let cacheVeiculos = [], cacheAutoRegistros = [];
 let filtroVeiculo = null;
+let edicaoManutencaoId = null;
 
-function abrirModalAuto(id) { document.getElementById(id).style.display = 'flex'; }
-function fecharModaisAuto() { document.querySelectorAll('#view-auto .modal-overlay').forEach(m => m.style.display = 'none'); }
+function abrirModalAuto(id) { document.getElementById(id).classList.add('open'); }
+function fecharModaisAuto() { document.querySelectorAll('#view-auto .modal-overlay').forEach(m => m.classList.remove('open')); }
+
+// Alterna entre skeleton (placeholder pulsante) e o conteúdo real de uma tela,
+// enquanto os dados ainda estão sendo buscados no Supabase.
+function mostrarSkeleton(area, show) {
+   const skel = document.getElementById(`${area}-skeleton`);
+   const real = document.getElementById(`${area}-real-content`);
+   if (!skel || !real) return;
+   skel.style.display = show ? 'block' : 'none';
+   real.style.display = show ? 'none' : 'block';
+}
 
 async function carregarAuto() {
+   mostrarSkeleton('auto', true);
    const { data: veiculos } = await chamarSupabase(_supabase.from('veiculos').select('*').eq('usuario', eu()).order('nome'), 'Erro ao carregar veículos');
    const { data: registros } = await chamarSupabase(_supabase.from('manutencoes').select('*').eq('usuario', eu()).order('data', { ascending: false }), 'Erro ao carregar manutenções');
    cacheVeiculos = veiculos || [];
@@ -773,6 +971,7 @@ async function carregarAuto() {
    renderAutoLista();
    renderVeiculosModal();
    renderAutoSelect();
+   mostrarSkeleton('auto', false);
 }
 
 function renderVeiculosFiltro() {
@@ -789,9 +988,9 @@ function renderAutoLista() {
    let regs = cacheAutoRegistros;
    if (filtroVeiculo) regs = regs.filter(r => r.veiculo_id === filtroVeiculo);
    const totalGasto = regs.reduce((a, b) => a + Number(b.valor || 0), 0);
-   document.getElementById('auto-total-gasto').textContent = `R$ ${totalGasto.toLocaleString('pt-BR', {minimumFractionDigits:0})}`;
+   document.getElementById('auto-total-gasto').textContent = `R$ ${fmtBRL(totalGasto)}`;
    document.getElementById('auto-total-regs').textContent = regs.length;
-   if (!regs.length) { lista.innerHTML = '<p style="text-align:center;font-size:0.65rem;font-weight:900;text-transform:uppercase;color:#cbd5e1;padding:3rem 0;">Nenhum registro</p>'; return; }
+   if (!regs.length) { lista.innerHTML = '<p style="text-align:center;font-size:0.65rem;font-weight:900;text-transform:uppercase;color:#94a3b8;padding:3rem 0;">Nenhum registro</p>'; return; }
    const tipoLabel = { manut:'Manutenção', troca:'Troca de Peça', revisao:'Revisão', seguro:'Seguro', outro:'Outro' };
    const tipoClass = { manut:'badge-manut', troca:'badge-troca', revisao:'badge-revisao', seguro:'badge-seguro', outro:'badge-outro' };
    lista.innerHTML = regs.map(r => {
@@ -808,12 +1007,13 @@ function renderAutoLista() {
                </div>
             </div>
             <div style="text-align:right;">
-               <p style="font-size:1rem;font-weight:900;color:#ea580c;margin:0;">R$ ${Number(r.valor).toLocaleString('pt-BR',{minimumFractionDigits:2})}</p>
+               <p style="font-size:1rem;font-weight:900;color:#ea580c;margin:0;">R$ ${fmtBRL(r.valor)}</p>
                <p style="font-size:0.6rem;font-weight:700;color:#94a3b8;margin:0;">${new Date(r.data).toLocaleDateString('pt-BR',{timeZone:'UTC'})}</p>
             </div>
          </div>
          ${r.obs ? `<p style="font-size:0.7rem;font-weight:600;color:#64748b;margin:0;padding-top:0.5rem;border-top:1px solid #f1f5f9;">${escapeHtml(r.obs)}</p>` : ''}
-         <div style="text-align:right;margin-top:0.5rem;">
+         <div style="text-align:right;margin-top:0.5rem;display:flex;justify-content:flex-end;gap:1rem;">
+            <button onclick="abrirEdicaoManutencao('${r.id}')" style="font-size:0.65rem;font-weight:900;text-transform:uppercase;color:#e2e8f0;background:none;border:none;cursor:pointer;" aria-label="Editar registro"><i class="fas fa-pen"></i></button>
             <button onclick="excluirManutencao('${r.id}')" style="font-size:0.65rem;font-weight:900;text-transform:uppercase;color:#e2e8f0;background:none;border:none;cursor:pointer;" aria-label="Excluir registro"><i class="fas fa-trash"></i></button>
          </div>
       </div>`;
@@ -826,7 +1026,7 @@ function renderVeiculosModal() {
          <span>${escapeHtml(v.nome)}</span>
          <button onclick="excluirVeiculo('${v.id}')" style="background:none;border:none;cursor:pointer;color:#e2e8f0;" aria-label="Excluir veículo"><i class="fas fa-trash"></i></button>
       </div>`
-   ).join('') || '<p style="text-align:center;font-size:0.65rem;font-weight:900;text-transform:uppercase;color:#cbd5e1;padding:1rem;">Nenhum veículo</p>';
+   ).join('') || '<p style="text-align:center;font-size:0.65rem;font-weight:900;text-transform:uppercase;color:#94a3b8;padding:1rem;">Nenhum veículo</p>';
 }
 
 function renderAutoSelect() {
@@ -846,10 +1046,37 @@ async function salvarVeiculo() {
 }
 
 async function excluirVeiculo(id) {
-   if (confirm('Excluir veículo?')) {
+   if (await confirmarAcao('Excluir veículo?')) {
       const { error } = await chamarSupabase(_supabase.from('veiculos').delete().eq('id', id), 'Erro ao excluir veículo');
       if (!error) await carregarAuto();
    }
+}
+
+function abrirNovoRegistroAuto() {
+   edicaoManutencaoId = null;
+   document.getElementById('titulo-modal-auto').textContent = 'Novo Registro';
+   document.getElementById('btn-confirmar-auto').textContent = 'Confirmar';
+   ['a-desc','a-valor','a-km','a-obs'].forEach(id => document.getElementById(id).value = '');
+   document.getElementById('a-data').value = hojeLocalISO();
+   document.getElementById('a-veiculo').value = '';
+   document.getElementById('a-tipo').value = 'manut';
+   abrirModalAuto('modal-auto-lancar');
+}
+
+function abrirEdicaoManutencao(id) {
+   const item = cacheAutoRegistros.find(r => r.id === id);
+   if (!item) { mostrarToast('Não foi possível localizar o registro para editar.'); return; }
+   edicaoManutencaoId = id;
+   document.getElementById('titulo-modal-auto').textContent = 'Editar Registro';
+   document.getElementById('btn-confirmar-auto').textContent = 'Salvar Alterações';
+   document.getElementById('a-desc').value = item.descricao || '';
+   document.getElementById('a-valor').value = item.valor;
+   document.getElementById('a-veiculo').value = item.veiculo_id || '';
+   document.getElementById('a-tipo').value = item.tipo || 'manut';
+   document.getElementById('a-km').value = item.km || '';
+   document.getElementById('a-data').value = new Date(item.data).toISOString().slice(0, 10);
+   document.getElementById('a-obs').value = item.obs || '';
+   abrirModalAuto('modal-auto-lancar');
 }
 
 async function confirmarAutoLancamento() {
@@ -862,6 +1089,26 @@ async function confirmarAutoLancamento() {
    const obs = document.getElementById('a-obs').value.trim();
    if (!desc || !valor || !data) { mostrarToast('Preencha descrição, valor e data.'); return; }
 
+   // ---- MODO EDIÇÃO ----
+   if (edicaoManutencaoId) {
+      await comBotaoOcupado('btn-confirmar-auto', 'Salvando...', async () => {
+         const { error } = await chamarSupabase(
+            _supabase.from('manutencoes').update({
+               descricao: desc, valor: round2(valor), veiculo_id: veiculo || null, tipo,
+               km: km ? parseInt(km) : null, data: new Date(data + 'T12:00:00').toISOString(),
+               obs: obs || null
+            }).eq('id', edicaoManutencaoId),
+            'Erro ao salvar edição'
+         );
+         if (error) return;
+         mostrarToast('Registro atualizado.', 'sucesso', 2000);
+         edicaoManutencaoId = null;
+         fecharModaisAuto(); await carregarAuto();
+      });
+      return;
+   }
+
+   // ---- MODO NOVO REGISTRO ----
    await comBotaoOcupado('btn-confirmar-auto', 'Salvando...', async () => {
       const { data: inserido, error } = await chamarSupabase(
          _supabase.from('manutencoes').insert([{
@@ -885,10 +1132,18 @@ async function confirmarAutoLancamento() {
 }
 
 async function excluirManutencao(id) {
-   if (confirm('Excluir registro?')) {
+   if (await confirmarAcao('Excluir registro?')) {
       const { error } = await chamarSupabase(_supabase.from('manutencoes').delete().eq('id', id), 'Erro ao excluir registro');
       if (!error) { mostrarToast('Registro excluído.', 'sucesso', 2000); await carregarAuto(); }
    }
+}
+
+// Registra o service worker do PWA. Se o arquivo for aberto localmente (file://)
+// ou o navegador não suportar, isso falha silenciosamente e o app funciona normal.
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+   window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => { /* PWA é opcional, ignora erro */ });
+   });
 }
 
 // Tenta restaurar a sessão da aba (se houver) assim que a página carrega.
