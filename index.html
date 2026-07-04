@@ -344,21 +344,22 @@ function normalizarTexto(s) {
       .trim();
 }
 
-// Dado um texto novo e um histórico [{descricao, categoria_id}], sugere a categoria
-// mais frequente entre lançamentos passados com palavras em comum (3+ letras).
-// Retorna null se não achar nenhuma pista (não força sugestão sem base).
+// Dado um texto novo e um histórico [{descricao, categoria_id, data}], sugere a categoria
+// usada na ÚLTIMA VEZ que algo com palavras em comum (3+ letras) foi categorizado.
+// Recência vence frequência de propósito: se você categorizou algo parecido como X antes
+// e depois mudou pra Y, a próxima sugestão deve ser Y (a mais recente), não a mais usada.
 function sugerirCategoriaPorHistorico(descricaoNova, historico) {
    const palavrasNova = new Set(normalizarTexto(descricaoNova).split(/\s+/).filter(w => w.length >= 3));
    if (palavrasNova.size === 0) return null;
-   const contagem = {};
+   let melhorMatch = null;
    historico.forEach(h => {
       if (!h.categoria_id) return;
       const palavrasHist = normalizarTexto(h.descricao).split(/\s+/).filter(w => w.length >= 3);
-      const comuns = palavrasHist.filter(w => palavrasNova.has(w)).length;
-      if (comuns > 0) contagem[h.categoria_id] = (contagem[h.categoria_id] || 0) + comuns;
+      const temMatch = palavrasHist.some(w => palavrasNova.has(w));
+      if (!temMatch) return;
+      if (!melhorMatch || h.data > melhorMatch.data) melhorMatch = h;
    });
-   const entradas = Object.entries(contagem).sort((a, b) => b[1] - a[1]);
-   return entradas.length ? entradas[0][0] : null;
+   return melhorMatch ? melhorMatch.categoria_id : null;
 }
 
 // Dicionário de palavras-chave -> nome de categoria padrão (2ª camada de sugestão,
@@ -413,7 +414,7 @@ let cacheHistoricoCategorizacao = null;
 async function carregarHistoricoCategorizacao() {
    if (cacheHistoricoCategorizacao) return cacheHistoricoCategorizacao;
    const { data } = await chamarSupabase(
-      _supabase.from('despesas').select('descricao, categoria_id').eq('usuario', eu()).not('categoria_id', 'is', null),
+      _supabase.from('despesas').select('descricao, categoria_id, data').eq('usuario', eu()).not('categoria_id', 'is', null),
       'Erro ao carregar histórico de categorização'
    );
    cacheHistoricoCategorizacao = data || [];
