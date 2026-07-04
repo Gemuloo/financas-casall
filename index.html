@@ -209,8 +209,8 @@
    <div id="modal-analise" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Projeção de Gastos</h3><div id="corpo-analise" class="space-y-3"></div></div></div>
    <div id="modal-cat-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Gastos por Categoria</h3><div class="mb-6"><select id="sel-cat-mes" class="w-full bg-slate-50 border p-3 rounded-xl font-black text-[10px] uppercase text-slate-600" onchange="gerarResumoCategoriasAnual()" aria-label="Filtrar mês da categoria"><option value="todos">O Ano Todo</option></select></div><div id="corpo-cat-anual" class="space-y-3"></div></div></div>
    <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><label class="field-label" for="f-desc">Descrição</label><input id="f-desc" type="text" placeholder="Descrição" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><label class="field-label" for="f-valor">Valor</label><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco"></select><select id="f-cat" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Categoria"></select></div><div class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold"></div></div><button id="btn-confirmar-lancamento" onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] btn-confirm">Confirmar</button></div></div></div>
-   <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarItem('cartoes', 'f-nome-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
-   <div id="modal-categorias" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarItem('categorias', 'f-nome-cat')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
+   <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-cartao" onclick="salvarItem('cartoes', 'f-nome-cartao', 'btn-add-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
+   <div id="modal-categorias" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-categoria" onclick="salvarItem('categorias', 'f-nome-cat', 'btn-add-categoria')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
 </div>
 
 <!-- AUTO APP -->
@@ -238,7 +238,7 @@
 
    <!-- Auto Modals -->
    <div id="modal-auto-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisAuto()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Registro</h3><div class="space-y-3"><label class="field-label" for="a-desc">Descrição</label><input id="a-desc" type="text" placeholder="Descrição (ex: Troca de óleo)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><label class="field-label" for="a-valor">Valor</label><input id="a-valor" type="number" step="0.01" placeholder="Valor (R$)" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-orange-600 text-xl outline-none"><div class="grid grid-cols-2 gap-3"><select id="a-veiculo" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Veículo"><option value="">Veículo?</option></select><select id="a-tipo" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Tipo"><option value="manut">Manutenção</option><option value="troca">Troca de Peça</option><option value="revisao">Revisão</option><option value="seguro">Seguro</option><option value="outro">Outro</option></select></div><input id="a-km" type="number" placeholder="KM no momento (opcional)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="a-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><input id="a-obs" type="text" placeholder="Observação (opcional)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm"><button id="btn-confirmar-auto" onclick="confirmarAutoLancamento()" class="w-full bg-orange-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] btn-confirm">Confirmar</button></div></div></div>
-   <div id="modal-auto-veiculos" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisAuto()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Veículos</h3><div class="flex gap-2 mb-6"><input id="a-nome-veiculo" type="text" placeholder="Nome ou placa" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button onclick="salvarVeiculo()" class="bg-orange-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-veiculos-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
+   <div id="modal-auto-veiculos" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisAuto()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Veículos</h3><div class="flex gap-2 mb-6"><input id="a-nome-veiculo" type="text" placeholder="Nome ou placa" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-veiculo" onclick="salvarVeiculo()" class="bg-orange-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-veiculos-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
    <div id="modal-auto-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisAuto()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModaisAuto(); abrirModalAuto('modal-auto-veiculos')" class="w-full p-6 bg-orange-50 rounded-2xl flex items-center gap-4 text-orange-700 font-black uppercase text-xs"><i class="fas fa-car"></i> Gerenciar Veículos</button></div></div></div>
 
    <div style="position:fixed;bottom:2rem;left:2rem;z-index:80;">
@@ -248,6 +248,17 @@
 
 <script>
 // =================== HELPERS GERAIS ===================
+
+// Retorna a data de hoje no fuso horário LOCAL do navegador, como string 'YYYY-MM-DD'.
+// Não usar `input.valueAsDate = new Date()`: esse setter trabalha em UTC, então no
+// Brasil (UTC-3) o campo passa a mostrar o dia seguinte a partir das ~21h locais.
+function hojeLocalISO() {
+   const d = new Date();
+   const ano = d.getFullYear();
+   const mes = String(d.getMonth() + 1).padStart(2, '0');
+   const dia = String(d.getDate()).padStart(2, '0');
+   return `${ano}-${mes}-${dia}`;
+}
 
 // Escapa HTML para evitar que descrições/nomes com < > & " quebrem o layout
 // ou injetem markup ao serem colocados via innerHTML.
@@ -407,11 +418,11 @@ function irPara(app) {
    mostrarView(app);
    if (app === 'finance') {
       setupDatas();
-      document.getElementById('f-data').valueAsDate = new Date();
+      document.getElementById('f-data').value = hojeLocalISO();
       atualizarTudo();
    }
    if (app === 'auto') {
-      document.getElementById('a-data').valueAsDate = new Date();
+      document.getElementById('a-data').value = hojeLocalISO();
       carregarAuto();
    }
 }
@@ -587,14 +598,16 @@ function fecharModais() { document.querySelectorAll('#view-finance .modal-overla
 function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; toggleDrawer(false); atualizarTudo(); }
 function toggleParcelados() { filtroParcelado = !filtroParcelado; document.getElementById('btn-parcelados').classList.toggle('bg-orange-500'); atualizarTudo(); }
 
-async function salvarItem(tab, inputId) {
+async function salvarItem(tab, inputId, btnId) {
    const val = document.getElementById(inputId).value.trim();
    if (!val) return;
-   const { error } = await chamarSupabase(_supabase.from(tab).insert([{ nome: val, usuario: eu() }]), 'Erro ao salvar item');
-   if (!error) {
-      document.getElementById(inputId).value = '';
-      await atualizarTudo();
-   }
+   await comBotaoOcupado(btnId, '...', async () => {
+      const { error } = await chamarSupabase(_supabase.from(tab).insert([{ nome: val, usuario: eu() }]), 'Erro ao salvar item');
+      if (!error) {
+         document.getElementById(inputId).value = '';
+         await atualizarTudo();
+      }
+   });
 }
 
 function renderBancosLists(l) {
@@ -736,7 +749,7 @@ async function confirmarLancamento() {
          mostrarToast(`Lançamento salvo (${inserido.length} registro${inserido.length > 1 ? 's' : ''}).`, 'sucesso', 2500);
       }
       ['f-desc','f-valor','f-qtd-parc'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('f-data').valueAsDate = new Date();
+      document.getElementById('f-data').value = hojeLocalISO();
       document.getElementById('f-cartao').value = ''; document.getElementById('f-cat').value = '';
       document.getElementById('f-fixa').checked = false; document.getElementById('f-parc').checked = false;
       document.getElementById('box-qtd').style.display = 'none';
@@ -823,11 +836,13 @@ function renderAutoSelect() {
 async function salvarVeiculo() {
    const nome = document.getElementById('a-nome-veiculo').value.trim();
    if (!nome) return;
-   const { error } = await chamarSupabase(_supabase.from('veiculos').insert([{ nome, usuario: eu() }]), 'Erro ao salvar veículo');
-   if (!error) {
-      document.getElementById('a-nome-veiculo').value = '';
-      await carregarAuto();
-   }
+   await comBotaoOcupado('btn-add-veiculo', '...', async () => {
+      const { error } = await chamarSupabase(_supabase.from('veiculos').insert([{ nome, usuario: eu() }]), 'Erro ao salvar veículo');
+      if (!error) {
+         document.getElementById('a-nome-veiculo').value = '';
+         await carregarAuto();
+      }
+   });
 }
 
 async function excluirVeiculo(id) {
@@ -863,7 +878,7 @@ async function confirmarAutoLancamento() {
          mostrarToast('Registro salvo.', 'sucesso', 2000);
       }
       ['a-desc','a-valor','a-km','a-obs'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('a-data').valueAsDate = new Date();
+      document.getElementById('a-data').value = hojeLocalISO();
       fecharModaisAuto();
       await carregarAuto();
    });
