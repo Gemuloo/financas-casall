@@ -1168,6 +1168,16 @@ function anosDisponiveis() {
 // Calcula o período de "mês" pra exibição/filtro. Se o cartão tiver um dia de
 // fechamento configurado (ex: 26, fatura fecha todo dia 26), usa o ciclo real da
 // fatura (27 do mês anterior a 26 do mês selecionado) em vez do mês civil (01 a 30/31).
+// Quantos dias faltam para o fechamento (só relevante se o ciclo ainda está aberto).
+// Retorna null se o ciclo já fechou (não faz sentido mostrar "faltam X dias" pro passado).
+function diasParaFechar(fim, hoje) {
+   const umDiaMs = 24 * 60 * 60 * 1000;
+   const fimZerado = new Date(fim.getFullYear(), fim.getMonth(), fim.getDate());
+   const hojeZerado = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+   const diff = Math.round((fimZerado - hojeZerado) / umDiaMs);
+   return diff >= 0 ? diff : null;
+}
+
 function calcularPeriodoCartao(diaFechamento, mes, ano) {
    if (!diaFechamento) {
       return { inicio: new Date(ano, mes, 1), fim: new Date(ano, mes + 1, 0, 23, 59, 59) };
@@ -1227,7 +1237,10 @@ async function atualizarTudo() {
    );
    const elPeriodo = document.getElementById('periodo-exibido');
    if (cartaoSelecionado?.dia_fechamento) {
-      elPeriodo.textContent = `Ciclo da fatura: ${inicio.toLocaleDateString('pt-BR')} a ${fim.toLocaleDateString('pt-BR')}`;
+      let texto = `Ciclo da fatura: ${inicio.toLocaleDateString('pt-BR')} a ${fim.toLocaleDateString('pt-BR')}`;
+      const restantes = diasParaFechar(fim, new Date());
+      if (restantes !== null) texto += ` · faltam ${restantes} dia${restantes === 1 ? '' : 's'} pra fechar`;
+      elPeriodo.textContent = texto;
    } else {
       elPeriodo.textContent = '';
    }
