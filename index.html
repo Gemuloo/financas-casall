@@ -555,6 +555,14 @@ async function extrairTextoPdf(arrayBuffer) {
    return todasLinhas.join('\n');
 }
 
+// Normalização LEVE: só ignora maiúscula/minúscula e acentuação, sem mexer em
+// números, pontuação ou parênteses -- usada para decidir se duas descrições são
+// "a mesma coisa" (ex: "FRUTARIA RINCAO" == "Frutaria Rincao"), preservando
+// detalhes que IMPORTAM pra identidade exata, como o sufixo "(2/6)" de uma parcela.
+function normalizarCaixa(s) {
+   return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
 // Compara as transações da fatura com o que já está lançado no Supabase (mesmo cartão).
 // Cada existente só pode ser "consumido" UMA vez (ou como match exato, ou como fuzzy),
 // pra não sinalizar a mesma compra manual duas vezes por engano.
@@ -566,7 +574,7 @@ function compararComExistentes(daFatura, jaLancadas) {
    const existentes = jaLancadas.map(t => ({ ...t, usadoExato: false, usadoFuzzy: false }));
    const resultado = [];
    daFatura.forEach(t => {
-      const exato = existentes.find(e => !e.usadoExato && e.data === t.data && e.descricao === t.descricao && e.valor === t.valor);
+      const exato = existentes.find(e => !e.usadoExato && e.data === t.data && normalizarCaixa(e.descricao) === normalizarCaixa(t.descricao) && e.valor === t.valor);
       if (exato) { exato.usadoExato = true; return; }
       const fuzzy = existentes.find(e => !e.usadoExato && !e.usadoFuzzy && e.data === t.data && e.valor === t.valor);
       if (fuzzy) {
@@ -617,7 +625,7 @@ function processarLinhasDeParcelaEExtrairRestante(daFatura, existentesNoBanco) {
    daFatura.forEach(t => {
       const info = extrairInfoParcela(t.descricao);
       if (!info) { linhasNormais.push(t); return; }
-      const match = existentesDisp.find(e => !e.usado && e.descricao === t.descricao);
+      const match = existentesDisp.find(e => !e.usado && normalizarCaixa(e.descricao) === normalizarCaixa(t.descricao));
       if (match) {
          match.usado = true;
          if (round2(match.valor) !== round2(t.valor) || match.data !== t.data) {
