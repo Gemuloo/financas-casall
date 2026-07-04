@@ -578,6 +578,58 @@ function compararComExistentes(daFatura, jaLancadas) {
    return resultado;
 }
 
+// Reconhece o padrão "- Parcela i/N" no fim da descrição de uma transação da fatura.
+function extrairInfoParcela(descricao) {
+   const m = (descricao || '').match(/^(.*?)\s-\s*Parcela\s+(\d+)\/(\d+)\s*$/i);
+   if (!m) return null;
+   return { base: m[1].trim(), atual: parseInt(m[2]), total: parseInt(m[3]) };
+}
+
+// Gera as parcelas FUTURAS (atual+1 até total) de uma compra parcelada vinda da fatura,
+// com o mesmo valor da parcela atual (premissa: parcelamento sem juros = valores iguais,
+// o padrão em compras parceladas de cartão no Brasil).
+function gerarParcelasFuturas(item, info) {
+   const futuras = [];
+   for (let k = info.atual + 1; k <= info.total; k++) {
+      const mesesAFrente = k - info.atual;
+      const novaData = adicionarMeses(item.data + 'T12:00:00', mesesAFrente);
+      futuras.push({
+         descricao: `${info.base} - Parcela ${k}/${info.total}`,
+         valor: item.valor,
+         data: novaData.toISOString().slice(0, 10)
+      });
+   }
+   return futuras;
+}
+
+// Trata as linhas de parcela separadamente das linhas normais:
+// - Se a descrição exata já existe no banco (foi projetada num mês anterior), NÃO duplica;
+//   se valor/data vieram diferentes do que foi projetado, agenda uma correção silenciosa.
+// - Se é a primeira vez que aparece, entra como "nova" E já leva consigo a projeção das
+//   parcelas futuras, que serão criadas junto quando a pessoa confirmar a importação.
+function processarLinhasDeParcelaEExtrairRestante(daFatura, existentesNoBanco) {
+   const existentesDisp = existentesNoBanco.map(e => ({ ...e, usado: false }));
+   const novasParcelas = [];
+   const atualizacoesSilenciosas = [];
+   const linhasNormais = [];
+
+   daFatura.forEach(t => {
+      const info = extrairInfoParcela(t.descricao);
+      if (!info) { linhasNormais.push(t); return; }
+      const match = existentesDisp.find(e => !e.usado && e.descricao === t.descricao);
+      if (match) {
+         match.usado = true;
+         if (round2(match.valor) !== round2(t.valor) || match.data !== t.data) {
+            atualizacoesSilenciosas.push({ id: match.id, valor: round2(t.valor), data: t.data, descricao: t.descricao });
+         }
+      } else {
+         novasParcelas.push({ ...t, possivelDuplicata: false, duplicataDescricao: null, projecoesFuturas: gerarParcelasFuturas(t, info) });
+      }
+   });
+
+   return { novasParcelas, linhasNormais, atualizacoesSilenciosas, existentesRestantes: existentesDisp.filter(e => !e.usado) };
+}
+
 // Estado da importação em andamento (transações revisadas antes de confirmar).
 let importacaoFaturaAtual = [];
 
@@ -610,16 +662,32 @@ async function processarArquivoFatura(arquivo) {
 
       const datas = daFatura.map(t => t.data).sort();
       const { data: existentes, error } = await chamarSupabase(
-         _supabase.from('despesas').select('descricao, valor, data').eq('usuario', eu()).eq('cartao_id', cartaoId)
+         _supabase.from('despesas').select('id, descricao, valor, data').eq('usuario', eu()).eq('cartao_id', cartaoId)
             .gte('data', datas[0] + 'T00:00:00').lte('data', datas[datas.length - 1] + 'T23:59:59'),
          'Erro ao verificar lançamentos existentes'
       );
       if (error) { document.getElementById('imp-status').textContent = 'Erro ao comparar com o que já está lançado.'; return; }
 
       const jaLancadasNormalizadas = (existentes || []).map(e => ({
-         data: new Date(e.data).toISOString().slice(0, 10), descricao: e.descricao, valor: round2(e.valor)
+         id: e.id, data: new Date(e.data).toISOString().slice(0, 10), descricao: e.descricao, valor: round2(e.valor)
       }));
-      const novas = compararComExistentes(daFatura, jaLancadasNormalizadas);
+
+      // 1) Separa e trata linhas de PARCELA (não duplica entre meses, projeta parcelas futuras).
+      const { novasParcelas, linhasNormais, atualizacoesSilenciosas, existentesRestantes } =
+         processarLinhasDeParcelaEExtrairRestante(daFatura, jaLancadasNormalizadas);
+
+      // Aplica correções de data/valor em parcelas já projetadas que vieram um pouco diferentes na fatura real.
+      if (atualizacoesSilenciosas.length > 0) {
+         await Promise.all(atualizacoesSilenciosas.map(u => chamarSupabase(
+            _supabase.from('despesas').update({ valor: u.valor, data: new Date(u.data + 'T12:00:00').toISOString() }).eq('id', u.id),
+            'Erro ao atualizar parcela projetada'
+         )));
+      }
+
+      // 2) Linhas normais (sem "- Parcela i/N") seguem a comparação de sempre (exata + fuzzy).
+      const novasNormais = compararComExistentes(linhasNormais, existentesRestantes);
+
+      const novas = [...novasParcelas, ...novasNormais];
       const qtdJaLancadas = daFatura.length - novas.length;
 
       const historico = await carregarHistoricoCategorizacao();
@@ -629,9 +697,12 @@ async function processarArquivoFatura(arquivo) {
       }));
 
       const qtdSuspeitas = novas.filter(t => t.possivelDuplicata).length;
-      document.getElementById('imp-status').innerHTML =
-         `${daFatura.length} transações encontradas — ${qtdJaLancadas} já estavam lançadas, ${novas.length} são novas` +
-         (qtdSuspeitas > 0 ? `<br><span style="color:#b45309;">⚠️ ${qtdSuspeitas} podem já ter sido lançadas manualmente com outro texto — revise antes de confirmar.</span>` : '.');
+      const qtdComProjecao = novas.filter(t => t.projecoesFuturas && t.projecoesFuturas.length).length;
+      let msg = `${daFatura.length} transações encontradas — ${qtdJaLancadas} já estavam lançadas, ${novas.length} são novas`;
+      if (qtdSuspeitas > 0) msg += `<br><span style="color:#b45309;">⚠️ ${qtdSuspeitas} podem já ter sido lançadas manualmente com outro texto — revise antes de confirmar.</span>`;
+      if (atualizacoesSilenciosas.length > 0) msg += `<br><span style="color:#0891b2;">🔄 ${atualizacoesSilenciosas.length} parcela(s) já projetada(s) tiveram data/valor confirmados com a fatura real.</span>`;
+      if (qtdComProjecao > 0) msg += `<br><span style="color:#7c3aed;">📅 ${qtdComProjecao} compra(s) parcelada(s) nova(s) vão gerar as próximas parcelas automaticamente.</span>`;
+      document.getElementById('imp-status').innerHTML = msg;
       renderRevisaoImportacao();
       document.getElementById('imp-revisao').style.display = novas.length ? 'block' : 'none';
    } catch (e) {
@@ -648,6 +719,7 @@ function renderRevisaoImportacao() {
             <p style="font-size:0.7rem; font-weight:800; color:#1e293b; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(t.descricao)}</p>
             <p style="font-size:0.6rem; color:#94a3b8; margin:0;">${new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR')} · R$ ${fmtBRL(t.valor)}</p>
             ${t.possivelDuplicata ? `<p style="font-size:0.6rem; color:#b45309; font-weight:800; margin:0.2rem 0 0;"><i class="fas fa-triangle-exclamation"></i> Pode ser o mesmo lançamento que "${escapeHtml(t.duplicataDescricao)}"</p>` : ''}
+            ${t.projecoesFuturas && t.projecoesFuturas.length ? `<p style="font-size:0.6rem; color:#7c3aed; font-weight:800; margin:0.2rem 0 0;"><i class="fas fa-calendar-days"></i> Vai criar mais ${t.projecoesFuturas.length} parcela(s) futura(s) automaticamente</p>` : ''}
          </div>
          <select onchange="importacaoFaturaAtual[${idx}].categoria_id = this.value" style="font-size:0.6rem; font-weight:700; border:1px solid #e2e8f0; border-radius:0.5rem; padding:0.3rem; max-width:110px;">
             <option value="">Categoria?</option>
@@ -663,14 +735,27 @@ async function confirmarImportacaoFatura() {
    if (selecionadas.length === 0) { mostrarToast('Nenhuma transação selecionada.'); return; }
 
    await comBotaoOcupado('btn-confirmar-importacao', 'Importando...', async () => {
-      const registros = selecionadas.map(t => ({
-         descricao: t.descricao, valor: t.valor, data: new Date(t.data + 'T12:00:00').toISOString(),
-         cartao_id: cartaoId, categoria_id: t.categoria_id || null,
-         is_fixa: false, is_parcelado: false, grupo_id: null, usuario: eu()
-      }));
+      const registros = [];
+      selecionadas.forEach(t => {
+         const temProjecao = t.projecoesFuturas && t.projecoesFuturas.length > 0;
+         const grupoId = temProjecao ? gerarGrupoId() : null;
+         registros.push({
+            descricao: t.descricao, valor: t.valor, data: new Date(t.data + 'T12:00:00').toISOString(),
+            cartao_id: cartaoId, categoria_id: t.categoria_id || null,
+            is_fixa: false, is_parcelado: temProjecao, grupo_id: grupoId, usuario: eu()
+         });
+         if (temProjecao) {
+            t.projecoesFuturas.forEach(f => registros.push({
+               descricao: f.descricao, valor: f.valor, data: new Date(f.data + 'T12:00:00').toISOString(),
+               cartao_id: cartaoId, categoria_id: t.categoria_id || null,
+               is_fixa: false, is_parcelado: true, grupo_id: grupoId, usuario: eu()
+            }));
+         }
+      });
       const { data: inserido, error } = await chamarSupabase(_supabase.from('despesas').insert(registros).select(), 'Erro ao importar transações');
       if (error) return;
-      mostrarToast(`${inserido ? inserido.length : selecionadas.length} lançamento(s) importado(s).`, 'sucesso', 3000);
+      const qtdProjetadas = registros.length - selecionadas.length;
+      mostrarToast(`${inserido ? inserido.length : registros.length} lançamento(s) importado(s)` + (qtdProjetadas > 0 ? ` (incluindo ${qtdProjetadas} parcela(s) futura(s) projetada(s)).` : '.'), 'sucesso', 3500);
       cacheHistoricoCategorizacao = null;
       importacaoFaturaAtual = [];
       fecharModais();
