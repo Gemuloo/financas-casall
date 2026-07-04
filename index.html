@@ -196,10 +196,11 @@
                <div class="skeleton-bar" style="height:220px;"></div>
             </div>
             <div id="finance-real-content">
-            <div class="flex justify-center mb-6 gap-2">
+            <div class="flex justify-center mb-1 gap-2">
                <select id="sel-mes" class="date-select" onchange="atualizarTudo()" aria-label="Mês"></select>
                <select id="sel-ano" class="date-select" onchange="atualizarTudo()" aria-label="Ano"></select>
             </div>
+            <p id="periodo-exibido" style="text-align:center; font-size:0.6rem; font-weight:800; color:#94a3b8; margin:0 0 1.5rem;"></p>
             <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-slate-100 text-center">
                   <p id="txt-label-1" class="text-[9px] font-black text-slate-400 uppercase mb-1">Saldo em Conta</p>
@@ -255,7 +256,7 @@
    <div id="modal-analise" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Projeção de Gastos</h3><div id="corpo-analise" class="space-y-3"></div></div></div>
    <div id="modal-cat-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Gastos por Categoria</h3><div class="mb-6"><select id="sel-cat-mes" class="w-full bg-slate-50 border p-3 rounded-xl font-black text-[10px] uppercase text-slate-600" onchange="gerarResumoCategoriasAnual()" aria-label="Filtrar mês da categoria"><option value="todos">O Ano Todo</option></select></div><div id="corpo-cat-anual" class="space-y-3"></div></div></div>
    <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 id="titulo-modal-lancar" class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><label class="field-label" for="f-desc">Descrição</label><input id="f-desc" type="text" placeholder="Descrição" oninput="sugerirCategoriaAoDigitar()" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><label class="field-label" for="f-valor">Valor</label><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco"></select><select id="f-cat" onchange="categoriaEscolhidaManualmente = true; document.getElementById('dica-sugestao-cat').style.display='none';" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Categoria"></select></div><p id="dica-sugestao-cat" style="display:none; font-size:0.6rem; font-weight:800; color:#2563eb; margin:-0.75rem 0 0 0.15rem;"><i class="fas fa-magic"></i> Categoria sugerida com base no seu histórico</p><div id="bloco-parcelamento" class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold"></div></div><button id="btn-confirmar-lancamento" onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] btn-confirm">Confirmar</button></div></div></div>
-   <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-cartao" onclick="salvarItem('cartoes', 'f-nome-cartao', 'btn-add-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
+   <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="space-y-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-xs"><div class="flex gap-2"><input id="f-fechamento-cartao" type="number" min="1" max="31" placeholder="Dia de fechamento (opcional, só p/ crédito)" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-cartao" onclick="salvarCartao()" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div></div><div id="lista-bancos-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
    <div id="modal-categorias" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-categoria" onclick="salvarItem('categorias', 'f-nome-cat', 'btn-add-categoria')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
 
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
@@ -1164,6 +1165,25 @@ function anosDisponiveis() {
    return anos;
 }
 
+// Calcula o período de "mês" pra exibição/filtro. Se o cartão tiver um dia de
+// fechamento configurado (ex: 26, fatura fecha todo dia 26), usa o ciclo real da
+// fatura (27 do mês anterior a 26 do mês selecionado) em vez do mês civil (01 a 30/31).
+function calcularPeriodoCartao(diaFechamento, mes, ano) {
+   if (!diaFechamento) {
+      return { inicio: new Date(ano, mes, 1), fim: new Date(ano, mes + 1, 0, 23, 59, 59) };
+   }
+   const ultimoDiaMesAtual = new Date(ano, mes + 1, 0).getDate();
+   const diaFimClamp = Math.min(diaFechamento, ultimoDiaMesAtual);
+   const fim = new Date(ano, mes, diaFimClamp, 23, 59, 59);
+
+   const refMesAnterior = new Date(ano, mes - 1, 1); // JS resolve a virada de ano sozinho
+   const ultimoDiaMesAnterior = new Date(refMesAnterior.getFullYear(), refMesAnterior.getMonth() + 1, 0).getDate();
+   const diaInicioClamp = Math.min(diaFechamento, ultimoDiaMesAnterior) + 1;
+   const inicio = new Date(refMesAnterior.getFullYear(), refMesAnterior.getMonth(), diaInicioClamp);
+
+   return { inicio, fim };
+}
+
 function setupDatas() {
    if (datasSetadas) return;
    datasSetadas = true;
@@ -1198,11 +1218,19 @@ async function atualizarTudo() {
    cacheSalarios = resSals || [];
 
    const mes = parseInt(document.getElementById('sel-mes').value), ano = parseInt(document.getElementById('sel-ano').value);
-   const dInicio = new Date(ano, mes, 1).toISOString(), dFim = new Date(ano, mes + 1, 0, 23, 59, 59).toISOString();
+   const cartaoSelecionado = filtroCartao ? cacheBancos.find(c => c.id === filtroCartao) : null;
+   const { inicio, fim } = calcularPeriodoCartao(cartaoSelecionado?.dia_fechamento || null, mes, ano);
+   const dInicio = inicio.toISOString(), dFim = fim.toISOString();
    const { data: todasDoMes } = await chamarSupabase(
       _supabase.from('despesas').select('*').eq('usuario', eu()).gte('data', dInicio).lte('data', dFim).order('data'),
       'Erro ao carregar despesas do mês'
    );
+   const elPeriodo = document.getElementById('periodo-exibido');
+   if (cartaoSelecionado?.dia_fechamento) {
+      elPeriodo.textContent = `Ciclo da fatura: ${inicio.toLocaleDateString('pt-BR')} a ${fim.toLocaleDateString('pt-BR')}`;
+   } else {
+      elPeriodo.textContent = '';
+   }
 
    renderBancosLists(cacheBancos); renderSelects(cacheBancos, cacheCategorias); renderConfigLists(cacheBancos, cacheCategorias, cacheSalarios);
    if (filtroCartao) {
@@ -1332,6 +1360,29 @@ function fecharModais() { document.querySelectorAll('#view-finance .modal-overla
 function setFiltroCartao(id) { filtroCartao = filtroCartao === id ? null : id; const busca = document.getElementById('busca-lancamento'); if (busca) busca.value = ''; toggleDrawer(false); atualizarTudo(); }
 function toggleParcelados() { filtroParcelado = !filtroParcelado; document.getElementById('btn-parcelados').classList.toggle('bg-orange-500'); atualizarTudo(); }
 
+async function salvarCartao() {
+   const val = document.getElementById('f-nome-cartao').value.trim();
+   if (!val) return;
+   const fechamentoRaw = document.getElementById('f-fechamento-cartao').value;
+   const fechamento = fechamentoRaw ? Math.min(31, Math.max(1, parseInt(fechamentoRaw))) : null;
+   await comBotaoOcupado('btn-add-cartao', '...', async () => {
+      const { error } = await chamarSupabase(_supabase.from('cartoes').insert([{ nome: val, dia_fechamento: fechamento, usuario: eu() }]), 'Erro ao salvar banco');
+      if (!error) {
+         document.getElementById('f-nome-cartao').value = '';
+         document.getElementById('f-fechamento-cartao').value = '';
+         await atualizarTudo();
+      }
+   });
+}
+
+async function atualizarDiaFechamento(cartaoId, valorAtual) {
+   const novo = prompt('Dia de fechamento da fatura (1-31), ou deixe vazio para usar mês civil:', valorAtual || '');
+   if (novo === null) return; // cancelou
+   const fechamento = novo.trim() ? Math.min(31, Math.max(1, parseInt(novo))) : null;
+   const { error } = await chamarSupabase(_supabase.from('cartoes').update({ dia_fechamento: fechamento }).eq('id', cartaoId), 'Erro ao atualizar dia de fechamento');
+   if (!error) { mostrarToast('Dia de fechamento atualizado.', 'sucesso', 2000); await atualizarTudo(); }
+}
+
 async function salvarItem(tab, inputId, btnId) {
    const val = document.getElementById(inputId).value.trim();
    if (!val) return;
@@ -1407,7 +1458,7 @@ async function confirmarExclusaoGrupo(grupoId, tipo, dataRef = '') {
 }
 
 function renderConfigLists(c, t, s) {
-   document.getElementById('lista-bancos-modal').innerHTML = c.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${escapeHtml(x.nome)}</span><button onclick="excluirConfig('cartoes', '${x.id}')" aria-label="Excluir banco"><i class="fas fa-trash text-slate-300"></i></button></div>`).join('') || '<p style="text-align:center;color:#94a3b8;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhum banco</p>';
+   document.getElementById('lista-bancos-modal').innerHTML = c.map(x => `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${escapeHtml(x.nome)}${x.dia_fechamento ? ` <span style="color:#94a3b8;font-weight:700;">(fecha dia ${x.dia_fechamento})</span>` : ''}</span><div style="display:flex;gap:0.75rem;"><button onclick="atualizarDiaFechamento('${x.id}', '${x.dia_fechamento || ''}')" aria-label="Editar dia de fechamento"><i class="fas fa-pen text-slate-300"></i></button><button onclick="excluirConfig('cartoes', '${x.id}')" aria-label="Excluir banco"><i class="fas fa-trash text-slate-300"></i></button></div></div>`).join('') || '<p style="text-align:center;color:#94a3b8;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhum banco</p>';
    document.getElementById('lista-categorias-modal').innerHTML = t.map(x => `<div class="flex justify-between p-4 bg-slate-50 rounded-xl font-black uppercase text-[9px]"><span>${iconeCategoria(x.nome)} ${escapeHtml(x.nome)}</span><button onclick="excluirConfig('categorias', '${x.id}')" aria-label="Excluir categoria"><i class="fas fa-trash text-slate-300"></i></button></div>`).join('') || '<p style="text-align:center;color:#94a3b8;font-size:0.65rem;font-weight:900;text-transform:uppercase;padding:1rem;">Nenhuma categoria</p>';
    document.getElementById('lista-salarios-modal').innerHTML = s.sort((a,b) => b.mes_ano.localeCompare(a.mes_ano)).map(x => {
       const p = x.mes_ano.split('-');
