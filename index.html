@@ -16,6 +16,7 @@
    <script src="https://cdn.tailwindcss.com"></script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
    <style>
       *, *::before, *::after { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', system-ui, sans-serif; }
@@ -248,7 +249,7 @@
    <!-- Finance Modals -->
    <div id="modal-excluir-parcela" class="modal-overlay"><div class="modal-content"><h3 class="font-black text-slate-800 text-lg uppercase mb-6 text-center italic">Como deseja excluir?</h3><div id="opcoes-exclusao" class="space-y-3"></div><button onclick="fecharModais()" class="w-full mt-4 p-4 text-[10px] font-black text-slate-400 uppercase">Cancelar</button></div></div>
    <div id="modal-escopo-edicao" class="modal-overlay" style="z-index:400;"><div class="modal-content" style="max-width:360px;"><h3 class="font-black text-slate-800 text-lg uppercase mb-2 text-center italic">Aplicar alteração a:</h3><p style="font-size:0.65rem;color:#94a3b8;text-align:center;font-weight:700;margin-bottom:1.5rem;">Descrição, valor, banco e categoria valem para as parcelas escolhidas. A data só muda em "apenas esta parcela".</p><div class="space-y-3"><button onclick="resolverEscopoEdicao('unica')" class="w-full p-4 bg-slate-50 rounded-xl text-slate-700 font-black uppercase text-[10px] text-left">Apenas esta parcela</button><button onclick="resolverEscopoEdicao('futuras')" class="w-full p-4 bg-orange-50 rounded-xl text-orange-700 font-black uppercase text-[10px] text-left">Esta e as próximas</button><button onclick="resolverEscopoEdicao('todas')" class="w-full p-4 bg-red-50 rounded-xl text-red-700 font-black uppercase text-[10px] text-left">Todo o parcelamento</button></div><button onclick="resolverEscopoEdicao(null)" class="w-full mt-4 p-4 text-[10px] font-black text-slate-400 uppercase">Cancelar</button></div></div>
-   <div id="modal-menu-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4 text-blue-700 font-black uppercase text-xs"><i class="fas fa-credit-card"></i> Bancos</button><button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4 text-emerald-700 font-black uppercase text-xs"><i class="fas fa-tags"></i> Categorias</button><button onclick="fecharModais(); abrirModal('modal-salario')" class="w-full p-6 bg-orange-50 rounded-2xl flex items-center gap-4 text-orange-700 font-black uppercase text-xs"><i class="fas fa-money-bill-wave"></i> Salário</button></div></div></div>
+   <div id="modal-menu-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModais(); abrirImportarFatura()" class="w-full p-6 bg-purple-50 rounded-2xl flex items-center gap-4 text-purple-700 font-black uppercase text-xs"><i class="fas fa-file-pdf"></i> Importar Fatura</button><button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4 text-blue-700 font-black uppercase text-xs"><i class="fas fa-credit-card"></i> Bancos</button><button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4 text-emerald-700 font-black uppercase text-xs"><i class="fas fa-tags"></i> Categorias</button><button onclick="fecharModais(); abrirModal('modal-salario')" class="w-full p-6 bg-orange-50 rounded-2xl flex items-center gap-4 text-orange-700 font-black uppercase text-xs"><i class="fas fa-money-bill-wave"></i> Salário</button></div></div></div>
    <div id="modal-salario" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Salários</h3><div class="space-y-4 mb-6"><div class="grid grid-cols-2 gap-2"><select id="f-sal-mes" class="bg-slate-50 border p-3 rounded-xl font-bold text-xs" aria-label="Mês do salário"></select><select id="f-sal-ano" class="bg-slate-50 border p-3 rounded-xl font-bold text-xs" aria-label="Ano do salário"></select></div><div class="flex gap-2"><input id="f-sal-valor" type="number" placeholder="Valor" aria-label="Valor do salário" class="flex-1 bg-slate-50 border p-3 rounded-xl font-black text-blue-600 outline-none"><button id="btn-salvar-salario" onclick="salvarSalario()" class="bg-orange-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div></div><div id="lista-salarios-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
    <div id="modal-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Resumo Anual</h3><div class="space-y-2 mb-6"><button onclick="gerarAnaliseGastos()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">O quanto posso gastar?</button><button onclick="gerarResumoCategoriasAnual()" class="w-full bg-emerald-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">Resumo por Categoria</button></div><div id="corpo-anual" class="space-y-2"></div></div></div>
    <div id="modal-analise" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Projeção de Gastos</h3><div id="corpo-analise" class="space-y-3"></div></div></div>
@@ -256,6 +257,32 @@
    <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 id="titulo-modal-lancar" class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><label class="field-label" for="f-desc">Descrição</label><input id="f-desc" type="text" placeholder="Descrição" oninput="sugerirCategoriaAoDigitar()" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><label class="field-label" for="f-valor">Valor</label><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco"></select><select id="f-cat" onchange="categoriaEscolhidaManualmente = true; document.getElementById('dica-sugestao-cat').style.display='none';" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Categoria"></select></div><p id="dica-sugestao-cat" style="display:none; font-size:0.6rem; font-weight:800; color:#2563eb; margin:-0.75rem 0 0 0.15rem;"><i class="fas fa-magic"></i> Categoria sugerida com base no seu histórico</p><div id="bloco-parcelamento" class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold"></div></div><button id="btn-confirmar-lancamento" onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] btn-confirm">Confirmar</button></div></div></div>
    <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="flex gap-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-cartao" onclick="salvarItem('cartoes', 'f-nome-cartao', 'btn-add-cartao')" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-bancos-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
    <div id="modal-categorias" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-categoria" onclick="salvarItem('categorias', 'f-nome-cat', 'btn-add-categoria')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
+
+   <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
+      <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
+      <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:1.5rem;">Hoje funciona com faturas da Nubank exportadas em PDF.</p>
+      <div class="space-y-3">
+         <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
+         <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
+            Não consegui identificar automaticamente o mês da fatura. Confirme abaixo:
+            <div class="grid grid-cols-2 gap-2 mt-2">
+               <select id="imp-mes-manual" class="bg-white border p-2 rounded-lg font-bold text-xs"></select>
+               <select id="imp-ano-manual" class="bg-white border p-2 rounded-lg font-bold text-xs"></select>
+            </div>
+         </div>
+         <label for="imp-arquivo" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.5rem; border:2px dashed #cbd5e1; border-radius:1rem; padding:2rem 1rem; cursor:pointer; text-align:center;">
+            <i class="fas fa-file-pdf" style="font-size:1.5rem; color:#a855f7;"></i>
+            <span style="font-size:0.7rem; font-weight:800; color:#475569; text-transform:uppercase;">Toque para escolher o PDF da fatura</span>
+         </label>
+         <input id="imp-arquivo" type="file" accept="application/pdf" style="display:none;" onchange="if(this.files[0]) processarArquivoFatura(this.files[0])">
+         <p id="imp-status" style="display:none; font-size:0.7rem; font-weight:800; color:#475569; text-align:center;"></p>
+         <div id="imp-revisao" style="display:none;">
+            <div id="imp-lista" style="max-height:280px; overflow-y:auto; border:1px solid #f1f5f9; border-radius:1rem;"></div>
+            <button id="btn-confirmar-importacao" onclick="confirmarImportacaoFatura()" class="w-full bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[11px] btn-confirm mt-4">Importar Selecionados</button>
+         </div>
+      </div>
+   </div></div>
 </div>
 
 <!-- AUTO APP -->
@@ -366,6 +393,258 @@ function sugerirCategoriaAoDigitar() {
          dica.style.display = 'none';
       }
    }, 400);
+}
+
+// =================== IMPORTAÇÃO DE FATURA (NUBANK) ===================
+// Lógica testada isoladamente antes de integrar (ver teste_parser.js, teste_dedup.js).
+
+const MESES_PT = { JAN:0, FEV:1, MAR:2, ABR:3, MAI:4, JUN:5, JUL:6, AGO:7, SET:8, OUT:9, NOV:10, DEZ:11 };
+
+function parseValorMoeda(texto) {
+   const negativo = /^[-−]/.test(texto.trim());
+   const limpo = texto.replace(/[-−R$\s]/g, '').replace(/\./g, '').replace(',', '.');
+   const n = parseFloat(limpo);
+   return negativo ? -n : n;
+}
+
+// Se o mês da transação vier DEPOIS do mês de emissão, ela é do ano anterior
+// (só acontece quando o período da fatura atravessa a virada do ano).
+function inferirAnoFatura(mesTransacao, mesEmissao, anoEmissao) {
+   return mesTransacao > mesEmissao ? anoEmissao - 1 : anoEmissao;
+}
+
+// "Saldo restante da fatura anterior" e "Pagamento em..." não são gastos de verdade.
+function ehLinhaIgnoravel(descricao) {
+   const d = descricao.trim().toLowerCase();
+   return d.startsWith('saldo restante da fatura anterior') || d.startsWith('pagamento em ');
+}
+
+function extrairTransacoesBrutas(textoCompleto) {
+   const linhas = textoCompleto.split('\n').map(l => l.trim()).filter(Boolean);
+   const REGEX_LINHA_COMPLETA = /^(\d{2})\s([A-ZÇ]{3})\s+(.+?)\s+([-−]?R\$\s?[\d.,]+)$/;
+   const REGEX_INICIO_DATA = /^(\d{2})\s([A-ZÇ]{3})\s+(.+)$/;
+   const REGEX_SO_VALOR = /^([-−]?R\$\s?[\d.,]+)$/;
+   const REGEX_CABECALHO = /^(BRUNA|FATURA|EMISS[ÃA]O|TRANSA[ÇC][ÕO]ES|\d+ de \d+$)/i;
+
+   const resultado = [];
+   let i = 0;
+   while (i < linhas.length) {
+      const linha = linhas[i];
+      const mCompleta = linha.match(REGEX_LINHA_COMPLETA);
+      if (mCompleta) {
+         const [, dia, mesAbrev, descricao, valorTexto] = mCompleta;
+         resultado.push({ dia: parseInt(dia), mesAbrev, descricao: descricao.trim(), valor: parseValorMoeda(valorTexto) });
+         i++;
+         continue;
+      }
+      const mInicio = linha.match(REGEX_INICIO_DATA);
+      if (mInicio) {
+         const [, dia, mesAbrev, descricaoInicial] = mInicio;
+         let j = i + 1, valorEncontrado = null;
+         while (j < linhas.length && j < i + 6) {
+            if (REGEX_CABECALHO.test(linhas[j])) break;
+            const mValor = linhas[j].match(REGEX_SO_VALOR);
+            if (mValor) { valorEncontrado = mValor[1]; break; }
+            j++;
+         }
+         if (valorEncontrado !== null) {
+            resultado.push({ dia: parseInt(dia), mesAbrev, descricao: descricaoInicial.trim(), valor: parseValorMoeda(valorEncontrado) });
+            i = j + 1;
+            continue;
+         }
+      }
+      i++;
+   }
+   return resultado;
+}
+
+// Tenta achar "EMISSÃO E ENVIO DD MES ANO" no texto pra descobrir mês/ano de referência
+// automaticamente. Se não achar, devolve null (o modal pede pro usuário escolher manualmente).
+function extrairMesAnoEmissao(textoCompleto) {
+   const m = textoCompleto.match(/EMISS[ÃA]O E ENVIO\s+\d{2}\s([A-ZÇ]{3})\s+(\d{4})/i);
+   if (!m) return null;
+   const mes = MESES_PT[m[1].toUpperCase()];
+   const ano = parseInt(m[2]);
+   if (mes === undefined || !ano) return null;
+   return { mes, ano };
+}
+
+function processarFaturaNubank(textoCompleto, mesEmissao, anoEmissao) {
+   const brutas = extrairTransacoesBrutas(textoCompleto);
+   return brutas
+      .filter(t => !ehLinhaIgnoravel(t.descricao))
+      .map(t => {
+         const mes = MESES_PT[t.mesAbrev];
+         const ano = inferirAnoFatura(mes, mesEmissao, anoEmissao);
+         const dataISO = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(t.dia).padStart(2, '0')}`;
+         return { descricao: t.descricao, valor: round2(t.valor), data: dataISO };
+      });
+}
+
+// Extrai o texto de um PDF reconstruindo linhas por posição (X/Y) de cada palavra —
+// necessário porque pdf.js entrega os textos sem garantia de ordem de leitura em
+// layouts de tabela (como a lista de transações da fatura).
+async function extrairTextoPdf(arrayBuffer) {
+   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+   const todasLinhas = [];
+   for (let p = 1; p <= pdf.numPages; p++) {
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      const linhas = {}; // chaveado por Y arredondado (com tolerância)
+      content.items.forEach(item => {
+         const y = item.transform[5];
+         let chave = null;
+         for (const k in linhas) { if (Math.abs(k - y) < 3) { chave = k; break; } }
+         if (chave === null) { chave = y; linhas[chave] = []; }
+         linhas[chave].push({ x: item.transform[4], texto: item.str });
+      });
+      const ysOrdenados = Object.keys(linhas).map(Number).sort((a, b) => b - a); // topo da página primeiro
+      ysOrdenados.forEach(y => {
+         const itens = linhas[y].sort((a, b) => a.x - b.x);
+         const linhaTexto = itens.map(it => it.texto).join(' ').replace(/\s+/g, ' ').trim();
+         if (linhaTexto) todasLinhas.push(linhaTexto);
+      });
+   }
+   return todasLinhas.join('\n');
+}
+
+// Compara as transações da fatura com o que já está lançado no Supabase (mesmo cartão).
+// Cada existente só pode ser "consumido" UMA vez (ou como match exato, ou como fuzzy),
+// pra não sinalizar a mesma compra manual duas vezes por engano.
+// - Match EXATO (data+descrição+valor iguais): já está lançado -> nem entra no resultado.
+// - Match "fuzzy" (mesma data+valor, descrição diferente): pode ser a mesma compra
+//   lançada manualmente com outro texto -> entra no resultado, mas SINALIZADA e
+//   desmarcada por padrão, pra você decidir com seus próprios olhos.
+function compararComExistentes(daFatura, jaLancadas) {
+   const existentes = jaLancadas.map(t => ({ ...t, usadoExato: false, usadoFuzzy: false }));
+   const resultado = [];
+   daFatura.forEach(t => {
+      const exato = existentes.find(e => !e.usadoExato && e.data === t.data && e.descricao === t.descricao && e.valor === t.valor);
+      if (exato) { exato.usadoExato = true; return; }
+      const fuzzy = existentes.find(e => !e.usadoExato && !e.usadoFuzzy && e.data === t.data && e.valor === t.valor);
+      if (fuzzy) {
+         fuzzy.usadoFuzzy = true;
+         resultado.push({ ...t, possivelDuplicata: true, duplicataDescricao: fuzzy.descricao });
+      } else {
+         resultado.push({ ...t, possivelDuplicata: false, duplicataDescricao: null });
+      }
+   });
+   return resultado;
+}
+
+// Estado da importação em andamento (transações revisadas antes de confirmar).
+let importacaoFaturaAtual = [];
+
+async function processarArquivoFatura(arquivo) {
+   const cartaoId = document.getElementById('imp-cartao').value;
+   if (!cartaoId) { mostrarToast('Escolha o banco/cartão desta fatura.'); return; }
+
+   document.getElementById('imp-status').textContent = 'Lendo o PDF...';
+   document.getElementById('imp-status').style.display = 'block';
+   document.getElementById('imp-revisao').style.display = 'none';
+
+   try {
+      const arrayBuffer = await arquivo.arrayBuffer();
+      const texto = await extrairTextoPdf(arrayBuffer);
+
+      let refData = extrairMesAnoEmissao(texto);
+      if (!refData) {
+         // Não achou automaticamente (layout diferente/futuro) -> usa o que o usuário escolheu manualmente.
+         refData = { mes: parseInt(document.getElementById('imp-mes-manual').value), ano: parseInt(document.getElementById('imp-ano-manual').value) };
+         document.getElementById('imp-aviso-manual').style.display = 'block';
+      } else {
+         document.getElementById('imp-aviso-manual').style.display = 'none';
+      }
+
+      const daFatura = processarFaturaNubank(texto, refData.mes, refData.ano);
+      if (daFatura.length === 0) {
+         document.getElementById('imp-status').textContent = 'Não encontrei transações nesse PDF. O layout pode ser diferente do esperado.';
+         return;
+      }
+
+      const datas = daFatura.map(t => t.data).sort();
+      const { data: existentes, error } = await chamarSupabase(
+         _supabase.from('despesas').select('descricao, valor, data').eq('usuario', eu()).eq('cartao_id', cartaoId)
+            .gte('data', datas[0] + 'T00:00:00').lte('data', datas[datas.length - 1] + 'T23:59:59'),
+         'Erro ao verificar lançamentos existentes'
+      );
+      if (error) { document.getElementById('imp-status').textContent = 'Erro ao comparar com o que já está lançado.'; return; }
+
+      const jaLancadasNormalizadas = (existentes || []).map(e => ({
+         data: new Date(e.data).toISOString().slice(0, 10), descricao: e.descricao, valor: round2(e.valor)
+      }));
+      const novas = compararComExistentes(daFatura, jaLancadasNormalizadas);
+      const qtdJaLancadas = daFatura.length - novas.length;
+
+      const historico = await carregarHistoricoCategorizacao();
+      importacaoFaturaAtual = novas.map((t, idx) => ({
+         id: `tmp_${idx}`, ...t, incluir: !t.possivelDuplicata,
+         categoria_id: sugerirCategoriaPorHistorico(t.descricao, historico) || ''
+      }));
+
+      const qtdSuspeitas = novas.filter(t => t.possivelDuplicata).length;
+      document.getElementById('imp-status').innerHTML =
+         `${daFatura.length} transações encontradas — ${qtdJaLancadas} já estavam lançadas, ${novas.length} são novas` +
+         (qtdSuspeitas > 0 ? `<br><span style="color:#b45309;">⚠️ ${qtdSuspeitas} podem já ter sido lançadas manualmente com outro texto — revise antes de confirmar.</span>` : '.');
+      renderRevisaoImportacao();
+      document.getElementById('imp-revisao').style.display = novas.length ? 'block' : 'none';
+   } catch (e) {
+      console.error(e);
+      document.getElementById('imp-status').textContent = 'Não consegui ler esse PDF. Confira se é uma fatura Nubank exportada em PDF.';
+   }
+}
+
+function renderRevisaoImportacao() {
+   document.getElementById('imp-lista').innerHTML = importacaoFaturaAtual.map((t, idx) => `
+      <div style="display:flex; align-items:center; gap:0.6rem; padding:0.75rem; border-bottom:1px solid #f1f5f9; ${t.possivelDuplicata ? 'background:#fffbeb;' : ''}">
+         <input type="checkbox" ${t.incluir ? 'checked' : ''} onchange="importacaoFaturaAtual[${idx}].incluir = this.checked" style="width:18px;height:18px;flex-shrink:0;">
+         <div style="flex:1; min-width:0;">
+            <p style="font-size:0.7rem; font-weight:800; color:#1e293b; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(t.descricao)}</p>
+            <p style="font-size:0.6rem; color:#94a3b8; margin:0;">${new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR')} · R$ ${fmtBRL(t.valor)}</p>
+            ${t.possivelDuplicata ? `<p style="font-size:0.6rem; color:#b45309; font-weight:800; margin:0.2rem 0 0;"><i class="fas fa-triangle-exclamation"></i> Pode ser o mesmo lançamento que "${escapeHtml(t.duplicataDescricao)}"</p>` : ''}
+         </div>
+         <select onchange="importacaoFaturaAtual[${idx}].categoria_id = this.value" style="font-size:0.6rem; font-weight:700; border:1px solid #e2e8f0; border-radius:0.5rem; padding:0.3rem; max-width:110px;">
+            <option value="">Categoria?</option>
+            ${cacheCategorias.map(c => `<option value="${c.id}" ${t.categoria_id === c.id ? 'selected' : ''}>${escapeHtml(c.nome)}</option>`).join('')}
+         </select>
+      </div>
+   `).join('');
+}
+
+async function confirmarImportacaoFatura() {
+   const cartaoId = document.getElementById('imp-cartao').value;
+   const selecionadas = importacaoFaturaAtual.filter(t => t.incluir);
+   if (selecionadas.length === 0) { mostrarToast('Nenhuma transação selecionada.'); return; }
+
+   await comBotaoOcupado('btn-confirmar-importacao', 'Importando...', async () => {
+      const registros = selecionadas.map(t => ({
+         descricao: t.descricao, valor: t.valor, data: new Date(t.data + 'T12:00:00').toISOString(),
+         cartao_id: cartaoId, categoria_id: t.categoria_id || null,
+         is_fixa: false, is_parcelado: false, grupo_id: null, usuario: eu()
+      }));
+      const { data: inserido, error } = await chamarSupabase(_supabase.from('despesas').insert(registros).select(), 'Erro ao importar transações');
+      if (error) return;
+      mostrarToast(`${inserido ? inserido.length : selecionadas.length} lançamento(s) importado(s).`, 'sucesso', 3000);
+      cacheHistoricoCategorizacao = null;
+      importacaoFaturaAtual = [];
+      fecharModais();
+      await atualizarTudo();
+   });
+}
+
+function abrirImportarFatura() {
+   importacaoFaturaAtual = [];
+   document.getElementById('imp-status').style.display = 'none';
+   document.getElementById('imp-revisao').style.display = 'none';
+   document.getElementById('imp-aviso-manual').style.display = 'none';
+   document.getElementById('imp-arquivo').value = '';
+   document.getElementById('imp-cartao').innerHTML = '<option value="">Qual banco/cartão é essa fatura?</option>' +
+      cacheBancos.map(c => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join('');
+   const hoje = new Date();
+   const nomesMes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+   document.getElementById('imp-mes-manual').innerHTML = nomesMes.map((n, i) => `<option value="${i}" ${i === hoje.getMonth() ? 'selected' : ''}>${n}</option>`).join('');
+   document.getElementById('imp-ano-manual').innerHTML = anosDisponiveis().map(a => `<option value="${a}" ${a === hoje.getFullYear() ? 'selected' : ''}>${a}</option>`).join('');
+   abrirModal('modal-importar-fatura');
 }
 
 // Escolhe um emoji para a categoria com base em palavras-chave no nome.
@@ -619,6 +898,11 @@ function voltarHub() {
 const SUPABASE_URL = 'https://rwowvvpobywtokcqfxve.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3b3d2dnBvYnl3dG9rY3FmeHZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNDY3MTgsImV4cCI6MjA4NzgyMjcxOH0.AJVmEKeUk22L4eT_FMLls0-xAJhMrAITOazM_1XmUaM';
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Configuração do pdf.js (usado para importar faturas em PDF).
+if (window.pdfjsLib) {
+   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
 
 // Helper: sempre filtra pelo usuário logado
 function eu() { return usuarioAtual.login; }
