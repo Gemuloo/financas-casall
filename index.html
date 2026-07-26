@@ -670,6 +670,55 @@ function inicioCicloPorEmissaoItau(dataEmissaoISO) {
    return fechamentoAnterior;
 }
 
+
+// Proteção adicional para o layout do Itaú:
+// em alguns PDFs, o texto da seção "Compras parceladas - próximas faturas"
+// pode ser extraído antes do próprio título da seção. Nesse caso, cortar o
+// texto pelo título não basta.
+//
+// A seção futura repete a mesma compra, com o mesmo valor, total de parcelas
+// e data original, mas avança exatamente uma parcela (ex.: 02/05 -> 03/05).
+// Essas linhas são removidas antes de qualquer projeção ou gravação.
+function removerComprasDasProximasFaturasItau(itens) {
+   const remover = new Set();
+
+   itens.forEach((item, indice) => {
+      const parcela = item.parcelaItau;
+
+      if (
+         !parcela ||
+         item.creditoItau ||
+         parcela.atual <= 1
+      ) {
+         return;
+      }
+
+      const existeParcelaAtualNaFatura = itens.some((outro, outroIndice) => {
+         if (
+            outroIndice === indice ||
+            !outro.parcelaItau ||
+            outro.creditoItau
+         ) {
+            return false;
+         }
+
+         return (
+            normalizarTexto(outro.nomeBaseItau) === normalizarTexto(item.nomeBaseItau) &&
+            round2(outro.valor) === round2(item.valor) &&
+            outro.parcelaItau.total === parcela.total &&
+            outro.parcelaItau.atual === parcela.atual - 1 &&
+            outro.dataOriginalItau === item.dataOriginalItau
+         );
+      });
+
+      if (existeParcelaAtualNaFatura) {
+         remover.add(indice);
+      }
+   });
+
+   return itens.filter((_, indice) => !remover.has(indice));
+}
+
 function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, dataEmissaoISO) {
    // Apenas os lançamentos atuais entram na importação. A seção de próximas faturas
    // serve como conferência, mas não é importada novamente para não duplicar parcelas.
@@ -732,6 +781,7 @@ function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, d
             origemFatura: 'itau-pao-de-acucar',
             creditoItau: ehCredito,
             nomeBaseItau: infoParcela.base || descricaoFinal,
+            dataOriginalItau: dataOriginalISO,
             parcelaItau: ehParcelaCobrada ? {
                atual: infoParcela.atual,
                total: infoParcela.total
@@ -740,7 +790,7 @@ function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, d
       }
    });
 
-   return resultado;
+   return removerComprasDasProximasFaturasItau(resultado);
 }
 
 // Direciona a leitura para o parser correto sem alterar o fluxo posterior
