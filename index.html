@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.07.26.8">
+   <meta name="gemulo-build" content="2026.07.26.9">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.07.26.8';
+      window.GEMULO_BUILD = '2026.07.26.9';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -285,14 +285,24 @@
    </div></div>
    <div id="modal-analise" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Projeção de Gastos</h3><div id="corpo-analise" class="space-y-3"></div></div></div>
    <div id="modal-cat-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Gastos por Categoria</h3><div class="mb-6"><select id="sel-cat-mes" class="w-full bg-slate-50 border p-3 rounded-xl font-black text-[10px] uppercase text-slate-600" onchange="gerarResumoCategoriasAnual()" aria-label="Filtrar mês da categoria"><option value="todos">O Ano Todo</option></select></div><div id="corpo-cat-anual" class="space-y-3"></div></div></div>
-   <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 id="titulo-modal-lancar" class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><label class="field-label" for="f-desc">Descrição</label><input id="f-desc" type="text" placeholder="Descrição" oninput="sugerirCategoriaAoDigitar()" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><label class="field-label" for="f-valor">Valor</label><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco"></select><select id="f-cat" onchange="categoriaEscolhidaManualmente = true; document.getElementById('dica-sugestao-cat').style.display='none';" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Categoria"></select></div><p id="dica-sugestao-cat" style="display:none; font-size:0.6rem; font-weight:800; color:#2563eb; margin:-0.75rem 0 0 0.15rem;"><i class="fas fa-magic"></i> Categoria sugerida com base no seu histórico</p><div id="bloco-parcelamento" class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold"></div></div><button id="btn-confirmar-lancamento" onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] btn-confirm">Confirmar</button></div></div></div>
+   <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 id="titulo-modal-lancar" class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><label class="field-label" for="f-desc">Descrição</label><input id="f-desc" type="text" placeholder="Descrição" oninput="sugerirCategoriaAoDigitar()" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><label class="field-label" for="f-valor">Valor</label><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco"></select><select id="f-cat" onchange="categoriaEscolhidaManualmente = true; document.getElementById('dica-sugestao-cat').style.display='none';" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Categoria"></select></div><p id="dica-sugestao-cat" style="display:none; font-size:0.6rem; font-weight:800; color:#2563eb; margin:-0.75rem 0 0 0.15rem;"><i class="fas fa-magic"></i> Categoria sugerida com base no seu histórico</p><div id="bloco-terceiro" style="background:#fffbeb; border:1px solid #fde68a; border-radius:1rem; padding:1rem;">
+<label style="display:flex; align-items:center; gap:0.65rem; cursor:pointer; color:#92400e; font-size:0.68rem; font-weight:900; text-transform:uppercase;">
+<input type="checkbox" id="f-terceiro" onchange="alternarCampoTerceiro()" style="width:19px;height:19px;accent-color:#d97706;">
+Despesa de terceiro
+</label>
+<div id="box-terceiro" style="display:none; margin-top:0.75rem;">
+<label class="field-label" for="f-terceiro-nome">Responsável pela despesa</label>
+<input id="f-terceiro-nome" type="text" maxlength="80" placeholder="Ex.: Sogra" class="w-full bg-white border p-3 rounded-xl font-bold text-xs">
+<p style="font-size:0.58rem; color:#a16207; font-weight:700; margin:0.45rem 0 0;">O lançamento continuará visível, mas não entrará nos seus resumos e totais pessoais.</p>
+</div>
+</div><div id="bloco-parcelamento" class="p-5 bg-slate-50 rounded-2xl space-y-4"><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-fixa" class="w-5 h-5 accent-emerald-500"> Fixo</label><label class="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase"><input type="checkbox" id="f-parc" onchange="document.getElementById('box-qtd').style.display = this.checked ? 'block' : 'none'" class="w-5 h-5 accent-blue-500"> Parcelado</label><div id="box-qtd" style="display:none"><input id="f-qtd-parc" type="number" placeholder="Parcelas" class="w-full bg-white border p-4 rounded-xl text-xs font-bold"></div></div><button id="btn-confirmar-lancamento" onclick="confirmarLancamento()" class="w-full bg-blue-600 text-white font-black py-5 rounded-2xl uppercase text-[11px] btn-confirm">Confirmar</button></div></div></div>
    <div id="modal-bancos" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Bancos</h3><div class="space-y-2 mb-6"><input id="f-nome-cartao" type="text" placeholder="Nome" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-xs"><div class="flex gap-2"><input id="f-fechamento-cartao" type="number" min="1" max="31" placeholder="Dia de fechamento (opcional, só p/ crédito)" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-cartao" onclick="salvarCartao()" class="bg-blue-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div></div><div id="lista-bancos-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
    <div id="modal-categorias" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Categorias</h3><div class="flex gap-2 mb-6"><input id="f-nome-cat" type="text" placeholder="Nome" class="flex-1 bg-slate-50 border p-3 rounded-xl font-bold text-xs"><button id="btn-add-categoria" onclick="salvarItem('categorias', 'f-nome-cat', 'btn-add-categoria')" class="bg-emerald-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div><div id="lista-categorias-modal" class="space-y-2 max-h-40 overflow-y-auto"></div></div></div>
 
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 1.5rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.8</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.9</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -310,6 +320,7 @@
          <p id="imp-status" style="display:none; font-size:0.7rem; font-weight:800; color:#475569; text-align:center;"></p>
          <div id="imp-cancelamentos"></div>
          <div id="imp-revisao" style="display:none;">
+            <p style="font-size:0.6rem;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:0.75rem;padding:0.65rem;margin:0 0 0.65rem;font-weight:800;text-align:center;">Marque “Terceiro” nas compras que não devem entrar nos seus resumos pessoais.</p>
             <div id="imp-lista" style="max-height:280px; overflow-y:auto; border:1px solid #f1f5f9; border-radius:1rem;"></div>
             <button id="btn-confirmar-importacao" onclick="confirmarImportacaoFatura()" class="w-full bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[11px] btn-confirm mt-4">Importar Selecionados</button>
          </div>
@@ -1354,7 +1365,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse PDF. Confirme que está usando o importador v2026.07.26.8.';
+            'Não encontrei transações nesse PDF. Confirme que está usando o importador v2026.07.26.9.';
          return;
       }
 
@@ -1414,7 +1425,9 @@ async function processarArquivoFatura(arquivo) {
       const historico = await carregarHistoricoCategorizacao();
       importacaoFaturaAtual = novas.map((t, idx) => ({
          id: `tmp_${idx}`, ...t, incluir: !t.possivelDuplicata,
-         categoria_id: resolverSugestaoCategoria(t.descricao, historico, cacheCategorias) || ''
+         categoria_id: resolverSugestaoCategoria(t.descricao, historico, cacheCategorias) || '',
+         de_terceiro: false,
+         terceiro_nome: ''
       }));
 
       // 3) Detecta estornos que parecem cancelar uma compra parcelada.
@@ -1497,18 +1510,27 @@ function renderCancelamentosEstorno() {
 
 function renderRevisaoImportacao() {
    document.getElementById('imp-lista').innerHTML = importacaoFaturaAtual.map((t, idx) => `
-      <div style="display:flex; align-items:center; gap:0.6rem; padding:0.75rem; border-bottom:1px solid #f1f5f9; ${t.possivelDuplicata ? 'background:#fffbeb;' : ''}">
-         <input type="checkbox" ${t.incluir ? 'checked' : ''} onchange="importacaoFaturaAtual[${idx}].incluir = this.checked" style="width:18px;height:18px;flex-shrink:0;">
-         <div style="flex:1; min-width:0;">
-            <p style="font-size:0.7rem; font-weight:800; color:#1e293b; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(t.descricao)}</p>
-            <p style="font-size:0.6rem; color:#94a3b8; margin:0;">${new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR')} · R$ ${fmtBRL(t.valor)}</p>
-            ${t.possivelDuplicata ? `<p style="font-size:0.6rem; color:#b45309; font-weight:800; margin:0.2rem 0 0;"><i class="fas fa-triangle-exclamation"></i> Pode ser o mesmo lançamento que "${escapeHtml(t.duplicataDescricao)}"</p>` : ''}
-            ${t.projecoesFuturas && t.projecoesFuturas.length ? `<p style="font-size:0.6rem; color:#7c3aed; font-weight:800; margin:0.2rem 0 0;"><i class="fas fa-calendar-days"></i> Vai criar mais ${t.projecoesFuturas.length} parcela(s) futura(s) automaticamente</p>` : ''}
+      <div style="padding:0.8rem; border-bottom:1px solid #f1f5f9; ${t.possivelDuplicata ? 'background:#fffbeb;' : ''}">
+         <div style="display:flex; align-items:flex-start; gap:0.6rem;">
+            <input type="checkbox" ${t.incluir ? 'checked' : ''} onchange="importacaoFaturaAtual[${idx}].incluir = this.checked" style="width:18px;height:18px;flex-shrink:0;margin-top:0.15rem;">
+            <div style="flex:1; min-width:0;">
+               <p style="font-size:0.7rem; font-weight:800; color:#1e293b; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(t.descricao)}</p>
+               <p style="font-size:0.6rem; color:#94a3b8; margin:0;">${new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR')} · R$ ${fmtBRL(t.valor)}</p>
+               ${t.possivelDuplicata ? `<p style="font-size:0.6rem; color:#b45309; font-weight:800; margin:0.2rem 0 0;"><i class="fas fa-triangle-exclamation"></i> Pode ser o mesmo lançamento que "${escapeHtml(t.duplicataDescricao)}"</p>` : ''}
+               ${t.projecoesFuturas && t.projecoesFuturas.length ? `<p style="font-size:0.6rem; color:#7c3aed; font-weight:800; margin:0.2rem 0 0;"><i class="fas fa-calendar-days"></i> Vai criar mais ${t.projecoesFuturas.length} parcela(s) futura(s) automaticamente</p>` : ''}
+            </div>
+            <select onchange="importacaoFaturaAtual[${idx}].categoria_id = this.value" style="font-size:0.6rem; font-weight:700; border:1px solid #e2e8f0; border-radius:0.5rem; padding:0.35rem; max-width:110px;">
+               <option value="">Categoria?</option>
+               ${cacheCategorias.map(c => `<option value="${c.id}" ${t.categoria_id === c.id ? 'selected' : ''}>${escapeHtml(c.nome)}</option>`).join('')}
+            </select>
          </div>
-         <select onchange="importacaoFaturaAtual[${idx}].categoria_id = this.value" style="font-size:0.6rem; font-weight:700; border:1px solid #e2e8f0; border-radius:0.5rem; padding:0.3rem; max-width:110px;">
-            <option value="">Categoria?</option>
-            ${cacheCategorias.map(c => `<option value="${c.id}" ${t.categoria_id === c.id ? 'selected' : ''}>${escapeHtml(c.nome)}</option>`).join('')}
-         </select>
+         <div style="margin:0.65rem 0 0 1.75rem; padding:0.55rem 0.65rem; border-radius:0.75rem; background:${t.de_terceiro ? '#fffbeb' : '#f8fafc'}; border:1px solid ${t.de_terceiro ? '#fde68a' : '#e2e8f0'};">
+            <label style="display:flex;align-items:center;gap:0.45rem;font-size:0.62rem;font-weight:900;color:${t.de_terceiro ? '#92400e' : '#64748b'};cursor:pointer;text-transform:uppercase;">
+               <input type="checkbox" ${t.de_terceiro ? 'checked' : ''} onchange="alterarTerceiroImportacao(${idx}, this.checked)" style="width:16px;height:16px;accent-color:#d97706;">
+               Terceiro — não contabilizar
+            </label>
+            <input id="imp-terceiro-nome-${idx}" type="text" maxlength="80" value="${escapeHtml(t.terceiro_nome || '')}" placeholder="Responsável, ex.: Sogra" oninput="atualizarNomeTerceiroImportacao(${idx}, this.value)" style="display:${t.de_terceiro ? 'block' : 'none'};width:100%;margin-top:0.5rem;border:1px solid #fde68a;border-radius:0.55rem;padding:0.45rem 0.55rem;font-size:0.65rem;font-weight:700;background:white;">
+         </div>
       </div>
    `).join('');
 }
@@ -1516,7 +1538,16 @@ function renderRevisaoImportacao() {
 async function confirmarImportacaoFatura() {
    const cartaoId = document.getElementById('imp-cartao').value;
 
-   // Aplica os cancelamentos por estorno que a pessoa deixou marcados.
+   const selecionadas = importacaoFaturaAtual.filter(t => t.incluir);
+   if (selecionadas.length === 0) { mostrarToast('Nenhuma transação selecionada.'); return; }
+
+   const semResponsavel = selecionadas.find(t => t.de_terceiro === true && !String(t.terceiro_nome || '').trim());
+   if (semResponsavel) {
+      mostrarToast(`Informe o responsável por "${semResponsavel.descricao}".`, 'erro', 4500);
+      return;
+   }
+
+   // Só aplica cancelamentos depois de validar toda a revisão da importação.
    for (const c of cancelamentosPorEstorno) {
       if (!c.incluirCancelamento) continue;
       if (c.tipo === 'nova') {
@@ -1528,31 +1559,44 @@ async function confirmarImportacaoFatura() {
       }
    }
 
-   const selecionadas = importacaoFaturaAtual.filter(t => t.incluir);
-   if (selecionadas.length === 0) { mostrarToast('Nenhuma transação selecionada.'); return; }
-
    await comBotaoOcupado('btn-confirmar-importacao', 'Importando...', async () => {
       const registros = [];
       selecionadas.forEach(t => {
          const temProjecao = t.projecoesFuturas && t.projecoesFuturas.length > 0;
          const grupoId = temProjecao ? gerarGrupoId() : null;
+         const deTerceiro = t.de_terceiro === true;
+         const terceiroNome = deTerceiro ? String(t.terceiro_nome || '').trim() : null;
+
          registros.push({
             descricao: t.descricao, valor: t.valor, data: new Date(t.data + 'T12:00:00').toISOString(),
             cartao_id: cartaoId, categoria_id: t.categoria_id || null,
-            is_fixa: false, is_parcelado: temProjecao, grupo_id: grupoId, usuario: eu()
+            is_fixa: false, is_parcelado: temProjecao, grupo_id: grupoId, usuario: eu(),
+            de_terceiro: deTerceiro, terceiro_nome: terceiroNome
          });
+
          if (temProjecao) {
             t.projecoesFuturas.forEach(f => registros.push({
                descricao: f.descricao, valor: f.valor, data: new Date(f.data + 'T12:00:00').toISOString(),
                cartao_id: cartaoId, categoria_id: t.categoria_id || null,
-               is_fixa: false, is_parcelado: true, grupo_id: grupoId, usuario: eu()
+               is_fixa: false, is_parcelado: true, grupo_id: grupoId, usuario: eu(),
+               de_terceiro: deTerceiro, terceiro_nome: terceiroNome
             }));
          }
       });
-      const { data: inserido, error } = await chamarSupabase(_supabase.from('despesas').insert(registros).select(), 'Erro ao importar transações');
+
+      const { data: inserido, error } = await chamarSupabase(
+         _supabase.from('despesas').insert(registros).select(),
+         'Erro ao importar transações. Confirme se as colunas de terceiro foram criadas no Supabase.'
+      );
       if (error) return;
+
       const qtdProjetadas = registros.length - selecionadas.length;
-      mostrarToast(`${inserido ? inserido.length : registros.length} lançamento(s) importado(s)` + (qtdProjetadas > 0 ? ` (incluindo ${qtdProjetadas} parcela(s) futura(s) projetada(s)).` : '.'), 'sucesso', 3500);
+      const qtdTerceiros = registros.filter(r => r.de_terceiro).length;
+      let mensagem = `${inserido ? inserido.length : registros.length} lançamento(s) importado(s)`;
+      if (qtdProjetadas > 0) mensagem += `, incluindo ${qtdProjetadas} parcela(s) futura(s)`;
+      if (qtdTerceiros > 0) mensagem += `; ${qtdTerceiros} marcado(s) como terceiro`;
+      mostrarToast(`${mensagem}.`, 'sucesso', 4000);
+
       cacheHistoricoCategorizacao = null;
       importacaoFaturaAtual = [];
       fecharModais();
@@ -1597,6 +1641,41 @@ function iconeCategoria(nome) {
       if (chaves.some(k => n.includes(k))) return emoji;
    }
    return '🏷️';
+}
+
+// Uma despesa de terceiro permanece visível e vinculada ao cartão, mas é excluída
+// de todos os cálculos pessoais do painel.
+function ehDespesaDeTerceiro(despesa) {
+   return despesa?.de_terceiro === true;
+}
+
+function somenteDespesasPessoais(dados) {
+   return (dados || []).filter(d => !ehDespesaDeTerceiro(d));
+}
+
+function alternarCampoTerceiro() {
+   const marcado = document.getElementById('f-terceiro').checked;
+   const box = document.getElementById('box-terceiro');
+   box.style.display = marcado ? 'block' : 'none';
+   if (marcado) {
+      setTimeout(() => document.getElementById('f-terceiro-nome')?.focus(), 0);
+   }
+}
+
+function alterarTerceiroImportacao(idx, marcado) {
+   const item = importacaoFaturaAtual[idx];
+   if (!item) return;
+   item.de_terceiro = marcado;
+   const input = document.getElementById(`imp-terceiro-nome-${idx}`);
+   if (input) {
+      input.style.display = marcado ? 'block' : 'none';
+      if (marcado) setTimeout(() => input.focus(), 0);
+   }
+}
+
+function atualizarNomeTerceiroImportacao(idx, valor) {
+   const item = importacaoFaturaAtual[idx];
+   if (item) item.terceiro_nome = valor;
 }
 
 // Formata um valor em Reais sempre com 2 casas decimais (100 -> "100,00", nunca "100").
@@ -1996,9 +2075,10 @@ async function gerarResumoAnual() {
       'Erro ao carregar resumo anual'
    );
    if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível carregar</p>'; return; }
+   const pessoais = somenteDespesasPessoais(data || []);
    let h = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2"><div class="w-1/4">Mês</div><div class="w-1/4 text-center">Fixas</div><div class="w-1/4 text-center">Normais</div><div class="w-1/4 text-right">Total</div></div>`;
    mesesNomes.forEach((n, i) => {
-      const dM = data?.filter(d => new Date(d.data).getUTCMonth() === i) || [];
+      const dM = pessoais.filter(d => new Date(d.data).getUTCMonth() === i);
       const tF = dM.filter(d => d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
       const tN = dM.filter(d => !d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
       h += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${n}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${fmtBRL(tF)}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${fmtBRL(tN)}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${fmtBRL(tF+tN)}</span></div>`;
@@ -2015,13 +2095,14 @@ async function gerarAnaliseGastos() {
       'Erro ao calcular análise de gastos'
    );
    if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível calcular</p>'; return; }
+   const pessoais = somenteDespesasPessoais(gastos || []);
    let h = '';
    mesesNomes.forEach((n, i) => {
-      const tG = gastos?.filter(d => new Date(d.data).getUTCMonth() === i).reduce((a, b) => a + Number(b.valor), 0) || 0;
+      const tG = pessoais.filter(d => new Date(d.data).getUTCMonth() === i).reduce((a, b) => a + Number(b.valor), 0) || 0;
       const salData = cacheSalarios.find(s => s.mes_ano === `${ano}-${i}`);
       const valorSal = salData ? Number(salData.valor) : 0;
       const sobra = valorSal - tG;
-      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${fmtBRL(valorSal)}</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS: R$ ${fmtBRL(tG)}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${fmtBRL(sobra)}</p></div></div>`;
+      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${fmtBRL(valorSal)}</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS PESSOAIS: R$ ${fmtBRL(tG)}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${fmtBRL(sobra)}</p></div></div>`;
    });
    corpo.innerHTML = h;
 }
@@ -2033,12 +2114,12 @@ async function gerarResumoCategoriasAnual() {
    let dIn = `${ano}-01-01`, dFi = `${ano}-12-31`;
    if (mesSel !== 'todos') { dIn = new Date(ano, mesSel, 1).toISOString(); dFi = new Date(ano, parseInt(mesSel) + 1, 0, 23, 59, 59).toISOString(); }
    const { data: gastos, error } = await chamarSupabase(
-      _supabase.from('despesas').select('valor, categoria_id').eq('usuario', eu()).gte('data', dIn).lte('data', dFi),
+      _supabase.from('despesas').select('valor, categoria_id, de_terceiro').eq('usuario', eu()).gte('data', dIn).lte('data', dFi),
       'Erro ao agrupar categorias'
    );
    if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível agrupar</p>'; return; }
    const agrupado = {};
-   (gastos || []).forEach(g => { agrupado[g.categoria_id] = (agrupado[g.categoria_id] || 0) + Number(g.valor); });
+   somenteDespesasPessoais(gastos || []).forEach(g => { agrupado[g.categoria_id] = (agrupado[g.categoria_id] || 0) + Number(g.valor); });
    const entradas = Object.entries(agrupado).sort((a,b) => b[1] - a[1]);
    const maxValor = entradas.length ? entradas[0][1] : 0;
    const cores = ['#2563eb','#059669','#ea580c','#dc2626','#7c3aed','#0891b2','#ca8a04','#db2777'];
@@ -2057,7 +2138,7 @@ async function gerarResumoCategoriasAnual() {
          </div>
       </div>`;
    });
-   corpo.innerHTML = h || '<p class="text-center text-[10px] font-black text-slate-400 py-10 uppercase">Nenhum gasto encontrado</p>';
+   corpo.innerHTML = h || '<p class="text-center text-[10px] font-black text-slate-400 py-10 uppercase">Nenhum gasto pessoal encontrado</p>';
 }
 
 // Cache do último agrupamento de parcelas futuras, usado pelo drill-down por mês.
@@ -2083,19 +2164,19 @@ async function gerarParcelasAndamento() {
 
    const hojeISO = hojeLocalISO();
    const { data: parcelas, error } = await chamarSupabase(
-      _supabase.from('despesas').select('id, descricao, valor, data').eq('usuario', eu())
+      _supabase.from('despesas').select('id, descricao, valor, data, de_terceiro').eq('usuario', eu())
          .not('grupo_id', 'is', null).gte('data', hojeISO + 'T00:00:00').order('data'),
       'Erro ao carregar parcelas em andamento'
    );
    if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível carregar</p>'; return; }
 
-   const normalizadas = (parcelas || []).map(p => ({ ...p, data: new Date(p.data).toISOString().slice(0, 10) }));
+   const normalizadas = somenteDespesasPessoais(parcelas || []).map(p => ({ ...p, data: new Date(p.data).toISOString().slice(0, 10) }));
    const porMes = agruparParcelasPorMes(normalizadas);
    cacheParcelasAndamentoPorMes = porMes;
 
    const chavesOrdenadas = Object.keys(porMes).sort();
    if (chavesOrdenadas.length === 0) {
-      corpo.innerHTML = '<p class="text-center text-[10px] font-black text-slate-400 py-10 uppercase">Nenhuma parcela em andamento</p>';
+      corpo.innerHTML = '<p class="text-center text-[10px] font-black text-slate-400 py-10 uppercase">Nenhuma parcela pessoal em andamento</p>';
       return;
    }
    const totalGeral = chavesOrdenadas.reduce((a, k) => a + porMes[k].total, 0);
@@ -2114,7 +2195,7 @@ async function gerarParcelasAndamento() {
    }).join('');
 
    h += `<div class="p-4 bg-purple-50 rounded-2xl mt-2 flex justify-between items-center border border-purple-100">
-      <span class="font-black text-[10px] uppercase text-purple-700">Total ainda por vir</span>
+      <span class="font-black text-[10px] uppercase text-purple-700">Total pessoal ainda por vir</span>
       <span class="font-black text-purple-800">R$ ${fmtBRL(totalGeral)}</span>
    </div>`;
    corpo.innerHTML = h;
@@ -2184,11 +2265,15 @@ function renderTabela(d) {
    document.getElementById('lista-corpo').innerHTML = d?.map(x => {
       const catNome = cacheCategorias.find(c => c.id === x.categoria_id)?.nome;
       const badgeCat = catNome ? `<span style="font-size:0.6rem;color:#94a3b8;margin-left:0.4rem;">${iconeCategoria(catNome)} ${escapeHtml(catNome)}</span>` : '';
+      const terceiro = ehDespesaDeTerceiro(x);
+      const badgeTerceiro = terceiro
+         ? `<span style="display:inline-block;font-size:0.55rem;color:#92400e;background:#fef3c7;border:1px solid #fde68a;border-radius:9999px;padding:0.12rem 0.45rem;margin-left:0.4rem;font-weight:900;text-transform:uppercase;">Terceiro${x.terceiro_nome ? ` · ${escapeHtml(x.terceiro_nome)}` : ''}</span>`
+         : '';
       return `
-      <tr class="border-t">
+      <tr class="border-t" style="${terceiro ? 'background:#fffbeb;' : ''}">
          <td class="p-6 text-[9px] font-black uppercase">${new Date(x.data).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td>
-         <td class="p-6">${escapeHtml(x.descricao)}${badgeCat}</td>
-         <td class="p-6 font-black">R$ ${fmtBRL(x.valor)}</td>
+         <td class="p-6">${escapeHtml(x.descricao)}${badgeCat}${badgeTerceiro}</td>
+         <td class="p-6 font-black" style="${terceiro ? 'color:#a16207;' : ''}">R$ ${fmtBRL(x.valor)}</td>
          <td class="p-6 text-center">
             <button onclick="abrirEdicaoDespesa('${x.id}')" aria-label="Editar lançamento" style="margin-right:0.75rem;"><i class="fas fa-pen text-slate-300"></i></button>
             <button onclick="tentarExcluir('${x.id}', ${x.is_parcelado}, '${x.grupo_id || ''}', '${x.data}')" aria-label="Excluir lançamento"><i class="fas fa-trash-alt text-slate-200"></i></button>
@@ -2252,7 +2337,7 @@ async function excluirConfig(tab, id) {
 }
 
 function calcularResumo(dados, id) {
-   const b = dados.filter(d => d.cartao_id === id);
+   const b = somenteDespesasPessoais(dados.filter(d => d.cartao_id === id));
    const tNP = b.filter(d => !d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
    const tP = b.filter(d => d.is_parcelado).reduce((a, b) => a + Number(b.valor), 0);
    document.getElementById('res-valor-1').innerText = `R$ ${fmtBRL(tNP)}`;
@@ -2260,8 +2345,9 @@ function calcularResumo(dados, id) {
    document.getElementById('res-total').innerText = `R$ ${fmtBRL(tNP+tP)}`;
    document.getElementById('txt-label-1').innerText = "Contas não Parceladas";
    document.getElementById('txt-label-2').innerText = "Contas Parceladas";
-   document.getElementById('txt-label-3').innerText = "Somatório Total";
+   document.getElementById('txt-label-3').innerText = "Somatório Pessoal";
 }
+
 function zerarResumo() {
    document.getElementById('res-valor-1').innerText = "R$ 0,00";
    document.getElementById('res-valor-2').innerText = "R$ 0,00";
@@ -2277,7 +2363,7 @@ function renderSelects(c, t) {
 
 // Monta as N parcelas de um lançamento a partir dos dados do formulário.
 // Extraída em função pura para poder ser testada isoladamente (ver arquivo de testes).
-function montarLancamentos({ desc, valorTotal, dataBase, cartaoId, categoriaId, isFixa, isParcelado, qtdParcelas, usuario }) {
+function montarLancamentos({ desc, valorTotal, dataBase, cartaoId, categoriaId, isFixa, isParcelado, qtdParcelas, usuario, deTerceiro = false, terceiroNome = null }) {
    const q = isParcelado ? Math.max(1, parseInt(qtdParcelas) || 1) : 1;
    const valores = isParcelado ? rateiaValor(round2(valorTotal), q) : [round2(valorTotal)];
    const grupoId = isParcelado && q > 1 ? gerarGrupoId() : null;
@@ -2293,7 +2379,9 @@ function montarLancamentos({ desc, valorTotal, dataBase, cartaoId, categoriaId, 
          is_parcelado: isParcelado,
          grupo_id: grupoId,
          data: dV.toISOString(),
-         usuario
+         usuario,
+         de_terceiro: deTerceiro === true,
+         terceiro_nome: deTerceiro === true ? String(terceiroNome || '').trim() : null
       });
    }
    return registros;
@@ -2311,10 +2399,12 @@ function abrirNovoLancamento() {
    document.getElementById('titulo-modal-lancar').textContent = 'Novo Gasto';
    document.getElementById('btn-confirmar-lancamento').textContent = 'Confirmar';
    document.getElementById('bloco-parcelamento').style.display = 'block';
-   ['f-desc','f-valor','f-qtd-parc'].forEach(id => document.getElementById(id).value = '');
+   ['f-desc','f-valor','f-qtd-parc','f-terceiro-nome'].forEach(id => document.getElementById(id).value = '');
    document.getElementById('f-data').value = hojeLocalISO();
    document.getElementById('f-cartao').value = ''; document.getElementById('f-cat').value = '';
    document.getElementById('f-fixa').checked = false; document.getElementById('f-parc').checked = false;
+   document.getElementById('f-terceiro').checked = false;
+   document.getElementById('box-terceiro').style.display = 'none';
    document.getElementById('box-qtd').style.display = 'none';
    abrirModal('modal-lancar');
 }
@@ -2333,14 +2423,15 @@ function abrirEdicaoDespesa(id) {
    document.getElementById('dica-sugestao-cat').style.display = 'none';
    document.getElementById('titulo-modal-lancar').textContent = 'Editar Gasto';
    document.getElementById('btn-confirmar-lancamento').textContent = 'Salvar Alterações';
-   document.getElementById('bloco-parcelamento').style.display = 'none'; // edição não mexe em parcelamento
-   // Se a parcela pertence a um grupo, mostra só a descrição-base (sem o "(i/N)"),
-   // já que o sufixo é reaplicado automaticamente ao salvar.
+   document.getElementById('bloco-parcelamento').style.display = 'none';
    document.getElementById('f-desc').value = edicaoDespesaSufixo ? removerSufixoParcela(item.descricao) : (item.descricao || '');
    document.getElementById('f-valor').value = item.valor;
    document.getElementById('f-data').value = new Date(item.data).toISOString().slice(0, 10);
    document.getElementById('f-cartao').value = item.cartao_id || '';
    document.getElementById('f-cat').value = item.categoria_id || '';
+   document.getElementById('f-terceiro').checked = ehDespesaDeTerceiro(item);
+   document.getElementById('f-terceiro-nome').value = item.terceiro_nome || '';
+   document.getElementById('box-terceiro').style.display = ehDespesaDeTerceiro(item) ? 'block' : 'none';
    abrirModal('modal-lancar');
 }
 
@@ -2348,13 +2439,16 @@ async function confirmarLancamento() {
    const d = document.getElementById('f-desc').value.trim(), v = parseFloat(document.getElementById('f-valor').value), dt = document.getElementById('f-data').value;
    if (!d || !v || !dt) { mostrarToast('Preencha descrição, valor e data.'); return; }
    const c = document.getElementById('f-cartao').value, ct = document.getElementById('f-cat').value;
+   const deTerceiro = document.getElementById('f-terceiro').checked;
+   const terceiroNome = deTerceiro ? document.getElementById('f-terceiro-nome').value.trim() : null;
+   if (deTerceiro && !terceiroNome) { mostrarToast('Informe quem é responsável pela despesa.', 'erro', 3500); return; }
 
    // ---- MODO EDIÇÃO: pergunta o escopo quando a parcela faz parte de um grupo ----
    if (edicaoDespesaId) {
       let escopo = 'unica';
       if (edicaoDespesaGrupoId) {
          escopo = await perguntarEscopoEdicao();
-         if (!escopo) return; // usuário cancelou
+         if (!escopo) return;
       }
       await comBotaoOcupado('btn-confirmar-lancamento', 'Salvando...', async () => {
          if (escopo === 'unica') {
@@ -2362,16 +2456,14 @@ async function confirmarLancamento() {
             const { error } = await chamarSupabase(
                _supabase.from('despesas').update({
                   descricao: descFinal, valor: round2(v), data: new Date(dt + 'T12:00:00').toISOString(),
-                  cartao_id: c || null, categoria_id: ct || null
+                  cartao_id: c || null, categoria_id: ct || null,
+                  de_terceiro: deTerceiro, terceiro_nome: terceiroNome
                }).eq('id', edicaoDespesaId),
-               'Erro ao salvar edição'
+               'Erro ao salvar edição. Confirme se as colunas de terceiro foram criadas no Supabase.'
             );
             if (error) return;
             mostrarToast('Lançamento atualizado.', 'sucesso', 2000);
          } else {
-            // "futuras" ou "todas": busca as linhas do grupo e propaga descrição-base,
-            // valor, banco e categoria — preservando o sufixo (i/N) de cada uma e SEM
-            // mexer na data individual de cada parcela.
             let query = _supabase.from('despesas').select('id, descricao').eq('usuario', eu()).eq('grupo_id', edicaoDespesaGrupoId);
             if (escopo === 'futuras') query = query.gte('data', edicaoDespesaDataOriginal);
             const { data: linhas, error: errFetch } = await chamarSupabase(query, 'Erro ao buscar parcelas do grupo');
@@ -2382,7 +2474,8 @@ async function confirmarLancamento() {
                const novaDesc = suf ? `${d} ${suf}` : d;
                return chamarSupabase(
                   _supabase.from('despesas').update({
-                     descricao: novaDesc, valor: round2(v), cartao_id: c || null, categoria_id: ct || null
+                     descricao: novaDesc, valor: round2(v), cartao_id: c || null, categoria_id: ct || null,
+                     de_terceiro: deTerceiro, terceiro_nome: terceiroNome
                   }).eq('id', l.id),
                   'Erro ao atualizar parcela'
                );
@@ -2408,9 +2501,13 @@ async function confirmarLancamento() {
    await comBotaoOcupado('btn-confirmar-lancamento', 'Salvando...', async () => {
       const ins = montarLancamentos({
          desc: d, valorTotal: v, dataBase: dt, cartaoId: c, categoriaId: ct,
-         isFixa: isF, isParcelado: isP, qtdParcelas: q, usuario: eu()
+         isFixa: isF, isParcelado: isP, qtdParcelas: q, usuario: eu(),
+         deTerceiro, terceiroNome
       });
-      const { data: inserido, error } = await chamarSupabase(_supabase.from('despesas').insert(ins).select(), 'Erro ao salvar lançamento');
+      const { data: inserido, error } = await chamarSupabase(
+         _supabase.from('despesas').insert(ins).select(),
+         'Erro ao salvar lançamento. Confirme se as colunas de terceiro foram criadas no Supabase.'
+      );
       if (error) return;
       if (!inserido || inserido.length !== ins.length) {
          mostrarToast('Atenção: lançamento pode não ter sido salvo por completo. Verifique a lista.', 'erro', 6000);
@@ -2418,10 +2515,12 @@ async function confirmarLancamento() {
          mostrarToast(`Lançamento salvo (${inserido.length} registro${inserido.length > 1 ? 's' : ''}).`, 'sucesso', 2500);
       }
       cacheHistoricoCategorizacao = null;
-      ['f-desc','f-valor','f-qtd-parc'].forEach(id => document.getElementById(id).value = '');
+      ['f-desc','f-valor','f-qtd-parc','f-terceiro-nome'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('f-data').value = hojeLocalISO();
       document.getElementById('f-cartao').value = ''; document.getElementById('f-cat').value = '';
       document.getElementById('f-fixa').checked = false; document.getElementById('f-parc').checked = false;
+      document.getElementById('f-terceiro').checked = false;
+      document.getElementById('box-terceiro').style.display = 'none';
       document.getElementById('box-qtd').style.display = 'none';
       fecharModais(); await atualizarTudo();
    });
