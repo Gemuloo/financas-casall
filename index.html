@@ -275,7 +275,7 @@
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:1.5rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar exportadas em PDF.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:1.5rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos e verificação de duplicidades.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -604,10 +604,10 @@ function extrairMesAnoEmissaoItau(textoCompleto) {
 // de parcelas continua funcionando sem alterações.
 function normalizarDescricaoParcelaItau(descricao) {
    const limpa = (descricao || '').replace(/\s+/g, ' ').trim();
-   const m = limpa.match(/^(.*?)(\d{2})\/(\d{2})\s*$/);
+   const m = limpa.match(/^(.*?)(\d{1,2})\s*\/\s*(\d{1,2})\s*$/);
 
    if (!m) {
-      return { descricao: limpa, parcelada: false };
+      return { descricao: limpa, base: limpa, parcelada: false, atual: null, total: null };
    }
 
    const atual = parseInt(m[2]);
@@ -617,15 +617,20 @@ function normalizarDescricaoParcelaItau(descricao) {
       !Number.isInteger(atual) || !Number.isInteger(total) ||
       total < 2 || atual < 1 || atual > total
    ) {
-      return { descricao: limpa, parcelada: false };
+      return { descricao: limpa, base: limpa, parcelada: false, atual: null, total: null };
    }
 
    const base = m[1].replace(/\s+/g, ' ').trim();
-   if (!base) return { descricao: limpa, parcelada: false };
+   if (!base) {
+      return { descricao: limpa, base: limpa, parcelada: false, atual: null, total: null };
+   }
 
    return {
       descricao: `${base} - Parcela ${atual}/${total}`,
-      parcelada: true
+      base,
+      parcelada: true,
+      atual,
+      total
    };
 }
 
@@ -638,14 +643,46 @@ function normalizarDescricaoParcelaItau(descricao) {
 // A seção "Compras parceladas - próximas faturas" é deliberadamente ignorada,
 // pois esses valores ainda não são lançamentos da fatura atual. As próximas
 // parcelas continuam sendo geradas pela lógica já existente no sistema.
+// Converte uma data ISO para Date local sem risco de mudança de dia por UTC.
+function dataISOLocal(dataISO) {
+   const [ano, mes, dia] = String(dataISO || '').split('-').map(Number);
+   if (!ano || !mes || !dia) return null;
+   return new Date(ano, mes - 1, dia, 12, 0, 0);
+}
+
+// O Itaú pode repetir a data original de uma compra parcelada ou de um crédito antigo.
+// Calcula o início do ciclo encerrado na data de emissão da fatura para manter cada
+// lançamento no mês correto da fatura, sem perder a data real das compras do ciclo.
+function inicioCicloPorEmissaoItau(dataEmissaoISO) {
+   const emissao = dataISOLocal(dataEmissaoISO);
+   if (!emissao) return null;
+
+   const anoAnterior = emissao.getMonth() === 0 ? emissao.getFullYear() - 1 : emissao.getFullYear();
+   const mesAnterior = emissao.getMonth() === 0 ? 11 : emissao.getMonth() - 1;
+   const ultimoDiaAnterior = new Date(anoAnterior, mesAnterior + 1, 0).getDate();
+   const fechamentoAnterior = new Date(
+      anoAnterior,
+      mesAnterior,
+      Math.min(emissao.getDate(), ultimoDiaAnterior),
+      12, 0, 0
+   );
+   fechamentoAnterior.setDate(fechamentoAnterior.getDate() + 1);
+   return fechamentoAnterior;
+}
+
 function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, dataEmissaoISO) {
+   // Apenas os lançamentos atuais entram na importação. A seção de próximas faturas
+   // serve como conferência, mas não é importada novamente para não duplicar parcelas.
    const trechoAtual = textoCompleto.split(/Compras parceladas\s*-\s*pr[oó]ximas faturas/i)[0];
    const linhas = trechoAtual.split('\n').map(l => l.trim()).filter(Boolean);
 
+   // Uma linha do PDF pode conter uma compra de cada coluna. O regex encontra todas.
    const REGEX_TRANSACAO =
       /(?:^|\s)(\d{2})\/(\d{2})\s+(.+?)\s+([-−]?\s*\d{1,3}(?:\.\d{3})*,\d{2})(?=\s+\d{2}\/\d{2}\s+|\s+[A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-Za-zÁÉÍÓÚáéíóúÂÊÔâêôÃÕãõÇç]|\s+Lançamentos|\s+Os\s+|\s+Limite|\s+Juros|\s+CET|\s+Valor|\s+Quantidade|\s+Próxima|\s+Demais|\s+Total|$)/gi;
 
    const resultado = [];
+   const emissao = dataISOLocal(dataEmissaoISO);
+   const inicioCiclo = inicioCicloPorEmissaoItau(dataEmissaoISO);
 
    linhas.forEach(linha => {
       REGEX_TRANSACAO.lastIndex = 0;
@@ -665,23 +702,40 @@ function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, d
             continue;
          }
 
-         const parcela = normalizarDescricaoParcelaItau(descricaoBruta);
+         const infoParcela = normalizarDescricaoParcelaItau(descricaoBruta);
+         const ehCredito = valor < 0;
 
-         // O Itaú repete, nas compras parceladas, a data original da compra.
-         // Para que a parcela atual fique no ciclo desta fatura, usa-se a data
-         // de emissão da fatura. Compras comuns mantêm a data efetiva informada.
-         let dataISO;
-         if (parcela.parcelada && dataEmissaoISO) {
-            dataISO = dataEmissaoISO;
-         } else {
-            const ano = inferirAnoFatura(mes, mesEmissao, anoEmissao);
-            dataISO = `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-         }
+         // Créditos/estornos nunca geram novas parcelas, mesmo quando o Itaú repete
+         // o sufixo 02/05 na linha negativa. O nome-base fica guardado para o mesmo
+         // mecanismo de cancelamento de parcelas futuras já usado pelo Nubank.
+         const ehParcelaCobrada = infoParcela.parcelada && !ehCredito;
+         const descricaoFinal = ehCredito && infoParcela.parcelada
+            ? infoParcela.base
+            : infoParcela.descricao;
+
+         const anoTransacao = inferirAnoFatura(mes, mesEmissao, anoEmissao);
+         const dataOriginalISO = `${anoTransacao}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+         const dataOriginal = dataISOLocal(dataOriginalISO);
+
+         // Parcela e crédito antigo pertencem à fatura atual. Compras normais que
+         // realmente estão dentro do ciclo preservam a data indicada no PDF.
+         const foraDoCiclo = !dataOriginal || !inicioCiclo || !emissao ||
+            dataOriginal < inicioCiclo || dataOriginal > emissao;
+         const dataISO = (ehParcelaCobrada || foraDoCiclo) && dataEmissaoISO
+            ? dataEmissaoISO
+            : dataOriginalISO;
 
          resultado.push({
-            descricao: parcela.descricao,
+            descricao: descricaoFinal,
             valor,
-            data: dataISO
+            data: dataISO,
+            origemFatura: 'itau-pao-de-acucar',
+            creditoItau: ehCredito,
+            nomeBaseItau: infoParcela.base || descricaoFinal,
+            parcelaItau: ehParcelaCobrada ? {
+               atual: infoParcela.atual,
+               total: infoParcela.total
+            } : null
          });
       }
    });
@@ -816,16 +870,28 @@ function processarLinhasDeParcelaEExtrairRestante(daFatura, existentesNoBanco) {
 }
 
 // Extrai o nome entre aspas de uma linha "Estorno de "X"".
-function extrairNomeEstorno(descricao) {
+function extrairNomeEstorno(descricao, item = null) {
    const m = (descricao || '').match(/^Estorno de "(.+)"$/i);
-   return m ? m[1].trim() : null;
+   if (m) return m[1].trim();
+
+   // No PDF do Itaú, o estorno costuma aparecer somente como valor negativo,
+   // sem a expressão "Estorno de". Ele vira candidato ao mesmo fluxo do Nubank;
+   // o cancelamento só será oferecido se nome E valor coincidirem com a parcela.
+   if (
+      item?.origemFatura === 'itau-pao-de-acucar' &&
+      Number(item.valor) < 0
+   ) {
+      return (item.nomeBaseItau || descricao || '').trim() || null;
+   }
+
+   return null;
 }
 
 // Cruza estornos da MESMA fatura com compras parceladas recém-detectadas nesta importação,
 // pra avisar que a projeção de parcelas futuras pode precisar ser cancelada.
 function detectarCancelamentosMesmaFatura(daFatura, novasParcelas) {
    const estornos = daFatura
-      .map(t => ({ ...t, nomeEstorno: extrairNomeEstorno(t.descricao) }))
+      .map(t => ({ ...t, nomeEstorno: extrairNomeEstorno(t.descricao, t) }))
       .filter(t => t.nomeEstorno && t.valor < 0);
    const cancelamentos = [];
    estornos.forEach(estorno => {
@@ -841,7 +907,7 @@ function detectarCancelamentosMesmaFatura(daFatura, novasParcelas) {
 
 // Busca no Supabase parcelas FUTURAS de um parcelamento já existente (criado numa
 // importação de mês anterior) cujo nome bate com o estorno encontrado agora.
-async function buscarParcelasFuturasParaCancelar(baseNome, dataEstorno, cartaoId) {
+async function buscarParcelasFuturasParaCancelar(baseNome, dataEstorno, cartaoId, valorEstorno = null) {
    const { data } = await chamarSupabase(
       _supabase.from('despesas').select('id, descricao, valor, data, grupo_id')
          .eq('usuario', eu()).eq('cartao_id', cartaoId)
@@ -850,7 +916,16 @@ async function buscarParcelasFuturasParaCancelar(baseNome, dataEstorno, cartaoId
          .gt('data', dataEstorno + 'T23:59:59'),
       'Erro ao buscar parcelas futuras relacionadas ao estorno'
    );
-   return data || [];
+
+   const encontradas = data || [];
+   if (valorEstorno === null || valorEstorno === undefined) return encontradas;
+
+   // Impede que pequenos créditos do Itaú (por exemplo, -R$ 0,01) cancelem
+   // parcelas inteiras. Para cancelar, o valor do crédito deve coincidir com
+   // o valor da parcela futura, assim como já ocorre na mesma fatura.
+   return encontradas.filter(linha =>
+      round2(Number(linha.valor)) === round2(Math.abs(Number(valorEstorno)))
+   );
 }
 
 // Estado da importação em andamento (transações revisadas antes de confirmar).
@@ -976,11 +1051,11 @@ async function processarArquivoFatura(arquivo) {
       // 3b) Estorno cancelando um parcelamento criado em uma importação de mês ANTERIOR.
       const nomesJaTratados = new Set(cancelamentosPorEstorno.map(c => normalizarTexto(c.nomeEstorno)));
       const estornosDaFatura = daFatura
-         .map(t => ({ ...t, nomeEstorno: extrairNomeEstorno(t.descricao) }))
+         .map(t => ({ ...t, nomeEstorno: extrairNomeEstorno(t.descricao, t) }))
          .filter(t => t.nomeEstorno && t.valor < 0 && !nomesJaTratados.has(normalizarTexto(t.nomeEstorno)));
 
       for (const estorno of estornosDaFatura) {
-         const linhasFuturas = await buscarParcelasFuturasParaCancelar(estorno.nomeEstorno, estorno.data, cartaoId);
+         const linhasFuturas = await buscarParcelasFuturasParaCancelar(estorno.nomeEstorno, estorno.data, cartaoId, estorno.valor);
          if (linhasFuturas.length > 0) {
             cancelamentosPorEstorno.push({
                tipo: 'existente',
@@ -994,12 +1069,16 @@ async function processarArquivoFatura(arquivo) {
 
       const qtdSuspeitas = novas.filter(t => t.possivelDuplicata).length;
       const qtdComProjecao = novas.filter(t => t.projecoesFuturas && t.projecoesFuturas.length).length;
+      const qtdParcelasFuturas = novas.reduce((soma, t) => soma + (t.projecoesFuturas?.length || 0), 0);
+      const valorParcelasFuturas = round2(novas.reduce((soma, t) =>
+         soma + (t.projecoesFuturas || []).reduce((subtotal, f) => subtotal + Number(f.valor), 0), 0
+      ));
       const nomeModelo = modelo === 'itau-pao-de-acucar' ? 'Itaú Pão de Açúcar' : 'Nubank';
 
       let msg = `${nomeModelo}: ${daFatura.length} transações encontradas — ${qtdJaLancadas} já estavam lançadas, ${novas.length} são novas`;
       if (qtdSuspeitas > 0) msg += `<br><span style="color:#b45309;">⚠️ ${qtdSuspeitas} podem já ter sido lançadas manualmente com outro texto — revise antes de confirmar.</span>`;
       if (atualizacoesSilenciosas.length > 0) msg += `<br><span style="color:#0891b2;">🔄 ${atualizacoesSilenciosas.length} parcela(s) já projetada(s) tiveram data/valor confirmados com a fatura real.</span>`;
-      if (qtdComProjecao > 0) msg += `<br><span style="color:#7c3aed;">📅 ${qtdComProjecao} compra(s) parcelada(s) nova(s) vão gerar as próximas parcelas automaticamente.</span>`;
+      if (qtdComProjecao > 0) msg += `<br><span style="color:#7c3aed;">📅 ${qtdComProjecao} compra(s) parcelada(s) vão gerar ${qtdParcelasFuturas} parcela(s) futura(s), no total de R$ ${fmtBRL(valorParcelasFuturas)}.</span>`;
       if (cancelamentosPorEstorno.length > 0) msg += `<br><span style="color:#dc2626;">🔁 ${cancelamentosPorEstorno.length} estorno(s) parecem cancelar compra(s) parcelada(s) — revise abaixo.</span>`;
 
       document.getElementById('imp-status').innerHTML = msg;
