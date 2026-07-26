@@ -576,7 +576,34 @@ function identificarModeloFatura(textoCompleto) {
 // Extrai a data de emissão da fatura do Itaú Pão de Açúcar.
 // Exemplo esperado: "Emissão: 24/07/2026".
 function extrairMesAnoEmissaoItau(textoCompleto) {
-   const m = textoCompleto.match(/Emiss[ãa]o:\s*(\d{2})\/(\d{2})\/(\d{4})/i);
+   const original = String(textoCompleto || '');
+
+   // Primeiro tenta o texto original, aceitando espaços ao redor das barras
+   // e dois-pontos opcionais.
+   let m = original.match(
+      /Emiss(?:ão|ao)\s*:?\s*(\d{2})\s*\/\s*(\d{2})\s*\/\s*(\d{4})/i
+   );
+
+   // Alguns PDFs separam caracteres ou retiram a pontuação. A versão
+   // normalizada transforma "Emissão: 24/07/2026" em "emissao 24072026".
+   if (!m) {
+      const normalizado = normalizarTexto(original).replace(/\s+/g, ' ');
+      m = normalizado.match(/emissao\s*(\d{2})(\d{2})(\d{4})/i);
+   }
+
+   // A data de postagem desta fatura coincide com a emissão e serve como
+   // segunda fonte quando a palavra "Emissão" não é extraída corretamente.
+   if (!m) {
+      m = original.match(
+         /Postagem\s*:?\s*(\d{2})\s*\/\s*(\d{2})\s*\/\s*(\d{4})/i
+      );
+   }
+
+   if (!m) {
+      const normalizado = normalizarTexto(original).replace(/\s+/g, ' ');
+      m = normalizado.match(/postagem\s*(\d{2})(\d{2})(\d{4})/i);
+   }
+
    if (!m) return null;
 
    const dia = parseInt(m[1]);
@@ -719,6 +746,46 @@ function removerComprasDasProximasFaturasItau(itens) {
    return itens.filter((_, indice) => !remover.has(indice));
 }
 
+
+// O PDF do Itaú possui datas que não representam compras, como
+// "período 03/08 a 02/09", além de resumos como "Próxima fatura 306,79".
+// Dependendo da ordem das colunas extraída pelo navegador, esses textos podem
+// acabar na mesma linha e parecer uma transação. Esta função bloqueia apenas
+// candidatos estruturalmente incompatíveis com um lançamento real.
+function ehCandidatoNaoTransacaoItau(descricao) {
+   const original = String(descricao || '').replace(/\s+/g, ' ').trim();
+   const n = normalizarTexto(original).replace(/\s+/g, ' ');
+
+   // Depois de a regex usar "03/08" como suposta data da compra, a descrição
+   // falsa começa com o restante do intervalo: "a 02/09".
+   if (/^a\s+\d{1,2}\s*\/\s*\d{1,2}\b/i.test(original)) return true;
+
+   const expressoesDeResumo = [
+      'proxima fatura',
+      'demais faturas',
+      'total para proximas faturas',
+      'compras parceladas proximas faturas',
+      'fique atento aos encargos',
+      'periodo',
+      'limite de credito',
+      'limites de credito',
+      'credito rotativo',
+      'simulacao de compras',
+      'simulacao saque',
+      'juros maximos',
+      'valor total financiado',
+      'valor solicitado',
+      'quantidade de parcelas',
+      'valor da parcela',
+      'valor total a pagar',
+      'data do processamento',
+      'nosso numero',
+      'valor do documento'
+   ];
+
+   return expressoesDeResumo.some(expressao => n.includes(expressao));
+}
+
 function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, dataEmissaoISO) {
    // Apenas os lançamentos atuais entram na importação. A seção de próximas faturas
    // serve como conferência, mas não é importada novamente para não duplicar parcelas.
@@ -751,6 +818,12 @@ function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, d
             !Number.isInteger(mes) || mes < 0 || mes > 11 ||
             !Number.isFinite(valor)
          ) {
+            continue;
+         }
+
+         // Não deixa intervalos de datas e resumos financeiros entrarem
+         // como se fossem estabelecimentos da fatura.
+         if (ehCandidatoNaoTransacaoItau(descricaoBruta)) {
             continue;
          }
 
@@ -1139,12 +1212,16 @@ async function processarArquivoFatura(arquivo) {
 
          if (totalOficial !== null && Math.abs(totalOficial - totalExtraido) > 0.009) {
             const diferenca = round2(totalOficial - totalExtraido);
+            const tipoDivergencia = totalExtraido > totalOficial
+               ? 'Um resumo ou valor futuro foi confundido com compra.'
+               : 'Um ou mais lançamentos não foram reconhecidos.';
+
             document.getElementById('imp-status').innerHTML =
-               `A leitura ficou incompleta e foi interrompida.<br>` +
+               `A conferência automática encontrou uma divergência e interrompeu a importação.<br>` +
                `<span style="color:#b91c1c;font-weight:900;">Total da fatura: R$ ${fmtBRL(totalOficial)} · ` +
                `Total reconhecido: R$ ${fmtBRL(totalExtraido)} · ` +
                `Diferença: R$ ${fmtBRL(diferenca)}</span><br>` +
-               `<span style="font-size:0.62rem;">Nenhum lançamento foi importado. Tente novamente com este arquivo atualizado.</span>`;
+               `<span style="font-size:0.62rem;">${tipoDivergencia} Nenhum lançamento foi importado.</span>`;
             document.getElementById('imp-revisao').style.display = 'none';
             return;
          }
