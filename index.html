@@ -722,7 +722,7 @@ function removerComprasDasProximasFaturasItau(itens) {
 function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, dataEmissaoISO) {
    // Apenas os lançamentos atuais entram na importação. A seção de próximas faturas
    // serve como conferência, mas não é importada novamente para não duplicar parcelas.
-   const trechoAtual = textoCompleto.split(/Compras parceladas\s*-\s*pr[oó]ximas faturas/i)[0];
+   const trechoAtual = textoCompleto.split(/Compras\s+parceladas\s*-\s*pr[oó]ximas\s+faturas/i)[0];
    const linhas = trechoAtual.split('\n').map(l => l.trim()).filter(Boolean);
 
    // Uma linha do PDF pode conter uma compra de cada coluna. O regex encontra todas.
@@ -793,7 +793,9 @@ function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, d
       }
    });
 
-   return removerComprasDasProximasFaturasItau(resultado);
+   // Não elimina lançamentos repetidos por nome, valor ou data.
+   // Duas compras iguais na mesma fatura são duas ocorrências legítimas.
+   return resultado;
 }
 
 
@@ -865,19 +867,49 @@ function normalizarCaixa(s) {
 //   lançada manualmente com outro texto -> entra no resultado, mas SINALIZADA e
 //   desmarcada por padrão, pra você decidir com seus próprios olhos.
 function compararComExistentes(daFatura, jaLancadas) {
-   const existentes = jaLancadas.map(t => ({ ...t, usadoExato: false, usadoFuzzy: false }));
+   // Cada linha existente pode ser consumida apenas uma vez.
+   // Assim, se a fatura tiver duas compras idênticas e o banco tiver somente uma,
+   // uma será reconhecida como já lançada e a outra continuará disponível para importar.
+   const existentes = jaLancadas.map(t => ({ ...t, usado: false }));
    const resultado = [];
+
    daFatura.forEach(t => {
-      const exato = existentes.find(e => !e.usadoExato && e.data === t.data && normalizarCaixa(e.descricao) === normalizarCaixa(t.descricao) && e.valor === t.valor);
-      if (exato) { exato.usadoExato = true; return; }
-      const fuzzy = existentes.find(e => !e.usadoExato && !e.usadoFuzzy && e.data === t.data && e.valor === t.valor);
+      const valorAtual = round2(t.valor);
+
+      const exato = existentes.find(e =>
+         !e.usado &&
+         e.data === t.data &&
+         normalizarCaixa(e.descricao) === normalizarCaixa(t.descricao) &&
+         round2(e.valor) === valorAtual
+      );
+
+      if (exato) {
+         exato.usado = true;
+         return;
+      }
+
+      const fuzzy = existentes.find(e =>
+         !e.usado &&
+         e.data === t.data &&
+         round2(e.valor) === valorAtual
+      );
+
       if (fuzzy) {
-         fuzzy.usadoFuzzy = true;
-         resultado.push({ ...t, possivelDuplicata: true, duplicataDescricao: fuzzy.descricao });
+         fuzzy.usado = true;
+         resultado.push({
+            ...t,
+            possivelDuplicata: true,
+            duplicataDescricao: fuzzy.descricao
+         });
       } else {
-         resultado.push({ ...t, possivelDuplicata: false, duplicataDescricao: null });
+         resultado.push({
+            ...t,
+            possivelDuplicata: false,
+            duplicataDescricao: null
+         });
       }
    });
+
    return resultado;
 }
 
@@ -918,19 +950,56 @@ function processarLinhasDeParcelaEExtrairRestante(daFatura, existentesNoBanco) {
 
    daFatura.forEach(t => {
       const info = extrairInfoParcela(t.descricao);
-      if (!info) { linhasNormais.push(t); return; }
-      const match = existentesDisp.find(e => !e.usado && normalizarCaixa(e.descricao) === normalizarCaixa(t.descricao));
+
+      if (!info) {
+         linhasNormais.push(t);
+         return;
+      }
+
+      // Primeiro procura a parcela projetada com mesma descrição E mesmo valor.
+      // Isso evita associar duas compras diferentes feitas no mesmo estabelecimento.
+      let match = existentesDisp.find(e =>
+         !e.usado &&
+         normalizarCaixa(e.descricao) === normalizarCaixa(t.descricao) &&
+         round2(e.valor) === round2(t.valor)
+      );
+
+      // Fallback: a parcela projetada pode ter vindo com pequeno ajuste de valor
+      // na fatura real. Ainda assim, cada linha existente só pode ser usada uma vez.
+      if (!match) {
+         match = existentesDisp.find(e =>
+            !e.usado &&
+            normalizarCaixa(e.descricao) === normalizarCaixa(t.descricao)
+         );
+      }
+
       if (match) {
          match.usado = true;
+
          if (round2(match.valor) !== round2(t.valor) || match.data !== t.data) {
-            atualizacoesSilenciosas.push({ id: match.id, valor: round2(t.valor), data: t.data, descricao: t.descricao });
+            atualizacoesSilenciosas.push({
+               id: match.id,
+               valor: round2(t.valor),
+               data: t.data,
+               descricao: t.descricao
+            });
          }
       } else {
-         novasParcelas.push({ ...t, possivelDuplicata: false, duplicataDescricao: null, projecoesFuturas: gerarParcelasFuturas(t, info) });
+         novasParcelas.push({
+            ...t,
+            possivelDuplicata: false,
+            duplicataDescricao: null,
+            projecoesFuturas: gerarParcelasFuturas(t, info)
+         });
       }
    });
 
-   return { novasParcelas, linhasNormais, atualizacoesSilenciosas, existentesRestantes: existentesDisp.filter(e => !e.usado) };
+   return {
+      novasParcelas,
+      linhasNormais,
+      atualizacoesSilenciosas,
+      existentesRestantes: existentesDisp.filter(e => !e.usado)
+   };
 }
 
 // Extrai o nome entre aspas de uma linha "Estorno de "X"".
