@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.07.26.9">
+   <meta name="gemulo-build" content="2026.07.26.10">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.07.26.9';
+      window.GEMULO_BUILD = '2026.07.26.10';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -285,7 +285,7 @@
    </div></div>
    <div id="modal-analise" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Projeção de Gastos</h3><div id="corpo-analise" class="space-y-3"></div></div></div>
    <div id="modal-cat-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-anual')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Gastos por Categoria</h3><div class="mb-6"><select id="sel-cat-mes" class="w-full bg-slate-50 border p-3 rounded-xl font-black text-[10px] uppercase text-slate-600" onchange="gerarResumoCategoriasAnual()" aria-label="Filtrar mês da categoria"><option value="todos">O Ano Todo</option></select></div><div id="corpo-cat-anual" class="space-y-3"></div></div></div>
-   <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 id="titulo-modal-lancar" class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><label class="field-label" for="f-desc">Descrição</label><input id="f-desc" type="text" placeholder="Descrição" oninput="sugerirCategoriaAoDigitar()" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><label class="field-label" for="f-valor">Valor</label><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco"></select><select id="f-cat" onchange="categoriaEscolhidaManualmente = true; document.getElementById('dica-sugestao-cat').style.display='none';" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Categoria"></select></div><p id="dica-sugestao-cat" style="display:none; font-size:0.6rem; font-weight:800; color:#2563eb; margin:-0.75rem 0 0 0.15rem;"><i class="fas fa-magic"></i> Categoria sugerida com base no seu histórico</p><div id="bloco-terceiro" style="background:#fffbeb; border:1px solid #fde68a; border-radius:1rem; padding:1rem;">
+   <div id="modal-lancar" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 id="titulo-modal-lancar" class="font-black text-slate-800 text-xl uppercase mb-6 italic">Novo Gasto</h3><div class="space-y-4"><label class="field-label" for="f-desc">Descrição</label><input id="f-desc" type="text" placeholder="Descrição" oninput="sugerirCategoriaAoDigitar()" class="w-full bg-slate-50 border p-4 rounded-xl font-bold"><label class="field-label" for="f-valor">Valor</label><input id="f-valor" type="number" step="0.01" placeholder="0,00" class="w-full bg-slate-50 border p-4 rounded-xl font-black text-blue-600 text-2xl outline-none"><div><p class="text-[8px] font-black text-slate-400 uppercase mb-1 ml-1">Data</p><input id="f-data" type="date" onchange="atualizarPreviaCompetenciaFormulario(false)" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-xs"></div><div class="grid grid-cols-2 gap-3"><select id="f-cartao" onchange="atualizarPreviaCompetenciaFormulario(false)" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco"></select><select id="f-cat" onchange="categoriaEscolhidaManualmente = true; document.getElementById('dica-sugestao-cat').style.display='none';" class="bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Categoria"></select></div><p id="f-competencia-info" style="font-size:0.6rem;font-weight:800;color:#2563eb;margin:-0.65rem 0 0 0.15rem;"><i class="fas fa-calendar-check"></i> Competência automática</p><p id="dica-sugestao-cat" style="display:none; font-size:0.6rem; font-weight:800; color:#2563eb; margin:-0.75rem 0 0 0.15rem;"><i class="fas fa-magic"></i> Categoria sugerida com base no seu histórico</p><div id="bloco-terceiro" style="background:#fffbeb; border:1px solid #fde68a; border-radius:1rem; padding:1rem;">
 <label style="display:flex; align-items:center; gap:0.65rem; cursor:pointer; color:#92400e; font-size:0.68rem; font-weight:900; text-transform:uppercase;">
 <input type="checkbox" id="f-terceiro" onchange="alternarCampoTerceiro()" style="width:19px;height:19px;accent-color:#d97706;">
 Despesa de terceiro
@@ -302,7 +302,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.9</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.10</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -1302,6 +1302,8 @@ async function buscarParcelasFuturasParaCancelar(baseNome, dataEstorno, cartaoId
 // Estado da importação em andamento (transações revisadas antes de confirmar).
 let importacaoFaturaAtual = [];
 let cancelamentosPorEstorno = [];
+let competenciaImportacaoAtual = null;
+let fechamentoImportacaoAtual = null;
 
 async function processarArquivoFatura(arquivo) {
    const cartaoId = document.getElementById('imp-cartao').value;
@@ -1361,11 +1363,16 @@ async function processarArquivoFatura(arquivo) {
          document.getElementById('imp-aviso-manual').style.display = 'none';
       }
 
+      // Todos os lançamentos atuais do PDF pertencem à competência da própria
+      // fatura, independentemente da data original de cada compra.
+      competenciaImportacaoAtual = competenciaISO(refData.ano, refData.mes);
+      fechamentoImportacaoAtual = normalizarDiaFechamento(cartaoSelecionado?.dia_fechamento);
+
       const daFatura = processarFaturaPorModelo(texto, modelo, refData);
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse PDF. Confirme que está usando o importador v2026.07.26.9.';
+            'Não encontrei transações nesse PDF. Confirme que está usando o importador v2026.07.26.10.';
          return;
       }
 
@@ -1411,7 +1418,12 @@ async function processarArquivoFatura(arquivo) {
       // Aplica correções de data/valor em parcelas já projetadas que vieram um pouco diferentes na fatura real.
       if (atualizacoesSilenciosas.length > 0) {
          await Promise.all(atualizacoesSilenciosas.map(u => chamarSupabase(
-            _supabase.from('despesas').update({ valor: u.valor, data: new Date(u.data + 'T12:00:00').toISOString() }).eq('id', u.id),
+            _supabase.from('despesas').update({
+               valor: u.valor,
+               data: new Date(u.data + 'T12:00:00').toISOString(),
+               competencia_fatura: competenciaImportacaoAtual,
+               dia_fechamento_aplicado: fechamentoImportacaoAtual
+            }).eq('id', u.id),
             'Erro ao atualizar parcela projetada'
          )));
       }
@@ -1424,10 +1436,19 @@ async function processarArquivoFatura(arquivo) {
 
       const historico = await carregarHistoricoCategorizacao();
       importacaoFaturaAtual = novas.map((t, idx) => ({
-         id: `tmp_${idx}`, ...t, incluir: !t.possivelDuplicata,
+         id: `tmp_${idx}`,
+         ...t,
+         incluir: !t.possivelDuplicata,
          categoria_id: resolverSugestaoCategoria(t.descricao, historico, cacheCategorias) || '',
          de_terceiro: false,
-         terceiro_nome: ''
+         terceiro_nome: '',
+         competencia_fatura: competenciaImportacaoAtual,
+         dia_fechamento_aplicado: fechamentoImportacaoAtual,
+         projecoesFuturas: (t.projecoesFuturas || []).map((f, indiceFuturo) => ({
+            ...f,
+            competencia_fatura: adicionarMesesCompetencia(competenciaImportacaoAtual, indiceFuturo + 1),
+            dia_fechamento_aplicado: fechamentoImportacaoAtual
+         }))
       }));
 
       // 3) Detecta estornos que parecem cancelar uma compra parcelada.
@@ -1516,6 +1537,7 @@ function renderRevisaoImportacao() {
             <div style="flex:1; min-width:0;">
                <p style="font-size:0.7rem; font-weight:800; color:#1e293b; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(t.descricao)}</p>
                <p style="font-size:0.6rem; color:#94a3b8; margin:0;">${new Date(t.data + 'T12:00:00').toLocaleDateString('pt-BR')} · R$ ${fmtBRL(t.valor)}</p>
+               <p style="font-size:0.58rem; color:#2563eb; font-weight:800; margin:0.12rem 0 0;"><i class="fas fa-calendar-check"></i> Competência: ${formatarCompetenciaISO(t.competencia_fatura)}</p>
                ${t.possivelDuplicata ? `<p style="font-size:0.6rem; color:#b45309; font-weight:800; margin:0.2rem 0 0;"><i class="fas fa-triangle-exclamation"></i> Pode ser o mesmo lançamento que "${escapeHtml(t.duplicataDescricao)}"</p>` : ''}
                ${t.projecoesFuturas && t.projecoesFuturas.length ? `<p style="font-size:0.6rem; color:#7c3aed; font-weight:800; margin:0.2rem 0 0;"><i class="fas fa-calendar-days"></i> Vai criar mais ${t.projecoesFuturas.length} parcela(s) futura(s) automaticamente</p>` : ''}
             </div>
@@ -1571,7 +1593,9 @@ async function confirmarImportacaoFatura() {
             descricao: t.descricao, valor: t.valor, data: new Date(t.data + 'T12:00:00').toISOString(),
             cartao_id: cartaoId, categoria_id: t.categoria_id || null,
             is_fixa: false, is_parcelado: temProjecao, grupo_id: grupoId, usuario: eu(),
-            de_terceiro: deTerceiro, terceiro_nome: terceiroNome
+            de_terceiro: deTerceiro, terceiro_nome: terceiroNome,
+            competencia_fatura: t.competencia_fatura || competenciaImportacaoAtual,
+            dia_fechamento_aplicado: t.dia_fechamento_aplicado ?? fechamentoImportacaoAtual
          });
 
          if (temProjecao) {
@@ -1579,14 +1603,16 @@ async function confirmarImportacaoFatura() {
                descricao: f.descricao, valor: f.valor, data: new Date(f.data + 'T12:00:00').toISOString(),
                cartao_id: cartaoId, categoria_id: t.categoria_id || null,
                is_fixa: false, is_parcelado: true, grupo_id: grupoId, usuario: eu(),
-               de_terceiro: deTerceiro, terceiro_nome: terceiroNome
+               de_terceiro: deTerceiro, terceiro_nome: terceiroNome,
+               competencia_fatura: f.competencia_fatura || calcularCompetenciaPorData(f.data, cartaoId).competencia_fatura,
+               dia_fechamento_aplicado: f.dia_fechamento_aplicado ?? fechamentoImportacaoAtual
             }));
          }
       });
 
       const { data: inserido, error } = await chamarSupabase(
          _supabase.from('despesas').insert(registros).select(),
-         'Erro ao importar transações. Confirme se as colunas de terceiro foram criadas no Supabase.'
+         'Erro ao importar transações. Confirme se as colunas de terceiro e competência foram criadas no Supabase.'
       );
       if (error) return;
 
@@ -1599,6 +1625,8 @@ async function confirmarImportacaoFatura() {
 
       cacheHistoricoCategorizacao = null;
       importacaoFaturaAtual = [];
+      competenciaImportacaoAtual = null;
+      fechamentoImportacaoAtual = null;
       fecharModais();
       await atualizarTudo();
    });
@@ -1607,6 +1635,8 @@ async function confirmarImportacaoFatura() {
 function abrirImportarFatura() {
    importacaoFaturaAtual = [];
    cancelamentosPorEstorno = [];
+   competenciaImportacaoAtual = null;
+   fechamentoImportacaoAtual = null;
    document.getElementById('imp-cancelamentos').innerHTML = '';
    document.getElementById('imp-status').style.display = 'none';
    document.getElementById('imp-revisao').style.display = 'none';
@@ -1924,6 +1954,9 @@ let edicaoDespesaId = null;
 let edicaoDespesaGrupoId = null;
 let edicaoDespesaSufixo = null;
 let edicaoDespesaDataOriginal = null;
+let edicaoDespesaCartaoOriginal = null;
+let edicaoDespesaCompetenciaOriginal = null;
+let edicaoDespesaFechamentoOriginal = null;
 let cacheBancos = [], cacheCategorias = [], cacheSalarios = [];
 const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 let datasSetadas = false;
@@ -1966,6 +1999,110 @@ function calcularPeriodoCartao(diaFechamento, mes, ano) {
    return { inicio, fim };
 }
 
+
+// =================== COMPETÊNCIA FINANCEIRA ===================
+// A data da compra é preservada. A competência indica em qual fatura/mês o valor
+// afeta os resumos. Cada cartão usa seu próprio dia de fechamento.
+function normalizarDiaFechamento(valor) {
+   const n = parseInt(valor);
+   return Number.isInteger(n) && n >= 1 && n <= 31 ? n : null;
+}
+
+function competenciaISO(ano, mesZero) {
+   const d = new Date(Number(ano), Number(mesZero), 1, 12, 0, 0);
+   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+}
+
+function adicionarMesesCompetencia(competencia, quantidade) {
+   const partes = String(competencia || '').slice(0, 10).split('-').map(Number);
+   if (partes.length < 2 || !partes[0] || !partes[1]) return null;
+   return competenciaISO(partes[0], (partes[1] - 1) + Number(quantidade || 0));
+}
+
+function obterCartaoPorId(cartaoId) {
+   return cacheBancos.find(c => String(c.id) === String(cartaoId || '')) || null;
+}
+
+function calcularCompetenciaPorData(dataValor, cartaoId) {
+   const iso = String(dataValor || '').slice(0, 10);
+   const [ano, mes, dia] = iso.split('-').map(Number);
+   if (!ano || !mes || !dia) {
+      return { competencia_fatura: null, dia_fechamento_aplicado: null };
+   }
+
+   const cartao = obterCartaoPorId(cartaoId);
+   const fechamento = normalizarDiaFechamento(cartao?.dia_fechamento);
+   let mesCompetencia = mes - 1;
+
+   // Compra realizada depois do fechamento entra na fatura do mês seguinte.
+   if (fechamento && dia > fechamento) mesCompetencia += 1;
+
+   return {
+      competencia_fatura: competenciaISO(ano, mesCompetencia),
+      dia_fechamento_aplicado: fechamento
+   };
+}
+
+function obterCompetenciaEfetiva(despesa) {
+   const gravada = String(despesa?.competencia_fatura || '').slice(0, 10);
+   if (/^\d{4}-\d{2}-\d{2}$/.test(gravada)) {
+      return {
+         competencia_fatura: `${gravada.slice(0, 7)}-01`,
+         dia_fechamento_aplicado: normalizarDiaFechamento(despesa?.dia_fechamento_aplicado)
+      };
+   }
+   return calcularCompetenciaPorData(despesa?.data, despesa?.cartao_id);
+}
+
+function chaveCompetenciaDespesa(despesa) {
+   return String(obterCompetenciaEfetiva(despesa).competencia_fatura || '').slice(0, 7);
+}
+
+function pertenceACompetencia(despesa, ano, mesZero) {
+   return chaveCompetenciaDespesa(despesa) ===
+      `${Number(ano)}-${String(Number(mesZero) + 1).padStart(2, '0')}`;
+}
+
+function formatarCompetenciaISO(competencia) {
+   const [ano, mes] = String(competencia || '').slice(0, 7).split('-').map(Number);
+   if (!ano || !mes) return 'Não definida';
+   return `${mesesNomes[mes - 1]} / ${ano}`;
+}
+
+function formatarCompetenciaDespesa(despesa) {
+   return formatarCompetenciaISO(obterCompetenciaEfetiva(despesa).competencia_fatura);
+}
+
+function atualizarPreviaCompetenciaFormulario(usarGravada = false) {
+   const el = document.getElementById('f-competencia-info');
+   if (!el) return;
+
+   let competencia = null;
+   let fechamento = null;
+
+   if (usarGravada && edicaoDespesaId && edicaoDespesaCompetenciaOriginal) {
+      competencia = edicaoDespesaCompetenciaOriginal;
+      fechamento = edicaoDespesaFechamentoOriginal;
+   } else {
+      const calculada = calcularCompetenciaPorData(
+         document.getElementById('f-data')?.value,
+         document.getElementById('f-cartao')?.value
+      );
+      competencia = calculada.competencia_fatura;
+      fechamento = calculada.dia_fechamento_aplicado;
+   }
+
+   if (!competencia) {
+      el.innerHTML = '<i class="fas fa-calendar-check"></i> Informe a data para calcular a competência.';
+      return;
+   }
+
+   const detalhe = fechamento
+      ? ` · fechamento aplicado: dia ${fechamento}`
+      : ' · mês civil';
+   el.innerHTML = `<i class="fas fa-calendar-check"></i> Competência automática: ${formatarCompetenciaISO(competencia)}${detalhe}`;
+}
+
 function setupDatas() {
    if (datasSetadas) return;
    datasSetadas = true;
@@ -1986,45 +2123,56 @@ function setupDatas() {
 
 async function atualizarTudo() {
    mostrarSkeleton('finance', true);
-   const { data: resBancos, error: e1 } = await chamarSupabase(
+   const { data: resBancos } = await chamarSupabase(
       _supabase.from('cartoes').select('*').eq('usuario', eu()).order('nome'), 'Erro ao carregar bancos'
    );
-   const { data: resCats, error: e2 } = await chamarSupabase(
+   const { data: resCats } = await chamarSupabase(
       _supabase.from('categorias').select('*').eq('usuario', eu()).order('nome'), 'Erro ao carregar categorias'
    );
-   const { data: resSals, error: e3 } = await chamarSupabase(
+   const { data: resSals } = await chamarSupabase(
       _supabase.from('salarios').select('*').eq('usuario', eu()), 'Erro ao carregar salários'
    );
    cacheBancos = resBancos || [];
    cacheCategorias = resCats || [];
    cacheSalarios = resSals || [];
 
-   const mes = parseInt(document.getElementById('sel-mes').value), ano = parseInt(document.getElementById('sel-ano').value);
+   const mes = parseInt(document.getElementById('sel-mes').value);
+   const ano = parseInt(document.getElementById('sel-ano').value);
    const cartaoSelecionado = filtroCartao ? cacheBancos.find(c => c.id === filtroCartao) : null;
-   const { inicio, fim } = calcularPeriodoCartao(cartaoSelecionado?.dia_fechamento || null, mes, ano);
-   const dInicio = inicio.toISOString(), dFim = fim.toISOString();
-   const { data: todasDoMes } = await chamarSupabase(
-      _supabase.from('despesas').select('*').eq('usuario', eu()).gte('data', dInicio).lte('data', dFim).order('data'),
-      'Erro ao carregar despesas do mês'
+
+   // Busca os registros e deixa cada despesa decidir sua competência. Isso permite
+   // somar cartões com fechamentos diferentes sem deslocar valores para o mês civil.
+   const { data: todasDespesas } = await chamarSupabase(
+      _supabase.from('despesas').select('*').eq('usuario', eu()).order('data'),
+      'Erro ao carregar despesas'
    );
+   const todasDaCompetencia = (todasDespesas || []).filter(d => pertenceACompetencia(d, ano, mes));
+
    const elPeriodo = document.getElementById('periodo-exibido');
    if (cartaoSelecionado?.dia_fechamento) {
-      let texto = `Ciclo da fatura: ${inicio.toLocaleDateString('pt-BR')} a ${fim.toLocaleDateString('pt-BR')}`;
+      const { inicio, fim } = calcularPeriodoCartao(cartaoSelecionado.dia_fechamento, mes, ano);
+      let texto = `Competência: ${mesesNomes[mes]} / ${ano} · ciclo atual: ${inicio.toLocaleDateString('pt-BR')} a ${fim.toLocaleDateString('pt-BR')}`;
       const restantes = diasParaFechar(fim, new Date());
       if (restantes !== null) texto += ` · faltam ${restantes} dia${restantes === 1 ? '' : 's'} pra fechar`;
       elPeriodo.textContent = texto;
+   } else if (cartaoSelecionado) {
+      elPeriodo.textContent = `Competência: ${mesesNomes[mes]} / ${ano} · mês civil`;
    } else {
       elPeriodo.textContent = '';
    }
 
-   renderBancosLists(cacheBancos); renderSelects(cacheBancos, cacheCategorias); renderConfigLists(cacheBancos, cacheCategorias, cacheSalarios);
+   renderBancosLists(cacheBancos);
+   renderSelects(cacheBancos, cacheCategorias);
+   renderConfigLists(cacheBancos, cacheCategorias, cacheSalarios);
+
    if (filtroCartao) {
       document.getElementById('view-relatorio').style.display = 'block';
       document.getElementById('view-placeholder').style.display = 'none';
-      let dTab = (todasDoMes || []).filter(d => d.cartao_id === filtroCartao);
+      let dTab = todasDaCompetencia.filter(d => d.cartao_id === filtroCartao);
       if (filtroParcelado) dTab = dTab.filter(d => d.is_parcelado);
       dTabSemBusca = dTab;
-      renderTabela(aplicarBuscaDescricao(dTab)); calcularResumo(todasDoMes || [], filtroCartao);
+      renderTabela(aplicarBuscaDescricao(dTab));
+      calcularResumo(todasDaCompetencia, filtroCartao);
    } else {
       document.getElementById('view-relatorio').style.display = 'none';
       document.getElementById('view-placeholder').style.display = 'block';
@@ -2067,18 +2215,18 @@ async function salvarSalario() {
 }
 
 async function gerarResumoAnual() {
-   const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-anual');
+   const ano = Number(document.getElementById('sel-ano').value), corpo = document.getElementById('corpo-anual');
    abrirModal('modal-anual');
    corpo.innerHTML = '<p class="text-center font-black text-slate-400 p-10 uppercase text-[10px]">Carregando...</p>';
    const { data, error } = await chamarSupabase(
-      _supabase.from('despesas').select('*').eq('usuario', eu()).gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`),
+      _supabase.from('despesas').select('*').eq('usuario', eu()),
       'Erro ao carregar resumo anual'
    );
    if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível carregar</p>'; return; }
    const pessoais = somenteDespesasPessoais(data || []);
    let h = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2"><div class="w-1/4">Mês</div><div class="w-1/4 text-center">Fixas</div><div class="w-1/4 text-center">Normais</div><div class="w-1/4 text-right">Total</div></div>`;
    mesesNomes.forEach((n, i) => {
-      const dM = pessoais.filter(d => new Date(d.data).getUTCMonth() === i);
+      const dM = pessoais.filter(d => pertenceACompetencia(d, ano, i));
       const tF = dM.filter(d => d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
       const tN = dM.filter(d => !d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
       h += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${n}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${fmtBRL(tF)}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${fmtBRL(tN)}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${fmtBRL(tF+tN)}</span></div>`;
@@ -2087,39 +2235,45 @@ async function gerarResumoAnual() {
 }
 
 async function gerarAnaliseGastos() {
-   const ano = document.getElementById('sel-ano').value, corpo = document.getElementById('corpo-analise');
+   const ano = Number(document.getElementById('sel-ano').value), corpo = document.getElementById('corpo-analise');
    abrirModal('modal-analise');
    corpo.innerHTML = '<p class="text-center font-black text-slate-400 p-10 uppercase text-[10px]">Calculando...</p>';
    const { data: gastos, error } = await chamarSupabase(
-      _supabase.from('despesas').select('*').eq('usuario', eu()).gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`),
+      _supabase.from('despesas').select('*').eq('usuario', eu()),
       'Erro ao calcular análise de gastos'
    );
    if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível calcular</p>'; return; }
+
    const pessoais = somenteDespesasPessoais(gastos || []);
-   let h = '';
+   let h = '<p style="font-size:0.62rem;color:#64748b;font-weight:700;text-align:center;margin:0 0 1rem;">Cada despesa é atribuída automaticamente à competência do respectivo cartão.</p>';
    mesesNomes.forEach((n, i) => {
-      const tG = pessoais.filter(d => new Date(d.data).getUTCMonth() === i).reduce((a, b) => a + Number(b.valor), 0) || 0;
+      const despesasMes = pessoais.filter(d => pertenceACompetencia(d, ano, i));
+      const tG = despesasMes.reduce((a, b) => a + Number(b.valor), 0) || 0;
       const salData = cacheSalarios.find(s => s.mes_ano === `${ano}-${i}`);
       const valorSal = salData ? Number(salData.valor) : 0;
       const sobra = valorSal - tG;
-      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${fmtBRL(valorSal)}</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS PESSOAIS: R$ ${fmtBRL(tG)}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${fmtBRL(sobra)}</p></div></div>`;
+      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${fmtBRL(valorSal)}</p><p class="text-[8px] font-bold text-slate-400">${despesasMes.length} lançamento${despesasMes.length === 1 ? '' : 's'} na competência</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS PESSOAIS: R$ ${fmtBRL(tG)}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${fmtBRL(sobra)}</p></div></div>`;
    });
    corpo.innerHTML = h;
 }
 
 async function gerarResumoCategoriasAnual() {
-   const ano = document.getElementById('sel-ano').value, mesSel = document.getElementById('sel-cat-mes').value, corpo = document.getElementById('corpo-cat-anual');
+   const ano = Number(document.getElementById('sel-ano').value), mesSel = document.getElementById('sel-cat-mes').value, corpo = document.getElementById('corpo-cat-anual');
    abrirModal('modal-cat-anual');
    corpo.innerHTML = '<p class="text-center font-black text-slate-400 p-10 uppercase text-[10px]">Agrupando...</p>';
-   let dIn = `${ano}-01-01`, dFi = `${ano}-12-31`;
-   if (mesSel !== 'todos') { dIn = new Date(ano, mesSel, 1).toISOString(); dFi = new Date(ano, parseInt(mesSel) + 1, 0, 23, 59, 59).toISOString(); }
    const { data: gastos, error } = await chamarSupabase(
-      _supabase.from('despesas').select('valor, categoria_id, de_terceiro').eq('usuario', eu()).gte('data', dIn).lte('data', dFi),
+      _supabase.from('despesas').select('*').eq('usuario', eu()),
       'Erro ao agrupar categorias'
    );
    if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível agrupar</p>'; return; }
+
+   let pessoais = somenteDespesasPessoais(gastos || []);
+   pessoais = mesSel === 'todos'
+      ? pessoais.filter(g => chaveCompetenciaDespesa(g).startsWith(`${ano}-`))
+      : pessoais.filter(g => pertenceACompetencia(g, ano, Number(mesSel)));
+
    const agrupado = {};
-   somenteDespesasPessoais(gastos || []).forEach(g => { agrupado[g.categoria_id] = (agrupado[g.categoria_id] || 0) + Number(g.valor); });
+   pessoais.forEach(g => { agrupado[g.categoria_id] = (agrupado[g.categoria_id] || 0) + Number(g.valor); });
    const entradas = Object.entries(agrupado).sort((a,b) => b[1] - a[1]);
    const maxValor = entradas.length ? entradas[0][1] : 0;
    const cores = ['#2563eb','#059669','#ea580c','#dc2626','#7c3aed','#0891b2','#ca8a04','#db2777'];
@@ -2128,15 +2282,7 @@ async function gerarResumoCategoriasAnual() {
       const catNome = cacheCategorias.find(c => c.id == id)?.nome || 'Sem Categoria';
       const pct = maxValor > 0 ? Math.max(4, Math.round((total / maxValor) * 100)) : 0;
       const cor = cores[i % cores.length];
-      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-         <div class="flex justify-between items-center mb-2">
-            <span class="font-black text-[10px] uppercase text-slate-600">${iconeCategoria(catNome)} ${escapeHtml(catNome)}</span>
-            <span class="font-black text-blue-700">R$ ${fmtBRL(total)}</span>
-         </div>
-         <div style="background:#e2e8f0; border-radius:9999px; height:8px; overflow:hidden;">
-            <div style="width:${pct}%; height:100%; background:${cor}; border-radius:9999px;"></div>
-         </div>
-      </div>`;
+      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100"><div class="flex justify-between items-center mb-2"><span class="font-black text-[10px] uppercase text-slate-600">${iconeCategoria(catNome)} ${escapeHtml(catNome)}</span><span class="font-black text-blue-700">R$ ${fmtBRL(total)}</span></div><div style="background:#e2e8f0; border-radius:9999px; height:8px; overflow:hidden;"><div style="width:${pct}%; height:100%; background:${cor}; border-radius:9999px;"></div></div></div>`;
    });
    corpo.innerHTML = h || '<p class="text-center text-[10px] font-black text-slate-400 py-10 uppercase">Nenhum gasto pessoal encontrado</p>';
 }
@@ -2149,7 +2295,8 @@ let cacheParcelasAndamentoPorMes = {};
 function agruparParcelasPorMes(parcelas) {
    const porMes = {};
    parcelas.forEach(p => {
-      const chave = p.data.slice(0, 7); // 'YYYY-MM'
+      const chave = p.competencia_chave || chaveCompetenciaDespesa(p);
+      if (!chave) return;
       if (!porMes[chave]) porMes[chave] = { total: 0, itens: [] };
       porMes[chave].total += Number(p.valor);
       porMes[chave].itens.push(p);
@@ -2164,13 +2311,17 @@ async function gerarParcelasAndamento() {
 
    const hojeISO = hojeLocalISO();
    const { data: parcelas, error } = await chamarSupabase(
-      _supabase.from('despesas').select('id, descricao, valor, data, de_terceiro').eq('usuario', eu())
+      _supabase.from('despesas').select('id, descricao, valor, data, cartao_id, competencia_fatura, dia_fechamento_aplicado, de_terceiro').eq('usuario', eu())
          .not('grupo_id', 'is', null).gte('data', hojeISO + 'T00:00:00').order('data'),
       'Erro ao carregar parcelas em andamento'
    );
    if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível carregar</p>'; return; }
 
-   const normalizadas = somenteDespesasPessoais(parcelas || []).map(p => ({ ...p, data: new Date(p.data).toISOString().slice(0, 10) }));
+   const normalizadas = somenteDespesasPessoais(parcelas || []).map(p => ({
+      ...p,
+      data: new Date(p.data).toISOString().slice(0, 10),
+      competencia_chave: chaveCompetenciaDespesa(p)
+   }));
    const porMes = agruparParcelasPorMes(normalizadas);
    cacheParcelasAndamentoPorMes = porMes;
 
@@ -2239,7 +2390,7 @@ async function atualizarDiaFechamento(cartaoId, valorAtual) {
    if (novo === null) return; // cancelou
    const fechamento = novo.trim() ? Math.min(31, Math.max(1, parseInt(novo))) : null;
    const { error } = await chamarSupabase(_supabase.from('cartoes').update({ dia_fechamento: fechamento }).eq('id', cartaoId), 'Erro ao atualizar dia de fechamento');
-   if (!error) { mostrarToast('Dia de fechamento atualizado.', 'sucesso', 2000); await atualizarTudo(); }
+   if (!error) { mostrarToast('Dia de fechamento atualizado. Competências já gravadas foram preservadas.', 'sucesso', 3500); await atualizarTudo(); }
 }
 
 async function salvarItem(tab, inputId, btnId) {
@@ -2269,10 +2420,11 @@ function renderTabela(d) {
       const badgeTerceiro = terceiro
          ? `<span style="display:inline-block;font-size:0.55rem;color:#92400e;background:#fef3c7;border:1px solid #fde68a;border-radius:9999px;padding:0.12rem 0.45rem;margin-left:0.4rem;font-weight:900;text-transform:uppercase;">Terceiro${x.terceiro_nome ? ` · ${escapeHtml(x.terceiro_nome)}` : ''}</span>`
          : '';
+      const badgeCompetencia = `<span style="display:inline-block;font-size:0.53rem;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9999px;padding:0.1rem 0.4rem;margin-left:0.4rem;font-weight:800;">Comp. ${escapeHtml(formatarCompetenciaDespesa(x))}</span>`;
       return `
       <tr class="border-t" style="${terceiro ? 'background:#fffbeb;' : ''}">
          <td class="p-6 text-[9px] font-black uppercase">${new Date(x.data).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td>
-         <td class="p-6">${escapeHtml(x.descricao)}${badgeCat}${badgeTerceiro}</td>
+         <td class="p-6">${escapeHtml(x.descricao)}${badgeCat}${badgeTerceiro}${badgeCompetencia}</td>
          <td class="p-6 font-black" style="${terceiro ? 'color:#a16207;' : ''}">R$ ${fmtBRL(x.valor)}</td>
          <td class="p-6 text-center">
             <button onclick="abrirEdicaoDespesa('${x.id}')" aria-label="Editar lançamento" style="margin-right:0.75rem;"><i class="fas fa-pen text-slate-300"></i></button>
@@ -2370,6 +2522,7 @@ function montarLancamentos({ desc, valorTotal, dataBase, cartaoId, categoriaId, 
    const registros = [];
    for (let i = 0; i < q; i++) {
       const dV = adicionarMeses(dataBase + 'T12:00:00', i);
+      const competencia = calcularCompetenciaPorData(dV.toISOString(), cartaoId);
       registros.push({
          descricao: isParcelado ? `${desc} (${i + 1}/${q})` : desc,
          valor: valores[i],
@@ -2381,7 +2534,9 @@ function montarLancamentos({ desc, valorTotal, dataBase, cartaoId, categoriaId, 
          data: dV.toISOString(),
          usuario,
          de_terceiro: deTerceiro === true,
-         terceiro_nome: deTerceiro === true ? String(terceiroNome || '').trim() : null
+         terceiro_nome: deTerceiro === true ? String(terceiroNome || '').trim() : null,
+         competencia_fatura: competencia.competencia_fatura,
+         dia_fechamento_aplicado: competencia.dia_fechamento_aplicado
       });
    }
    return registros;
@@ -2394,6 +2549,9 @@ function abrirNovoLancamento() {
    edicaoDespesaGrupoId = null;
    edicaoDespesaSufixo = null;
    edicaoDespesaDataOriginal = null;
+   edicaoDespesaCartaoOriginal = null;
+   edicaoDespesaCompetenciaOriginal = null;
+   edicaoDespesaFechamentoOriginal = null;
    categoriaEscolhidaManualmente = false;
    document.getElementById('dica-sugestao-cat').style.display = 'none';
    document.getElementById('titulo-modal-lancar').textContent = 'Novo Gasto';
@@ -2406,6 +2564,7 @@ function abrirNovoLancamento() {
    document.getElementById('f-terceiro').checked = false;
    document.getElementById('box-terceiro').style.display = 'none';
    document.getElementById('box-qtd').style.display = 'none';
+   atualizarPreviaCompetenciaFormulario(false);
    abrirModal('modal-lancar');
 }
 
@@ -2419,6 +2578,10 @@ function abrirEdicaoDespesa(id) {
    edicaoDespesaGrupoId = item.grupo_id || null;
    edicaoDespesaSufixo = extrairSufixoParcela(item.descricao);
    edicaoDespesaDataOriginal = item.data;
+   edicaoDespesaCartaoOriginal = item.cartao_id || null;
+   const competenciaOriginal = obterCompetenciaEfetiva(item);
+   edicaoDespesaCompetenciaOriginal = competenciaOriginal.competencia_fatura;
+   edicaoDespesaFechamentoOriginal = competenciaOriginal.dia_fechamento_aplicado;
    categoriaEscolhidaManualmente = true;
    document.getElementById('dica-sugestao-cat').style.display = 'none';
    document.getElementById('titulo-modal-lancar').textContent = 'Editar Gasto';
@@ -2432,6 +2595,7 @@ function abrirEdicaoDespesa(id) {
    document.getElementById('f-terceiro').checked = ehDespesaDeTerceiro(item);
    document.getElementById('f-terceiro-nome').value = item.terceiro_nome || '';
    document.getElementById('box-terceiro').style.display = ehDespesaDeTerceiro(item) ? 'block' : 'none';
+   atualizarPreviaCompetenciaFormulario(true);
    abrirModal('modal-lancar');
 }
 
@@ -2453,18 +2617,28 @@ async function confirmarLancamento() {
       await comBotaoOcupado('btn-confirmar-lancamento', 'Salvando...', async () => {
          if (escopo === 'unica') {
             const descFinal = edicaoDespesaSufixo ? `${d} ${edicaoDespesaSufixo}` : d;
+            const dataOriginalISO = String(edicaoDespesaDataOriginal || '').slice(0, 10);
+            const mudouDataOuCartao = dt !== dataOriginalISO || String(c || '') !== String(edicaoDespesaCartaoOriginal || '');
+            const competencia = mudouDataOuCartao
+               ? calcularCompetenciaPorData(dt, c)
+               : {
+                  competencia_fatura: edicaoDespesaCompetenciaOriginal || calcularCompetenciaPorData(dt, c).competencia_fatura,
+                  dia_fechamento_aplicado: edicaoDespesaFechamentoOriginal
+               };
             const { error } = await chamarSupabase(
                _supabase.from('despesas').update({
                   descricao: descFinal, valor: round2(v), data: new Date(dt + 'T12:00:00').toISOString(),
                   cartao_id: c || null, categoria_id: ct || null,
-                  de_terceiro: deTerceiro, terceiro_nome: terceiroNome
+                  de_terceiro: deTerceiro, terceiro_nome: terceiroNome,
+                  competencia_fatura: competencia.competencia_fatura,
+                  dia_fechamento_aplicado: competencia.dia_fechamento_aplicado
                }).eq('id', edicaoDespesaId),
-               'Erro ao salvar edição. Confirme se as colunas de terceiro foram criadas no Supabase.'
+               'Erro ao salvar edição. Confirme se as colunas de terceiro e competência foram criadas no Supabase.'
             );
             if (error) return;
             mostrarToast('Lançamento atualizado.', 'sucesso', 2000);
          } else {
-            let query = _supabase.from('despesas').select('id, descricao').eq('usuario', eu()).eq('grupo_id', edicaoDespesaGrupoId);
+            let query = _supabase.from('despesas').select('id, descricao, data, cartao_id, competencia_fatura, dia_fechamento_aplicado').eq('usuario', eu()).eq('grupo_id', edicaoDespesaGrupoId);
             if (escopo === 'futuras') query = query.gte('data', edicaoDespesaDataOriginal);
             const { data: linhas, error: errFetch } = await chamarSupabase(query, 'Erro ao buscar parcelas do grupo');
             if (errFetch) return;
@@ -2472,10 +2646,16 @@ async function confirmarLancamento() {
             const resultados = await Promise.all(linhas.map(l => {
                const suf = extrairSufixoParcela(l.descricao);
                const novaDesc = suf ? `${d} ${suf}` : d;
+               const mudouCartao = String(c || '') !== String(l.cartao_id || '');
+               const competencia = mudouCartao
+                  ? calcularCompetenciaPorData(l.data, c)
+                  : obterCompetenciaEfetiva(l);
                return chamarSupabase(
                   _supabase.from('despesas').update({
                      descricao: novaDesc, valor: round2(v), cartao_id: c || null, categoria_id: ct || null,
-                     de_terceiro: deTerceiro, terceiro_nome: terceiroNome
+                     de_terceiro: deTerceiro, terceiro_nome: terceiroNome,
+                     competencia_fatura: competencia.competencia_fatura,
+                     dia_fechamento_aplicado: competencia.dia_fechamento_aplicado
                   }).eq('id', l.id),
                   'Erro ao atualizar parcela'
                );
@@ -2488,6 +2668,7 @@ async function confirmarLancamento() {
          }
          cacheHistoricoCategorizacao = null;
          edicaoDespesaId = null; edicaoDespesaGrupoId = null; edicaoDespesaSufixo = null; edicaoDespesaDataOriginal = null;
+         edicaoDespesaCartaoOriginal = null; edicaoDespesaCompetenciaOriginal = null; edicaoDespesaFechamentoOriginal = null;
          fecharModais(); await atualizarTudo();
       });
       return;
@@ -2506,7 +2687,7 @@ async function confirmarLancamento() {
       });
       const { data: inserido, error } = await chamarSupabase(
          _supabase.from('despesas').insert(ins).select(),
-         'Erro ao salvar lançamento. Confirme se as colunas de terceiro foram criadas no Supabase.'
+         'Erro ao salvar lançamento. Confirme se as colunas de terceiro e competência foram criadas no Supabase.'
       );
       if (error) return;
       if (!inserido || inserido.length !== ins.length) {
