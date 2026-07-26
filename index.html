@@ -2,6 +2,23 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
+   <meta name="gemulo-build" content="2026.07.26.7">
+   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+   <meta http-equiv="Pragma" content="no-cache">
+   <meta http-equiv="Expires" content="0">
+   <script>
+      window.GEMULO_BUILD = '2026.07.26.7';
+      if ('serviceWorker' in navigator) {
+         navigator.serviceWorker.getRegistrations()
+            .then(registros => Promise.all(registros.map(r => r.unregister())))
+            .catch(() => {});
+      }
+      if ('caches' in window) {
+         caches.keys()
+            .then(chaves => Promise.all(chaves.map(chave => caches.delete(chave))))
+            .catch(() => {});
+      }
+   </script>
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>Painel Gemulo</title>
 
@@ -275,7 +292,7 @@
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:1.5rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos e verificação de duplicidades.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 1.5rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.7</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -758,7 +775,8 @@ function ehCandidatoNaoTransacaoItau(descricao) {
 
    // Depois de a regex usar "03/08" como suposta data da compra, a descrição
    // falsa começa com o restante do intervalo: "a 02/09".
-   if (/^a\s+\d{1,2}\s*\/\s*\d{1,2}\b/i.test(original)) return true;
+   if (/^(?:a\s+)?\(?\d{1,2}\s*\/\s*\d{1,2}\)?/i.test(original)) return true;
+   if (/^a\b/i.test(original) && /\d{1,2}\s*\/\s*\d{1,2}/i.test(original)) return true;
 
    const expressoesDeResumo = [
       'proxima fatura',
@@ -786,23 +804,88 @@ function ehCandidatoNaoTransacaoItau(descricao) {
    return expressoesDeResumo.some(expressao => n.includes(expressao));
 }
 
+
+// Separa o texto reconstruído pelo número da página.
+function separarPaginasTextoPdf(textoCompleto) {
+   const partes = String(textoCompleto || '').split(/\[\[PAGINA_(\d+)\]\]/g);
+   const paginas = [];
+
+   for (let i = 1; i < partes.length; i += 2) {
+      paginas.push({
+         numero: parseInt(partes[i]),
+         texto: partes[i + 1] || ''
+      });
+   }
+
+   // Compatibilidade com textos extraídos antes da inclusão dos marcadores.
+   if (paginas.length === 0) {
+      paginas.push({
+         numero: 1,
+         texto: String(textoCompleto || '')
+      });
+   }
+
+   return paginas;
+}
+
+// Localiza o início da seção meramente informativa de parcelas futuras.
+function indiceSecaoProximasFaturasItau(texto) {
+   const padroes = [
+      /Compras\s*parceladas\s*[-–—:]?\s*pr[oó]ximas?\s*faturas?/i,
+      /Compras\s+parc\.\s*[-–—:]?\s*c\/?\s*juros/i,
+      /Pr[oó]xima\s+fatura\s+[\d.]+,\d{2}/i,
+      /Demais\s+faturas\s+[\d.]+,\d{2}/i,
+      /Total\s+para\s+pr[oó]ximas?\s+faturas?/i
+   ];
+
+   const indices = padroes
+      .map(regex => String(texto || '').search(regex))
+      .filter(indice => indice >= 0);
+
+   return indices.length ? Math.min(...indices) : -1;
+}
+
+function fimSecaoLancamentosAtuaisItau(texto) {
+   const original = String(texto || '');
+   const totalAtual = /Total\s+dos\s+lan[çc]amentos\s+atuais\s+[\d.]+,\d{2}/i.exec(original);
+
+   if (totalAtual) {
+      return totalAtual.index + totalAtual[0].length;
+   }
+
+   const indiceFuturas = indiceSecaoProximasFaturasItau(original);
+   return indiceFuturas >= 0 ? indiceFuturas : original.length;
+}
+
+function obterTextoLancamentosAtuaisItau(textoCompleto) {
+   const paginas = separarPaginasTextoPdf(textoCompleto);
+   const trechos = [];
+
+   paginas.forEach(pagina => {
+      const normalizado = normalizarTexto(pagina.texto).replace(/\s+/g, ' ');
+
+      const possuiSecaoDeLancamentos =
+         normalizado.includes('lancamentos compras e saques') ||
+         normalizado.includes('lancamentos produtos e servicos') ||
+         normalizado.includes('lancamentos no cartao');
+
+      if (!possuiSecaoDeLancamentos) return;
+
+      const fim = fimSecaoLancamentosAtuaisItau(pagina.texto);
+      trechos.push(pagina.texto.slice(0, fim));
+   });
+
+   return trechos.join('\n');
+}
+
 function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, dataEmissaoISO) {
-   // Lê somente a parte ANTERIOR ao cabeçalho "Compras parceladas - próximas faturas".
-   // A busca é feita linha por linha e com texto normalizado, pois o PDF pode alterar
-   // acentos, espaços ou acrescentar outra coluna na mesma linha do cabeçalho.
-   const todasLinhas = String(textoCompleto || '')
+   // Lê somente as páginas que contêm lançamentos atuais e corta a seção
+   // "Compras parceladas - próximas faturas" dentro da própria página.
+   const trechoAtual = obterTextoLancamentosAtuaisItau(textoCompleto);
+   const linhas = trechoAtual
       .split('\n')
       .map(l => l.trim())
       .filter(Boolean);
-
-   const indiceProximasFaturas = todasLinhas.findIndex(linha => {
-      const n = normalizarTexto(linha).replace(/\s+/g, ' ');
-      return n.includes('compras parceladas') && n.includes('proximas faturas');
-   });
-
-   const linhas = indiceProximasFaturas >= 0
-      ? todasLinhas.slice(0, indiceProximasFaturas)
-      : todasLinhas;
 
    // Uma linha do PDF pode conter uma compra de cada coluna. O regex encontra todas.
    // Captura cada lançamento desde DD/MM até o PRIMEIRO valor monetário.
@@ -850,28 +933,14 @@ function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, d
             ? infoParcela.base
             : infoParcela.descricao;
 
-         // Uma linha comum cujo mês esteja depois do mês de emissão não pertence
-         // aos lançamentos atuais. No Itaú isso ocorre no intervalo informativo
-         // "03/08 a 02/09", que fica ao lado de "Próxima fatura: 306,79".
-         //
-         // Compras parceladas antigas continuam permitidas, pois trazem o sufixo
-         // da parcela (por exemplo, 09/12) e são cobradas na fatura atual.
-         if (!ehParcelaCobrada && mes > mesEmissao) {
-            continue;
-         }
-
          const anoTransacao = inferirAnoFatura(mes, mesEmissao, anoEmissao);
          const dataOriginalISO = `${anoTransacao}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
          const dataOriginal = dataISOLocal(dataOriginalISO);
 
-         if (dataOriginal && emissao && dataOriginal > emissao) {
-            continue;
-         }
-
-         // Parcela e crédito antigos pertencem à fatura atual. Compras normais que
+         // Parcela e crédito antigo pertencem à fatura atual. Compras normais que
          // realmente estão dentro do ciclo preservam a data indicada no PDF.
          const foraDoCiclo = !dataOriginal || !inicioCiclo || !emissao ||
-            dataOriginal < inicioCiclo;
+            dataOriginal < inicioCiclo || dataOriginal > emissao;
          const dataISO = (ehParcelaCobrada || foraDoCiclo) && dataEmissaoISO
             ? dataEmissaoISO
             : dataOriginalISO;
@@ -887,53 +956,24 @@ function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, d
             parcelaItau: ehParcelaCobrada ? {
                atual: infoParcela.atual,
                total: infoParcela.total
-            } : null
+            } : null,
+            linhaOrigemItau: linha
          });
       }
    });
 
-   // Não elimina lançamentos repetidos por nome, valor ou data.
-   // Tudo o que aparece depois do cabeçalho de próximas faturas já foi descartado.
-   return resultado;
-}
-
-
-
-// Extrai valores meramente informativos das próximas faturas.
-// Eles nunca são compras atuais e não podem integrar a importação.
-function extrairValoresResumoFuturoItau(textoCompleto) {
-   const valores = [];
-   const padroes = [
-      /Pr[oó]xima fatura\s+R?\$?\s*([\d.]+,\d{2})/i,
-      /Demais faturas\s+R?\$?\s*([\d.]+,\d{2})/i,
-      /Total para pr[oó]ximas faturas\s+R?\$?\s*([\d.]+,\d{2})/i
-   ];
-
-   padroes.forEach(regex => {
-      const m = String(textoCompleto || '').match(regex);
-      if (!m) return;
-      const valor = round2(parseValorMoeda(m[1]));
-      if (Number.isFinite(valor)) valores.push(valor);
-   });
-
-   return valores;
-}
-
-function removerResumosFuturosItau(itens, textoCompleto, dataEmissaoISO) {
-   const valoresResumo = extrairValoresResumoFuturoItau(textoCompleto);
-   const emissao = dataISOLocal(dataEmissaoISO);
-
-   return (itens || []).filter(item => {
-      const dataOriginal = dataISOLocal(item.dataOriginalItau);
-      const valorEhResumo = valoresResumo.some(v => round2(v) === round2(item.valor));
-      const dataPosterior = dataOriginal && emissao && dataOriginal > emissao;
-      const descricaoResumo = ehCandidatoNaoTransacaoItau(item.descricao);
-
-      // Só exclui por valor quando existe também um sinal estrutural de resumo.
-      // Assim, uma compra real que por coincidência tenha o mesmo valor é preservada.
-      return !(valorEhResumo && (dataPosterior || descricaoResumo));
+   // Segurança final contra resumos informativos misturados à mesma linha.
+   return resultado.filter(item => {
+      const origem = normalizarTexto(item.linhaOrigemItau || '').replace(/\s+/g, ' ');
+      return !(
+         origem.includes('proxima fatura') ||
+         origem.includes('demais faturas') ||
+         origem.includes('total para proximas faturas') ||
+         origem.includes('compras parceladas proximas faturas')
+      );
    });
 }
+
 
 // Lê o total oficial informado no resumo da fatura do Itaú.
 // É usado para impedir que uma extração incompleta seja importada silenciosamente.
@@ -966,24 +1006,54 @@ function processarFaturaPorModelo(textoCompleto, modelo, referencia) {
 async function extrairTextoPdf(arrayBuffer) {
    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
    const todasLinhas = [];
+
    for (let p = 1; p <= pdf.numPages; p++) {
+      // O marcador permite que cada modelo de fatura leia somente as páginas
+      // e seções que realmente contêm lançamentos.
+      todasLinhas.push(`[[PAGINA_${p}]]`);
+
       const page = await pdf.getPage(p);
       const content = await page.getTextContent();
       const linhas = {}; // chaveado por Y arredondado (com tolerância)
+
       content.items.forEach(item => {
          const y = item.transform[5];
          let chave = null;
-         for (const k in linhas) { if (Math.abs(k - y) < 3) { chave = k; break; } }
-         if (chave === null) { chave = y; linhas[chave] = []; }
-         linhas[chave].push({ x: item.transform[4], texto: item.str });
+
+         for (const k in linhas) {
+            if (Math.abs(k - y) < 3) {
+               chave = k;
+               break;
+            }
+         }
+
+         if (chave === null) {
+            chave = y;
+            linhas[chave] = [];
+         }
+
+         linhas[chave].push({
+            x: item.transform[4],
+            texto: item.str
+         });
       });
-      const ysOrdenados = Object.keys(linhas).map(Number).sort((a, b) => b - a); // topo da página primeiro
+
+      const ysOrdenados = Object.keys(linhas)
+         .map(Number)
+         .sort((a, b) => b - a); // topo da página primeiro
+
       ysOrdenados.forEach(y => {
          const itens = linhas[y].sort((a, b) => a.x - b.x);
-         const linhaTexto = itens.map(it => it.texto).join(' ').replace(/\s+/g, ' ').trim();
+         const linhaTexto = itens
+            .map(it => it.texto)
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
          if (linhaTexto) todasLinhas.push(linhaTexto);
       });
    }
+
    return todasLinhas.join('\n');
 }
 
@@ -1284,7 +1354,7 @@ async function processarArquivoFatura(arquivo) {
                `<span style="color:#b91c1c;font-weight:900;">Total da fatura: R$ ${fmtBRL(totalOficial)} · ` +
                `Total reconhecido: R$ ${fmtBRL(totalExtraido)} · ` +
                `Diferença: R$ ${fmtBRL(diferenca)}</span><br>` +
-               `<span style="font-size:0.62rem;">${tipoDivergencia} Nenhum lançamento foi importado.</span>`;
+               `<span style="font-size:0.62rem;">${tipoDivergencia} Nenhum lançamento foi importado. Use a versão atualizada do painel e recarregue a página.</span>`;
             document.getElementById('imp-revisao').style.display = 'none';
             return;
          }
@@ -1367,7 +1437,11 @@ async function processarArquivoFatura(arquivo) {
       ));
       const nomeModelo = modelo === 'itau-pao-de-acucar' ? 'Itaú Pão de Açúcar' : 'Nubank';
 
+      const totalReconhecido = round2(daFatura.reduce((soma, item) => soma + Number(item.valor || 0), 0));
       let msg = `${nomeModelo}: ${daFatura.length} transações encontradas — ${qtdJaLancadas} já estavam lançadas, ${novas.length} são novas`;
+      if (modelo === 'itau-pao-de-acucar') {
+         msg += `<br><span style="color:#065f46;font-weight:900;">Conferência dos lançamentos atuais: R$ ${fmtBRL(totalReconhecido)}</span>`;
+      }
       if (qtdSuspeitas > 0) msg += `<br><span style="color:#b45309;">⚠️ ${qtdSuspeitas} podem já ter sido lançadas manualmente com outro texto — revise antes de confirmar.</span>`;
       if (atualizacoesSilenciosas.length > 0) msg += `<br><span style="color:#0891b2;">🔄 ${atualizacoesSilenciosas.length} parcela(s) já projetada(s) tiveram data/valor confirmados com a fatura real.</span>`;
       if (qtdComProjecao > 0) msg += `<br><span style="color:#7c3aed;">📅 ${qtdComProjecao} compra(s) parcelada(s) vão gerar ${qtdParcelasFuturas} parcela(s) futura(s), no total de R$ ${fmtBRL(valorParcelasFuturas)}.</span>`;
@@ -2527,13 +2601,7 @@ async function excluirManutencao(id) {
    }
 }
 
-// Registra o service worker do PWA. Se o arquivo for aberto localmente (file://)
-// ou o navegador não suportar, isso falha silenciosamente e o app funciona normal.
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-   window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => { /* PWA é opcional, ignora erro */ });
-   });
-}
+// Service worker desativado nesta versão para não reutilizar um importador antigo.
 
 // Tenta restaurar a sessão da aba (se houver) assim que a página carrega.
 restaurarSessao();
