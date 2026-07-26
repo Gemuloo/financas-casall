@@ -787,10 +787,22 @@ function ehCandidatoNaoTransacaoItau(descricao) {
 }
 
 function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, dataEmissaoISO) {
-   // Apenas os lançamentos atuais entram na importação. A seção de próximas faturas
-   // serve como conferência, mas não é importada novamente para não duplicar parcelas.
-   const trechoAtual = textoCompleto.split(/Compras\s+parceladas\s*-\s*pr[oó]ximas\s+faturas/i)[0];
-   const linhas = trechoAtual.split('\n').map(l => l.trim()).filter(Boolean);
+   // Lê somente a parte ANTERIOR ao cabeçalho "Compras parceladas - próximas faturas".
+   // A busca é feita linha por linha e com texto normalizado, pois o PDF pode alterar
+   // acentos, espaços ou acrescentar outra coluna na mesma linha do cabeçalho.
+   const todasLinhas = String(textoCompleto || '')
+      .split('\n')
+      .map(l => l.trim())
+      .filter(Boolean);
+
+   const indiceProximasFaturas = todasLinhas.findIndex(linha => {
+      const n = normalizarTexto(linha).replace(/\s+/g, ' ');
+      return n.includes('compras parceladas') && n.includes('proximas faturas');
+   });
+
+   const linhas = indiceProximasFaturas >= 0
+      ? todasLinhas.slice(0, indiceProximasFaturas)
+      : todasLinhas;
 
    // Uma linha do PDF pode conter uma compra de cada coluna. O regex encontra todas.
    // Captura cada lançamento desde DD/MM até o PRIMEIRO valor monetário.
@@ -838,15 +850,20 @@ function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, d
             ? infoParcela.base
             : infoParcela.descricao;
 
+         // Uma linha comum cujo mês esteja depois do mês de emissão não pertence
+         // aos lançamentos atuais. No Itaú isso ocorre no intervalo informativo
+         // "03/08 a 02/09", que fica ao lado de "Próxima fatura: 306,79".
+         //
+         // Compras parceladas antigas continuam permitidas, pois trazem o sufixo
+         // da parcela (por exemplo, 09/12) e são cobradas na fatura atual.
+         if (!ehParcelaCobrada && mes > mesEmissao) {
+            continue;
+         }
+
          const anoTransacao = inferirAnoFatura(mes, mesEmissao, anoEmissao);
          const dataOriginalISO = `${anoTransacao}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
          const dataOriginal = dataISOLocal(dataOriginalISO);
 
-         // Uma compra da fatura fechada nunca pode ter ocorrido depois da emissão.
-         // O Itaú exibe intervalos como "03/08 a 02/09" ao lado de "Próxima fatura".
-         // Quando o PDF mistura as colunas, esse intervalo pode parecer uma compra de
-         // R$ 306,79. Candidatos com data posterior à emissão são, portanto, resumos
-         // ou projeções e devem ser descartados, nunca remanejados para a data da emissão.
          if (dataOriginal && emissao && dataOriginal > emissao) {
             continue;
          }
@@ -876,9 +893,8 @@ function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, d
    });
 
    // Não elimina lançamentos repetidos por nome, valor ou data.
-   // Duas compras iguais na mesma fatura são duas ocorrências legítimas.
-   // Remove somente resumos comprovadamente futuros.
-   return removerResumosFuturosItau(resultado, textoCompleto, dataEmissaoISO);
+   // Tudo o que aparece depois do cabeçalho de próximas faturas já foi descartado.
+   return resultado;
 }
 
 
