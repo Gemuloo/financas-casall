@@ -726,8 +726,11 @@ function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, d
    const linhas = trechoAtual.split('\n').map(l => l.trim()).filter(Boolean);
 
    // Uma linha do PDF pode conter uma compra de cada coluna. O regex encontra todas.
+   // Captura cada lançamento desde DD/MM até o PRIMEIRO valor monetário.
+   // Não exige mais uma palavra específica depois do valor, porque o PDF do Itaú
+   // pode colocar cabeçalhos ou a outra coluna logo após a compra.
    const REGEX_TRANSACAO =
-      /(?:^|\s)(\d{2})\/(\d{2})\s+(.+?)\s+([-−]?\s*\d{1,3}(?:\.\d{3})*,\d{2})(?=\s+\d{2}\/\d{2}\s+|\s+[A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-Za-zÁÉÍÓÚáéíóúÂÊÔâêôÃÕãõÇç]|\s+Lançamentos|\s+Os\s+|\s+Limite|\s+Juros|\s+CET|\s+Valor|\s+Quantidade|\s+Próxima|\s+Demais|\s+Total|$)/gi;
+      /(?:^|\s)(\d{2})\/(\d{2})\s+(.+?)\s+([-−]?\s*\d{1,3}(?:\.\d{3})*,\d{2})/gi;
 
    const resultado = [];
    const emissao = dataISOLocal(dataEmissaoISO);
@@ -791,6 +794,17 @@ function processarFaturaItauPaoDeAcucar(textoCompleto, mesEmissao, anoEmissao, d
    });
 
    return removerComprasDasProximasFaturasItau(resultado);
+}
+
+
+// Lê o total oficial informado no resumo da fatura do Itaú.
+// É usado para impedir que uma extração incompleta seja importada silenciosamente.
+function extrairTotalOficialFaturaItau(textoCompleto) {
+   const m = textoCompleto.match(/Total desta fatura\s+R?\$?\s*([\d.]+,\d{2})/i);
+   if (!m) return null;
+
+   const valor = round2(parseValorMoeda(m[1]));
+   return Number.isFinite(valor) ? valor : null;
 }
 
 // Direciona a leitura para o parser correto sem alterar o fluxo posterior
@@ -1046,6 +1060,25 @@ async function processarArquivoFatura(arquivo) {
          document.getElementById('imp-status').textContent =
             'Não encontrei transações nesse PDF. O layout pode ser diferente do esperado.';
          return;
+      }
+
+      // No Itaú, confere se a soma extraída bate com o total oficial da fatura.
+      // Se não bater, a importação é interrompida para evitar salvar uma fatura incompleta.
+      if (modelo === 'itau-pao-de-acucar') {
+         const totalOficial = extrairTotalOficialFaturaItau(texto);
+         const totalExtraido = round2(daFatura.reduce((soma, item) => soma + Number(item.valor || 0), 0));
+
+         if (totalOficial !== null && Math.abs(totalOficial - totalExtraido) > 0.009) {
+            const diferenca = round2(totalOficial - totalExtraido);
+            document.getElementById('imp-status').innerHTML =
+               `A leitura ficou incompleta e foi interrompida.<br>` +
+               `<span style="color:#b91c1c;font-weight:900;">Total da fatura: R$ ${fmtBRL(totalOficial)} · ` +
+               `Total reconhecido: R$ ${fmtBRL(totalExtraido)} · ` +
+               `Diferença: R$ ${fmtBRL(diferenca)}</span><br>` +
+               `<span style="font-size:0.62rem;">Nenhum lançamento foi importado. Tente novamente com este arquivo atualizado.</span>`;
+            document.getElementById('imp-revisao').style.display = 'none';
+            return;
+         }
       }
 
       const datas = daFatura.map(t => t.data).sort();
