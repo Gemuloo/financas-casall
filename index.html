@@ -545,18 +545,27 @@ function processarFaturaNubank(textoCompleto, mesEmissao, anoEmissao) {
 
 // Identifica automaticamente qual modelo de fatura foi enviado.
 function identificarModeloFatura(textoCompleto) {
-   const n = normalizarTexto(textoCompleto);
+   // Compacta espaços e quebras de linha porque o PDF do Itaú pode distribuir
+   // as palavras da mesma expressão em posições/linhas diferentes.
+   const n = normalizarTexto(textoCompleto).replace(/\s+/g, ' ');
 
-   if (
-      n.includes('financeira itau cbd') &&
-      n.includes('lancamentos compras e saques')
-   ) {
+   const pareceItau =
+      n.includes('financeira itau cbd') ||
+      n.includes('banco itau');
+
+   const temEstruturaFaturaItau =
+      n.includes('total desta fatura') ||
+      n.includes('resumo da fatura em r') ||
+      n.includes('lancamentos atuais') ||
+      n.includes('lancamentos compras e saques');
+
+   if (pareceItau && temEstruturaFaturaItau) {
       return 'itau-pao-de-acucar';
    }
 
    if (
       n.includes('nubank') ||
-      /EMISS[ÃA]O E ENVIO\s+\d{2}\s[A-ZÇ]{3}\s+\d{4}/i.test(textoCompleto)
+      /EMISS[ÃA]O E ENVIO\s+\d{2}\s*[A-ZÇ]{3}\s+\d{4}/i.test(textoCompleto)
    ) {
       return 'nubank';
    }
@@ -859,11 +868,29 @@ async function processarArquivoFatura(arquivo) {
    try {
       const arrayBuffer = await arquivo.arrayBuffer();
       const texto = await extrairTextoPdf(arrayBuffer);
-      const modelo = identificarModeloFatura(texto);
+
+      // O banco selecionado também orienta o parser. Isso evita falhas quando
+      // a extração do PDF separa palavras ou omite algum cabeçalho visual.
+      const cartaoSelecionado = cacheBancos.find(c => String(c.id) === String(cartaoId));
+      const nomeCartao = normalizarTexto(cartaoSelecionado?.nome || '').replace(/\s+/g, ' ');
+
+      let modelo = null;
+
+      if (
+         nomeCartao.includes('pao de acucar') ||
+         nomeCartao.includes('itau pda') ||
+         nomeCartao.includes('itau pao')
+      ) {
+         modelo = 'itau-pao-de-acucar';
+      } else if (nomeCartao.includes('nubank')) {
+         modelo = 'nubank';
+      } else {
+         modelo = identificarModeloFatura(texto);
+      }
 
       if (!modelo) {
          document.getElementById('imp-status').textContent =
-            'Não reconheci este modelo de fatura. Use um PDF do Nubank ou do Itaú Pão de Açúcar.';
+            'Não reconheci este modelo de fatura. Confirme o banco selecionado e use um PDF do Nubank ou do Itaú Pão de Açúcar.';
          return;
       }
 
