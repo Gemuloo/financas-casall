@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.07.26.12.4">
+   <meta name="gemulo-build" content="2026.07.26.13">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.07.26.12.4';
+      window.GEMULO_BUILD = '2026.07.26.13';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -30,6 +30,14 @@
    <meta name="apple-mobile-web-app-capable" content="yes">
    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
    <meta name="apple-mobile-web-app-title" content="Gemulo">
+   <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
+   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+   <link rel="preconnect" href="https://rwowvvpobywtokcqfxve.supabase.co" crossorigin>
+   <link rel="dns-prefetch" href="//cdn.tailwindcss.com">
+   <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+   <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+   <link rel="dns-prefetch" href="//rwowvvpobywtokcqfxve.supabase.co">
    <script src="https://cdn.tailwindcss.com"></script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -374,7 +382,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.12.4</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.13</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -1444,7 +1452,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse PDF. Confirme que está usando o importador v2026.07.26.12.4.';
+            'Não encontrei transações nesse PDF. Confirme que está usando o importador v2026.07.26.13.';
          return;
       }
 
@@ -1700,7 +1708,7 @@ async function confirmarImportacaoFatura() {
       competenciaImportacaoAtual = null;
       fechamentoImportacaoAtual = null;
       fecharModais();
-      await atualizarTudo();
+      await atualizarTudo(true);
    });
 }
 
@@ -1946,8 +1954,23 @@ function fazerLogin() {
 }
 
 function limparCaches() {
-   cacheBancos = []; cacheCategorias = []; cacheSalarios = [];
-   cacheVeiculos = []; cacheAutoRegistros = [];
+   cacheBancos = [];
+   cacheCategorias = [];
+   cacheSalarios = [];
+   cacheDespesas = [];
+   cacheVeiculos = [];
+   cacheAutoRegistros = [];
+
+   mapaBancos = new Map();
+   mapaCategorias = new Map();
+   mapaSalarios = new Map();
+   mapaVeiculos = new Map();
+   cacheResumoCompetencias = new Map();
+
+   cacheFinanceiroPronto = false;
+   cacheFinanceiroUsuario = null;
+   cacheFinanceiroAtualizadoEm = 0;
+   promessaCargaFinanceiro = null;
 }
 
 function fazerLogout() {
@@ -2029,7 +2052,14 @@ let edicaoDespesaDataOriginal = null;
 let edicaoDespesaCartaoOriginal = null;
 let edicaoDespesaCompetenciaOriginal = null;
 let edicaoDespesaFechamentoOriginal = null;
-let cacheBancos = [], cacheCategorias = [], cacheSalarios = [];
+let cacheBancos = [], cacheCategorias = [], cacheSalarios = [], cacheDespesas = [];
+let mapaBancos = new Map(), mapaCategorias = new Map(), mapaSalarios = new Map();
+let cacheResumoCompetencias = new Map();
+let cacheFinanceiroPronto = false;
+let cacheFinanceiroUsuario = null;
+let cacheFinanceiroAtualizadoEm = 0;
+let promessaCargaFinanceiro = null;
+const CACHE_FINANCEIRO_TTL_MS = 120000;
 const mesesNomes = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 let datasSetadas = false;
 
@@ -2092,7 +2122,7 @@ function adicionarMesesCompetencia(competencia, quantidade) {
 }
 
 function obterCartaoPorId(cartaoId) {
-   return cacheBancos.find(c => String(c.id) === String(cartaoId || '')) || null;
+   return mapaBancos.get(String(cartaoId || '')) || null;
 }
 
 function calcularCompetenciaPorData(dataValor, cartaoId) {
@@ -2193,6 +2223,126 @@ function setupDatas() {
    });
 }
 
+
+function chaveCompetencia(ano, mesZero) {
+   return `${Number(ano)}-${String(Number(mesZero) + 1).padStart(2, '0')}`;
+}
+
+function reconstruirIndicesFinanceiros() {
+   mapaBancos = new Map(cacheBancos.map(item => [String(item.id), item]));
+   mapaCategorias = new Map(cacheCategorias.map(item => [String(item.id), item]));
+   mapaSalarios = new Map(cacheSalarios.map(item => [String(item.mes_ano), item]));
+
+   const resumo = new Map();
+   somenteDespesasPessoais(cacheDespesas).forEach(despesa => {
+      const chave = chaveCompetenciaDespesa(despesa);
+      if (!chave) return;
+
+      if (!resumo.has(chave)) {
+         resumo.set(chave, {
+            total: 0,
+            fixas: 0,
+            normais: 0,
+            quantidade: 0
+         });
+      }
+
+      const item = resumo.get(chave);
+      const valor = Number(despesa.valor || 0);
+      item.total += valor;
+      item.quantidade += 1;
+      if (despesa.is_fixa) item.fixas += valor;
+      else item.normais += valor;
+   });
+
+   cacheResumoCompetencias = resumo;
+}
+
+function cacheFinanceiroAindaValido() {
+   return (
+      cacheFinanceiroPronto &&
+      cacheFinanceiroUsuario === usuarioAtual?.login &&
+      Date.now() - cacheFinanceiroAtualizadoEm < CACHE_FINANCEIRO_TTL_MS
+   );
+}
+
+async function recarregarCacheFinanceiro(forcar = false) {
+   if (!usuarioAtual) return false;
+   if (!forcar && cacheFinanceiroAindaValido()) return true;
+
+   if (promessaCargaFinanceiro) {
+      await promessaCargaFinanceiro;
+      if (!forcar && cacheFinanceiroAindaValido()) return true;
+   }
+
+   const usuarioDaCarga = eu();
+
+   const cargaAtual = (async () => {
+      const [resBancos, resCats, resSals, resDespesas] = await Promise.all([
+         chamarSupabase(
+            _supabase.from('cartoes').select('*').eq('usuario', usuarioDaCarga).order('nome'),
+            'Erro ao carregar bancos'
+         ),
+         chamarSupabase(
+            _supabase.from('categorias').select('*').eq('usuario', usuarioDaCarga).order('nome'),
+            'Erro ao carregar categorias'
+         ),
+         chamarSupabase(
+            _supabase.from('salarios').select('*').eq('usuario', usuarioDaCarga),
+            'Erro ao carregar salários'
+         ),
+         chamarSupabase(
+            _supabase.from('despesas').select('*').eq('usuario', usuarioDaCarga).order('data'),
+            'Erro ao carregar despesas'
+         )
+      ]);
+
+      if (usuarioAtual?.login !== usuarioDaCarga) return false;
+
+      const houveErro = [resBancos, resCats, resSals, resDespesas].some(resultado => resultado.error);
+      if (houveErro) {
+         // Mantém o último cache válido, caso exista, evitando apagar a tela
+         // por uma falha temporária de rede.
+         return cacheFinanceiroPronto && cacheFinanceiroUsuario === usuarioDaCarga;
+      }
+
+      cacheBancos = resBancos.data || [];
+      cacheCategorias = resCats.data || [];
+      cacheSalarios = resSals.data || [];
+      cacheDespesas = resDespesas.data || [];
+
+      cacheFinanceiroPronto = true;
+      cacheFinanceiroUsuario = usuarioDaCarga;
+      cacheFinanceiroAtualizadoEm = Date.now();
+      reconstruirIndicesFinanceiros();
+      return true;
+   })();
+
+   promessaCargaFinanceiro = cargaAtual;
+
+   try {
+      return await cargaAtual;
+   } finally {
+      if (promessaCargaFinanceiro === cargaAtual) {
+         promessaCargaFinanceiro = null;
+      }
+   }
+}
+
+function obterResumoCompetencia(ano, mesZero) {
+   return cacheResumoCompetencias.get(chaveCompetencia(ano, mesZero)) || {
+      total: 0,
+      fixas: 0,
+      normais: 0,
+      quantidade: 0
+   };
+}
+
+function obterSalarioCompetencia(ano, mesZero) {
+   const registro = mapaSalarios.get(`${Number(ano)}-${Number(mesZero)}`);
+   return registro ? Number(registro.valor || 0) : 0;
+}
+
 function aplicarEstadoProjecaoRapida() {
    const area = document.querySelector('.finance-projection-area');
    const botao = document.getElementById('btn-toggle-projecao');
@@ -2227,13 +2377,17 @@ function mostrarProjecaoRapidaCarregando() {
 // Mostra o mês atual e os cinco meses seguintes.
 // O valor utiliza exatamente a mesma lógica da Projeção de Gastos:
 // salário cadastrado na competência menos despesas pessoais da competência.
-function renderProjecaoRapida(despesas) {
+function renderProjecaoRapida(despesas = cacheDespesas) {
    const container = document.getElementById('projecao-rapida-meses');
    if (!container) return;
 
-   const pessoais = somenteDespesasPessoais(despesas || []);
-   const hoje = new Date();
+   // Mantém compatibilidade caso a função seja chamada com uma lista externa.
+   if (despesas !== cacheDespesas) {
+      cacheDespesas = despesas || [];
+      reconstruirIndicesFinanceiros();
+   }
 
+   const hoje = new Date();
    const referencias = Array.from({ length: 6 }, (_, indice) => {
       const data = new Date(hoje.getFullYear(), hoje.getMonth() + indice, 1);
       return {
@@ -2244,21 +2398,20 @@ function renderProjecaoRapida(despesas) {
    });
 
    container.innerHTML = referencias.map(ref => {
-      const despesasMes = pessoais.filter(d => pertenceACompetencia(d, ref.ano, ref.mes));
-      const gastos = despesasMes.reduce((total, d) => total + Number(d.valor || 0), 0);
-      const salData = cacheSalarios.find(s => s.mes_ano === `${ref.ano}-${ref.mes}`);
-      const salario = salData ? Number(salData.valor || 0) : 0;
-      const disponivel = round2(salario - gastos);
+      const resumo = obterResumoCompetencia(ref.ano, ref.mes);
+      const salario = obterSalarioCompetencia(ref.ano, ref.mes);
+      const disponivel = round2(salario - resumo.total);
       const negativo = disponivel < 0;
+      const temSalario = mapaSalarios.has(`${ref.ano}-${ref.mes}`);
 
       let legenda = 'disponível para gastar';
-      if (!salData) legenda = 'salário não cadastrado';
+      if (!temSalario) legenda = 'salário não cadastrado';
       else if (negativo) legenda = 'acima do salário previsto';
 
       const titulo =
          `${mesesNomes[ref.mes]} de ${ref.ano}: ` +
          `salário R$ ${fmtBRL(salario)}, ` +
-         `gastos R$ ${fmtBRL(gastos)}, ` +
+         `gastos R$ ${fmtBRL(resumo.total)}, ` +
          `disponível R$ ${fmtBRL(disponivel)}.`;
 
       return `
@@ -2276,37 +2429,30 @@ function renderProjecaoRapida(despesas) {
          </button>
       `;
    }).join('');
+
    aplicarEstadoProjecaoRapida();
 }
 
-async function atualizarTudo() {
-   mostrarSkeleton('finance', true);
-   mostrarProjecaoRapidaCarregando();
-   const { data: resBancos } = await chamarSupabase(
-      _supabase.from('cartoes').select('*').eq('usuario', eu()).order('nome'), 'Erro ao carregar bancos'
-   );
-   const { data: resCats } = await chamarSupabase(
-      _supabase.from('categorias').select('*').eq('usuario', eu()).order('nome'), 'Erro ao carregar categorias'
-   );
-   const { data: resSals } = await chamarSupabase(
-      _supabase.from('salarios').select('*').eq('usuario', eu()), 'Erro ao carregar salários'
-   );
-   cacheBancos = resBancos || [];
-   cacheCategorias = resCats || [];
-   cacheSalarios = resSals || [];
+async function atualizarTudo(forcarRecarga = false) {
+   const precisaBuscar = forcarRecarga || !cacheFinanceiroAindaValido();
+
+   if (precisaBuscar) {
+      mostrarSkeleton('finance', true);
+      mostrarProjecaoRapidaCarregando();
+   }
+
+   const carregou = await recarregarCacheFinanceiro(forcarRecarga);
+   if (!carregou || !usuarioAtual) {
+      mostrarSkeleton('finance', false);
+      return;
+   }
 
    const mes = parseInt(document.getElementById('sel-mes').value);
    const ano = parseInt(document.getElementById('sel-ano').value);
-   const cartaoSelecionado = filtroCartao ? cacheBancos.find(c => c.id === filtroCartao) : null;
+   const cartaoSelecionado = filtroCartao ? obterCartaoPorId(filtroCartao) : null;
 
-   // Busca os registros e deixa cada despesa decidir sua competência. Isso permite
-   // somar cartões com fechamentos diferentes sem deslocar valores para o mês civil.
-   const { data: todasDespesas } = await chamarSupabase(
-      _supabase.from('despesas').select('*').eq('usuario', eu()).order('data'),
-      'Erro ao carregar despesas'
-   );
-   const todasDaCompetencia = (todasDespesas || []).filter(d => pertenceACompetencia(d, ano, mes));
-   renderProjecaoRapida(todasDespesas || []);
+   const todasDaCompetencia = cacheDespesas.filter(d => pertenceACompetencia(d, ano, mes));
+   renderProjecaoRapida();
 
    const elPeriodo = document.getElementById('periodo-exibido');
    if (cartaoSelecionado?.dia_fechamento) {
@@ -2329,8 +2475,10 @@ async function atualizarTudo() {
       document.getElementById('view-relatorio').style.display = 'block';
       document.getElementById('view-placeholder').style.display = 'none';
       document.getElementById('top-filtros-lancamento').style.display = 'flex';
-      let dTab = todasDaCompetencia.filter(d => d.cartao_id === filtroCartao);
+
+      let dTab = todasDaCompetencia.filter(d => String(d.cartao_id) === String(filtroCartao));
       if (filtroParcelado) dTab = dTab.filter(d => d.is_parcelado);
+
       dTabSemBusca = dTab;
       renderTabela(aplicarBuscaDescricao(dTab));
       calcularResumo(todasDaCompetencia, filtroCartao);
@@ -2340,6 +2488,7 @@ async function atualizarTudo() {
       document.getElementById('top-filtros-lancamento').style.display = 'none';
       zerarResumo();
    }
+
    mostrarSkeleton('finance', false);
 }
 
@@ -2371,81 +2520,97 @@ async function salvarSalario() {
       if (!ok.error) {
          document.getElementById('f-sal-valor').value = '';
          mostrarToast('Salário salvo.', 'sucesso', 2000);
-         await atualizarTudo();
+         await atualizarTudo(true);
       }
    });
 }
 
 async function gerarResumoAnual() {
-   const ano = Number(document.getElementById('sel-ano').value), corpo = document.getElementById('corpo-anual');
+   const ano = Number(document.getElementById('sel-ano').value);
+   const corpo = document.getElementById('corpo-anual');
+
    abrirModal('modal-anual');
    corpo.innerHTML = '<p class="text-center font-black text-slate-400 p-10 uppercase text-[10px]">Carregando...</p>';
-   const { data, error } = await chamarSupabase(
-      _supabase.from('despesas').select('*').eq('usuario', eu()),
-      'Erro ao carregar resumo anual'
-   );
-   if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível carregar</p>'; return; }
-   const pessoais = somenteDespesasPessoais(data || []);
+
+   const carregou = await recarregarCacheFinanceiro(false);
+   if (!carregou) {
+      corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível carregar</p>';
+      return;
+   }
+
    let h = `<div class="flex justify-between px-4 mb-3 text-[8px] font-black text-slate-400 uppercase tracking-widest border-b pb-2"><div class="w-1/4">Mês</div><div class="w-1/4 text-center">Fixas</div><div class="w-1/4 text-center">Normais</div><div class="w-1/4 text-right">Total</div></div>`;
-   mesesNomes.forEach((n, i) => {
-      const dM = pessoais.filter(d => pertenceACompetencia(d, ano, i));
-      const tF = dM.filter(d => d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
-      const tN = dM.filter(d => !d.is_fixa).reduce((a, b) => a + Number(b.valor), 0);
-      h += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${n}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${fmtBRL(tF)}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${fmtBRL(tN)}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${fmtBRL(tF+tN)}</span></div>`;
+
+   mesesNomes.forEach((nome, mes) => {
+      const resumo = obterResumoCompetencia(ano, mes);
+      h += `<div class="flex justify-between items-center p-4 bg-slate-50 rounded-2xl mb-2"><span class="w-1/4 font-black text-[9px] uppercase text-slate-500">${nome}</span><span class="w-1/4 text-center font-bold text-emerald-600 text-[9px]">R$ ${fmtBRL(resumo.fixas)}</span><span class="w-1/4 text-center font-bold text-orange-500 text-[9px]">R$ ${fmtBRL(resumo.normais)}</span><span class="w-1/4 text-right font-black text-slate-800 text-[10px]">R$ ${fmtBRL(resumo.total)}</span></div>`;
    });
+
    corpo.innerHTML = h;
 }
 
 async function gerarAnaliseGastos() {
-   const ano = Number(document.getElementById('sel-ano').value), corpo = document.getElementById('corpo-analise');
+   const ano = Number(document.getElementById('sel-ano').value);
+   const corpo = document.getElementById('corpo-analise');
+
    abrirModal('modal-analise');
    corpo.innerHTML = '<p class="text-center font-black text-slate-400 p-10 uppercase text-[10px]">Calculando...</p>';
-   const { data: gastos, error } = await chamarSupabase(
-      _supabase.from('despesas').select('*').eq('usuario', eu()),
-      'Erro ao calcular análise de gastos'
-   );
-   if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível calcular</p>'; return; }
 
-   const pessoais = somenteDespesasPessoais(gastos || []);
+   const carregou = await recarregarCacheFinanceiro(false);
+   if (!carregou) {
+      corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível calcular</p>';
+      return;
+   }
+
    let h = '<p style="font-size:0.62rem;color:#64748b;font-weight:700;text-align:center;margin:0 0 1rem;">Cada despesa é atribuída automaticamente à competência do respectivo cartão.</p>';
-   mesesNomes.forEach((n, i) => {
-      const despesasMes = pessoais.filter(d => pertenceACompetencia(d, ano, i));
-      const tG = despesasMes.reduce((a, b) => a + Number(b.valor), 0) || 0;
-      const salData = cacheSalarios.find(s => s.mes_ano === `${ano}-${i}`);
-      const valorSal = salData ? Number(salData.valor) : 0;
-      const sobra = valorSal - tG;
-      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${n}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${fmtBRL(valorSal)}</p><p class="text-[8px] font-bold text-slate-400">${despesasMes.length} lançamento${despesasMes.length === 1 ? '' : 's'} na competência</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS PESSOAIS: R$ ${fmtBRL(tG)}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${fmtBRL(sobra)}</p></div></div>`;
+
+   mesesNomes.forEach((nome, mes) => {
+      const resumo = obterResumoCompetencia(ano, mes);
+      const salario = obterSalarioCompetencia(ano, mes);
+      const sobra = round2(salario - resumo.total);
+
+      h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center"><div><p class="font-black text-[10px] uppercase text-slate-800">${nome}</p><p class="text-[8px] font-black text-slate-400">SALÁRIO: R$ ${fmtBRL(salario)}</p><p class="text-[8px] font-bold text-slate-400">${resumo.quantidade} lançamento${resumo.quantidade === 1 ? '' : 's'} na competência</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400 uppercase">GASTOS PESSOAIS: R$ ${fmtBRL(resumo.total)}</p><p class="text-[10px] font-black ${sobra < 0 ? 'text-red-600' : 'text-blue-700'}">SOBRA: R$ ${fmtBRL(sobra)}</p></div></div>`;
    });
+
    corpo.innerHTML = h;
 }
 
 async function gerarResumoCategoriasAnual() {
-   const ano = Number(document.getElementById('sel-ano').value), mesSel = document.getElementById('sel-cat-mes').value, corpo = document.getElementById('corpo-cat-anual');
+   const ano = Number(document.getElementById('sel-ano').value);
+   const mesSel = document.getElementById('sel-cat-mes').value;
+   const corpo = document.getElementById('corpo-cat-anual');
+
    abrirModal('modal-cat-anual');
    corpo.innerHTML = '<p class="text-center font-black text-slate-400 p-10 uppercase text-[10px]">Agrupando...</p>';
-   const { data: gastos, error } = await chamarSupabase(
-      _supabase.from('despesas').select('*').eq('usuario', eu()),
-      'Erro ao agrupar categorias'
-   );
-   if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível agrupar</p>'; return; }
 
-   let pessoais = somenteDespesasPessoais(gastos || []);
+   const carregou = await recarregarCacheFinanceiro(false);
+   if (!carregou) {
+      corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível agrupar</p>';
+      return;
+   }
+
+   let pessoais = somenteDespesasPessoais(cacheDespesas);
    pessoais = mesSel === 'todos'
       ? pessoais.filter(g => chaveCompetenciaDespesa(g).startsWith(`${ano}-`))
       : pessoais.filter(g => pertenceACompetencia(g, ano, Number(mesSel)));
 
    const agrupado = {};
-   pessoais.forEach(g => { agrupado[g.categoria_id] = (agrupado[g.categoria_id] || 0) + Number(g.valor); });
-   const entradas = Object.entries(agrupado).sort((a,b) => b[1] - a[1]);
+   pessoais.forEach(g => {
+      agrupado[g.categoria_id] = (agrupado[g.categoria_id] || 0) + Number(g.valor || 0);
+   });
+
+   const entradas = Object.entries(agrupado).sort((a, b) => b[1] - a[1]);
    const maxValor = entradas.length ? entradas[0][1] : 0;
    const cores = ['#2563eb','#059669','#ea580c','#dc2626','#7c3aed','#0891b2','#ca8a04','#db2777'];
+
    let h = '';
-   entradas.forEach(([id, total], i) => {
-      const catNome = cacheCategorias.find(c => c.id == id)?.nome || 'Sem Categoria';
+   entradas.forEach(([id, total], indice) => {
+      const catNome = mapaCategorias.get(String(id))?.nome || 'Sem Categoria';
       const pct = maxValor > 0 ? Math.max(4, Math.round((total / maxValor) * 100)) : 0;
-      const cor = cores[i % cores.length];
+      const cor = cores[indice % cores.length];
+
       h += `<div class="p-4 bg-slate-50 rounded-2xl border border-slate-100"><div class="flex justify-between items-center mb-2"><span class="font-black text-[10px] uppercase text-slate-600">${iconeCategoria(catNome)} ${escapeHtml(catNome)}</span><span class="font-black text-blue-700">R$ ${fmtBRL(total)}</span></div><div style="background:#e2e8f0; border-radius:9999px; height:8px; overflow:hidden;"><div style="width:${pct}%; height:100%; background:${cor}; border-radius:9999px;"></div></div></div>`;
    });
+
    corpo.innerHTML = h || '<p class="text-center text-[10px] font-black text-slate-400 py-10 uppercase">Nenhum gasto pessoal encontrado</p>';
 }
 
@@ -2471,19 +2636,23 @@ async function gerarParcelasAndamento() {
    const corpo = document.getElementById('corpo-parcelas-andamento');
    corpo.innerHTML = '<p class="text-center font-black text-slate-400 p-10 uppercase text-[10px]">Somando...</p>';
 
-   const hojeISO = hojeLocalISO();
-   const { data: parcelas, error } = await chamarSupabase(
-      _supabase.from('despesas').select('id, descricao, valor, data, cartao_id, competencia_fatura, dia_fechamento_aplicado, de_terceiro').eq('usuario', eu())
-         .not('grupo_id', 'is', null).gte('data', hojeISO + 'T00:00:00').order('data'),
-      'Erro ao carregar parcelas em andamento'
-   );
-   if (error) { corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível carregar</p>'; return; }
+   const carregou = await recarregarCacheFinanceiro(false);
+   if (!carregou) {
+      corpo.innerHTML = '<p class="text-center text-[10px] font-black text-red-400 py-10 uppercase">Não foi possível carregar</p>';
+      return;
+   }
 
-   const normalizadas = somenteDespesasPessoais(parcelas || []).map(p => ({
+   const hojeISO = hojeLocalISO();
+   const parcelas = cacheDespesas
+      .filter(p => p.grupo_id && String(p.data || '').slice(0, 10) >= hojeISO)
+      .sort((a, b) => String(a.data).localeCompare(String(b.data)));
+
+   const normalizadas = somenteDespesasPessoais(parcelas).map(p => ({
       ...p,
       data: new Date(p.data).toISOString().slice(0, 10),
       competencia_chave: chaveCompetenciaDespesa(p)
    }));
+
    const porMes = agruparParcelasPorMes(normalizadas);
    cacheParcelasAndamentoPorMes = porMes;
 
@@ -2492,12 +2661,14 @@ async function gerarParcelasAndamento() {
       corpo.innerHTML = '<p class="text-center text-[10px] font-black text-slate-400 py-10 uppercase">Nenhuma parcela pessoal em andamento</p>';
       return;
    }
-   const totalGeral = chavesOrdenadas.reduce((a, k) => a + porMes[k].total, 0);
+
+   const totalGeral = chavesOrdenadas.reduce((total, chave) => total + porMes[chave].total, 0);
 
    let h = chavesOrdenadas.map(chave => {
       const [ano, mesNum] = chave.split('-');
       const nomeMes = mesesNomes[parseInt(mesNum) - 1];
       const info = porMes[chave];
+
       return `<div onclick="mostrarDetalheParcelasMes('${chave}')" style="cursor:pointer;" class="p-4 bg-slate-50 rounded-2xl flex justify-between items-center">
          <span class="font-black text-[10px] uppercase text-slate-600">${nomeMes} / ${ano}</span>
          <div class="text-right">
@@ -2511,6 +2682,7 @@ async function gerarParcelasAndamento() {
       <span class="font-black text-[10px] uppercase text-purple-700">Total pessoal ainda por vir</span>
       <span class="font-black text-purple-800">R$ ${fmtBRL(totalGeral)}</span>
    </div>`;
+
    corpo.innerHTML = h;
 }
 
@@ -2616,7 +2788,7 @@ async function salvarCartao() {
       if (!error) {
          document.getElementById('f-nome-cartao').value = '';
          document.getElementById('f-fechamento-cartao').value = '';
-         await atualizarTudo();
+         await atualizarTudo(true);
       }
    });
 }
@@ -2626,7 +2798,7 @@ async function atualizarDiaFechamento(cartaoId, valorAtual) {
    if (novo === null) return; // cancelou
    const fechamento = novo.trim() ? Math.min(31, Math.max(1, parseInt(novo))) : null;
    const { error } = await chamarSupabase(_supabase.from('cartoes').update({ dia_fechamento: fechamento }).eq('id', cartaoId), 'Erro ao atualizar dia de fechamento');
-   if (!error) { mostrarToast('Dia de fechamento atualizado. Competências já gravadas foram preservadas.', 'sucesso', 3500); await atualizarTudo(); }
+   if (!error) { mostrarToast('Dia de fechamento atualizado. Competências já gravadas foram preservadas.', 'sucesso', 3500); await atualizarTudo(true); }
 }
 
 async function salvarItem(tab, inputId, btnId) {
@@ -2636,7 +2808,7 @@ async function salvarItem(tab, inputId, btnId) {
       const { error } = await chamarSupabase(_supabase.from(tab).insert([{ nome: val, usuario: eu() }]), 'Erro ao salvar item');
       if (!error) {
          document.getElementById(inputId).value = '';
-         await atualizarTudo();
+         await atualizarTudo(true);
       }
    });
 }
@@ -2647,24 +2819,30 @@ function renderBancosLists(l) {
    document.getElementById('mobile-lista-bancos').innerHTML = btns;
 }
 
-function renderTabela(d) {
-   ultimaTabelaRenderizada = d || [];
-   document.getElementById('lista-corpo').innerHTML = d?.map(x => {
-      const catNome = cacheCategorias.find(c => c.id === x.categoria_id)?.nome;
-      const badgeCat = catNome ? `<span style="font-size:0.6rem;color:#94a3b8;margin-left:0.4rem;">${iconeCategoria(catNome)} ${escapeHtml(catNome)}</span>` : '';
-      const terceiro = ehDespesaDeTerceiro(x);
-      const badgeTerceiro = terceiro
-         ? `<span style="display:inline-block;font-size:0.55rem;color:#92400e;background:#fef3c7;border:1px solid #fde68a;border-radius:9999px;padding:0.12rem 0.45rem;margin-left:0.4rem;font-weight:900;text-transform:uppercase;">Terceiro${x.terceiro_nome ? ` · ${escapeHtml(x.terceiro_nome)}` : ''}</span>`
+function renderTabela(dados) {
+   ultimaTabelaRenderizada = dados || [];
+
+   document.getElementById('lista-corpo').innerHTML = dados?.map(item => {
+      const catNome = mapaCategorias.get(String(item.categoria_id || ''))?.nome;
+      const badgeCat = catNome
+         ? `<span style="font-size:0.6rem;color:#94a3b8;margin-left:0.4rem;">${iconeCategoria(catNome)} ${escapeHtml(catNome)}</span>`
          : '';
-      const badgeCompetencia = `<span style="display:inline-block;font-size:0.53rem;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9999px;padding:0.1rem 0.4rem;margin-left:0.4rem;font-weight:800;">Comp. ${escapeHtml(formatarCompetenciaDespesa(x))}</span>`;
+
+      const terceiro = ehDespesaDeTerceiro(item);
+      const badgeTerceiro = terceiro
+         ? `<span style="display:inline-block;font-size:0.55rem;color:#92400e;background:#fef3c7;border:1px solid #fde68a;border-radius:9999px;padding:0.12rem 0.45rem;margin-left:0.4rem;font-weight:900;text-transform:uppercase;">Terceiro${item.terceiro_nome ? ` · ${escapeHtml(item.terceiro_nome)}` : ''}</span>`
+         : '';
+
+      const badgeCompetencia = `<span style="display:inline-block;font-size:0.53rem;color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9999px;padding:0.1rem 0.4rem;margin-left:0.4rem;font-weight:800;">Comp. ${escapeHtml(formatarCompetenciaDespesa(item))}</span>`;
+
       return `
       <tr class="border-t" style="${terceiro ? 'background:#fffbeb;' : ''}">
-         <td class="p-6 text-[9px] font-black uppercase">${new Date(x.data).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td>
-         <td class="p-6">${escapeHtml(x.descricao)}${badgeCat}${badgeTerceiro}${badgeCompetencia}</td>
-         <td class="p-6 font-black" style="${terceiro ? 'color:#a16207;' : ''}">R$ ${fmtBRL(x.valor)}</td>
+         <td class="p-6 text-[9px] font-black uppercase">${new Date(item.data).toLocaleDateString('pt-BR', {timeZone:'UTC'})}</td>
+         <td class="p-6">${escapeHtml(item.descricao)}${badgeCat}${badgeTerceiro}${badgeCompetencia}</td>
+         <td class="p-6 font-black" style="${terceiro ? 'color:#a16207;' : ''}">R$ ${fmtBRL(item.valor)}</td>
          <td class="p-6 text-center">
-            <button onclick="abrirEdicaoDespesa('${x.id}')" aria-label="Editar lançamento" style="margin-right:0.75rem;"><i class="fas fa-pen text-slate-300"></i></button>
-            <button onclick="tentarExcluir('${x.id}', ${x.is_parcelado}, '${x.grupo_id || ''}', '${x.data}')" aria-label="Excluir lançamento"><i class="fas fa-trash-alt text-slate-200"></i></button>
+            <button onclick="abrirEdicaoDespesa('${item.id}')" aria-label="Editar lançamento" style="margin-right:0.75rem;"><i class="fas fa-pen text-slate-300"></i></button>
+            <button onclick="tentarExcluir('${item.id}', ${item.is_parcelado}, '${item.grupo_id || ''}', '${item.data}')" aria-label="Excluir lançamento"><i class="fas fa-trash-alt text-slate-200"></i></button>
          </td>
       </tr>`;
    }).join('') || '';
@@ -2674,7 +2852,7 @@ async function tentarExcluir(id, isP, grupoId, data) {
    if (!isP) {
       if (await confirmarAcao("Excluir este gasto?")) {
          const { error } = await chamarSupabase(_supabase.from('despesas').delete().eq('id', id), 'Erro ao excluir');
-         if (!error) { mostrarToast('Gasto excluído.', 'sucesso', 2000); await atualizarTudo(); }
+         if (!error) { mostrarToast('Gasto excluído.', 'sucesso', 2000); await atualizarTudo(true); }
       }
       return;
    }
@@ -2695,7 +2873,7 @@ async function tentarExcluir(id, isP, grupoId, data) {
 async function confirmarExclusaoUnica(id) {
    fecharModais();
    const { error } = await chamarSupabase(_supabase.from('despesas').delete().eq('id', id), 'Erro ao excluir parcela');
-   if (!error) { mostrarToast('Parcela excluída.', 'sucesso', 2000); await atualizarTudo(); }
+   if (!error) { mostrarToast('Parcela excluída.', 'sucesso', 2000); await atualizarTudo(true); }
 }
 
 // Exclusão por grupo_id (gerado no momento do lançamento), em vez de prefixo de descrição.
@@ -2705,7 +2883,7 @@ async function confirmarExclusaoGrupo(grupoId, tipo, dataRef = '') {
    let query = _supabase.from('despesas').delete().eq('usuario', eu()).eq('grupo_id', grupoId);
    if (tipo === 'futuras') query = query.gte('data', dataRef);
    const { error } = await chamarSupabase(query, 'Erro ao excluir parcelamento');
-   if (!error) { mostrarToast('Parcelas excluídas.', 'sucesso', 2000); await atualizarTudo(); }
+   if (!error) { mostrarToast('Parcelas excluídas.', 'sucesso', 2000); await atualizarTudo(true); }
 }
 
 function renderConfigLists(c, t, s) {
@@ -2720,7 +2898,7 @@ function renderConfigLists(c, t, s) {
 async function excluirConfig(tab, id) {
    if (await confirmarAcao("Excluir?")) {
       const { error } = await chamarSupabase(_supabase.from(tab).delete().eq('id', id), 'Erro ao excluir');
-      if (!error) await atualizarTudo();
+      if (!error) await atualizarTudo(true);
    }
 }
 
@@ -2905,7 +3083,7 @@ async function confirmarLancamento() {
          cacheHistoricoCategorizacao = null;
          edicaoDespesaId = null; edicaoDespesaGrupoId = null; edicaoDespesaSufixo = null; edicaoDespesaDataOriginal = null;
          edicaoDespesaCartaoOriginal = null; edicaoDespesaCompetenciaOriginal = null; edicaoDespesaFechamentoOriginal = null;
-         fecharModais(); await atualizarTudo();
+         fecharModais(); await atualizarTudo(true);
       });
       return;
    }
@@ -2939,12 +3117,13 @@ async function confirmarLancamento() {
       document.getElementById('f-terceiro').checked = false;
       document.getElementById('box-terceiro').style.display = 'none';
       document.getElementById('box-qtd').style.display = 'none';
-      fecharModais(); await atualizarTudo();
+      fecharModais(); await atualizarTudo(true);
    });
 }
 
 // =================== AUTO APP ===================
 let cacheVeiculos = [], cacheAutoRegistros = [];
+let mapaVeiculos = new Map();
 let filtroVeiculo = null;
 let edicaoManutencaoId = null;
 
@@ -2963,10 +3142,22 @@ function mostrarSkeleton(area, show) {
 
 async function carregarAuto() {
    mostrarSkeleton('auto', true);
-   const { data: veiculos } = await chamarSupabase(_supabase.from('veiculos').select('*').eq('usuario', eu()).order('nome'), 'Erro ao carregar veículos');
-   const { data: registros } = await chamarSupabase(_supabase.from('manutencoes').select('*').eq('usuario', eu()).order('data', { ascending: false }), 'Erro ao carregar manutenções');
-   cacheVeiculos = veiculos || [];
-   cacheAutoRegistros = registros || [];
+
+   const [resVeiculos, resRegistros] = await Promise.all([
+      chamarSupabase(
+         _supabase.from('veiculos').select('*').eq('usuario', eu()).order('nome'),
+         'Erro ao carregar veículos'
+      ),
+      chamarSupabase(
+         _supabase.from('manutencoes').select('*').eq('usuario', eu()).order('data', { ascending: false }),
+         'Erro ao carregar manutenções'
+      )
+   ]);
+
+   cacheVeiculos = resVeiculos.data || [];
+   cacheAutoRegistros = resRegistros.data || [];
+   mapaVeiculos = new Map(cacheVeiculos.map(veiculo => [String(veiculo.id), veiculo]));
+
    renderVeiculosFiltro();
    renderAutoLista();
    renderVeiculosModal();
@@ -2994,7 +3185,7 @@ function renderAutoLista() {
    const tipoLabel = { manut:'Manutenção', troca:'Troca de Peça', revisao:'Revisão', seguro:'Seguro', outro:'Outro' };
    const tipoClass = { manut:'badge-manut', troca:'badge-troca', revisao:'badge-revisao', seguro:'badge-seguro', outro:'badge-outro' };
    lista.innerHTML = regs.map(r => {
-      const vNome = cacheVeiculos.find(v => v.id === r.veiculo_id)?.nome || '—';
+      const vNome = mapaVeiculos.get(String(r.veiculo_id || ''))?.nome || '—';
       const kmStr = r.km ? `<span class="km-chip">${Number(r.km).toLocaleString('pt-BR')} km</span>` : '';
       return `<div class="auto-card">
          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;">
