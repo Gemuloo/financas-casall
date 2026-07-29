@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.07.26.12.2">
+   <meta name="gemulo-build" content="2026.07.26.12.3">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.07.26.12.2';
+      window.GEMULO_BUILD = '2026.07.26.12.3';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -76,8 +76,12 @@
       .app-topbar { display: flex; align-items: center; justify-content: space-between; background: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 50; }
       .app-topbar h2 { margin: 0; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: #1e293b; letter-spacing: 0.1em; }
       .finance-topbar { display: block; padding: 0; }
-      .finance-topbar-main { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.5rem; }
+      .finance-topbar-main { display: flex; align-items: center; justify-content: space-between; padding: 0.72rem 1.15rem; min-height: 48px; }
       .finance-projection-area { border-top: 1px solid #eff6ff; background: linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%); padding: 0.75rem 1.25rem 0.9rem; }
+      .finance-projection-toggle { border:1px solid #bfdbfe; background:#ffffff; color:#1d4ed8; font-size:0.56rem; font-weight:900; text-transform:uppercase; letter-spacing:0.07em; padding:0.42rem 0.72rem; border-radius:9999px; cursor:pointer; white-space:nowrap; }
+      .finance-projection-toggle:hover { background:#eff6ff; }
+      .finance-projection-area.projection-collapsed .finance-projection-scroll { display:none; }
+      .finance-projection-area.projection-collapsed { padding-bottom:0.65rem; }
       .finance-projection-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.55rem; }
       .finance-projection-heading span { color: #475569; font-size: 0.6rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; }
       .finance-projection-heading button { border: 0; background: transparent; color: #2563eb; font-size: 0.58rem; font-weight: 900; text-transform: uppercase; cursor: pointer; padding: 0.25rem 0; }
@@ -142,7 +146,7 @@
          aside#f-aside { display: none !important; }
          #btn-menu-bancos { display: flex; }
          .content-wrapper { padding-top: 1rem; }
-         .finance-topbar-main { padding: 0.8rem 1rem; }
+         .finance-topbar-main { padding: 0.62rem 0.9rem; min-height:44px; }
          .finance-projection-area { padding: 0.65rem 0.85rem 0.75rem; }
          .finance-projection-heading { margin-bottom: 0.45rem; }
          .finance-summary-grid { grid-template-columns:1fr; gap:0.8rem; }
@@ -237,7 +241,10 @@
       <div class="finance-projection-area">
          <div class="finance-projection-heading">
             <span><i class="fas fa-chart-line" style="color:#2563eb;margin-right:0.35rem;"></i>Quanto posso gastar · próximos 6 meses</span>
-            <button type="button" onclick="gerarAnaliseGastos()">Ver projeção completa</button>
+            <div style="display:flex; align-items:center; gap:0.65rem; flex-wrap:wrap; justify-content:flex-end;">
+               <button id="btn-toggle-projecao" type="button" class="finance-projection-toggle" onclick="toggleProjecaoRapida()">Ocultar</button>
+               <button type="button" onclick="gerarAnaliseGastos()">Ver projeção completa</button>
+            </div>
          </div>
          <div id="projecao-rapida-meses" class="finance-projection-scroll" aria-live="polite">
             <div class="finance-projection-card"><span class="finance-projection-caption">Carregando projeção...</span></div>
@@ -365,7 +372,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.12.2</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.12.3</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -1435,7 +1442,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse PDF. Confirme que está usando o importador v2026.07.26.12.2.';
+            'Não encontrei transações nesse PDF. Confirme que está usando o importador v2026.07.26.12.3.';
          return;
       }
 
@@ -2184,7 +2191,25 @@ function setupDatas() {
    });
 }
 
+function aplicarEstadoProjecaoRapida() {
+   const area = document.querySelector('.finance-projection-area');
+   const botao = document.getElementById('btn-toggle-projecao');
+   if (!area || !botao) return;
+
+   const oculta = localStorage.getItem('gemulo_projecao_rapida_oculta') === '1';
+   area.classList.toggle('projection-collapsed', oculta);
+   botao.textContent = oculta ? 'Mostrar' : 'Ocultar';
+   botao.setAttribute('aria-pressed', oculta ? 'true' : 'false');
+}
+
+function toggleProjecaoRapida() {
+   const oculta = localStorage.getItem('gemulo_projecao_rapida_oculta') === '1';
+   localStorage.setItem('gemulo_projecao_rapida_oculta', oculta ? '0' : '1');
+   aplicarEstadoProjecaoRapida();
+}
+
 function mostrarProjecaoRapidaCarregando() {
+   aplicarEstadoProjecaoRapida();
    const container = document.getElementById('projecao-rapida-meses');
    if (!container) return;
 
@@ -2249,6 +2274,7 @@ function renderProjecaoRapida(despesas) {
          </button>
       `;
    }).join('');
+   aplicarEstadoProjecaoRapida();
 }
 
 async function atualizarTudo() {
