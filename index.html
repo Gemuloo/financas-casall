@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.07.26.12.1">
+   <meta name="gemulo-build" content="2026.07.26.12.2">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.07.26.12.1';
+      window.GEMULO_BUILD = '2026.07.26.12.2';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -91,6 +91,18 @@
       .finance-projection-value { display: block; color: #1d4ed8; font-size: 0.94rem; font-weight: 900; letter-spacing: -0.03em; margin-top: 0.25rem; white-space: nowrap; }
       .finance-projection-card.negativo .finance-projection-value { color: #dc2626; }
       .finance-projection-caption { display: block; color: #94a3b8; font-size: 0.49rem; font-weight: 800; margin-top: 0.08rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #finance-controls-row { display:flex; align-items:center; justify-content:center; gap:0.75rem; width:100%; max-width:980px; margin:0 auto; }
+      #finance-periodo-wrap { display:flex; justify-content:center; width:100%; margin:0 0 1.15rem; }
+      #top-filtros-lancamento { display:none; align-items:center; justify-content:flex-end; gap:0.65rem; flex-wrap:wrap; flex:1; min-width:280px; }
+      #btn-parcelados { padding:0.82rem 1.35rem; font-size:0.56rem; letter-spacing:0.09em; white-space:nowrap; flex-shrink:0; }
+      #busca-top-wrap { position:relative; width:100%; max-width:360px; min-width:220px; }
+      #busca-lancamento { width:100%; padding:0.78rem 1rem 0.78rem 2.25rem; border-radius:9999px; border:1px solid #e2e8f0; font-size:0.75rem; font-weight:700; outline:none; }
+      #periodo-exibido { text-align:center; font-size:0.59rem; font-weight:800; color:#94a3b8; margin:0; }
+      .finance-summary-grid { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:1rem; margin-bottom:1.8rem; }
+      .finance-summary-card { background:#fff; padding:1.15rem 1rem; border-radius:1.35rem; box-shadow:0 1px 2px rgba(15,23,42,0.04); border:1px solid #e2e8f0; text-align:center; }
+      .finance-summary-card.primary { border-color:#bfdbfe; background:rgba(239,246,255,0.35); }
+      .finance-summary-card p { font-size:0.5rem; font-weight:900; text-transform:uppercase; margin:0 0 0.35rem; }
+      .finance-summary-card h3 { font-size:1.05rem; line-height:1.15; font-weight:900; letter-spacing:-0.03em; margin:0; }
       .btn-back { background: none; border: none; cursor: pointer; color: #64748b; font-size: 0.65rem; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: 0.5rem; transition: background 0.15s; }
       .btn-back:hover { background: #f1f5f9; }
       .finance-layout { display: flex; flex: 1; overflow: hidden; }
@@ -120,8 +132,11 @@
       .toast-erro { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
       .toast-sucesso { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
       @keyframes toast-in { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: translateY(0); } }
-      @media (max-width: 900px) {
+      @media (max-width: 980px) {
          .finance-projection-scroll { grid-template-columns: repeat(6, 122px); }
+         #finance-controls-row { flex-direction:column; gap:0.55rem; }
+         #top-filtros-lancamento { justify-content:center; }
+         #busca-top-wrap { max-width:420px; }
       }
       @media (max-width: 768px) {
          aside#f-aside { display: none !important; }
@@ -130,6 +145,12 @@
          .finance-topbar-main { padding: 0.8rem 1rem; }
          .finance-projection-area { padding: 0.65rem 0.85rem 0.75rem; }
          .finance-projection-heading { margin-bottom: 0.45rem; }
+         .finance-summary-grid { grid-template-columns:1fr; gap:0.8rem; }
+         .finance-summary-card { padding:1rem 0.9rem; }
+         .finance-summary-card h3 { font-size:0.98rem; }
+         #top-filtros-lancamento { width:100%; }
+         #btn-parcelados { width:auto; }
+         #busca-top-wrap { min-width:0; max-width:none; }
       }
 
       /* AUTO */
@@ -251,34 +272,36 @@
             </div>
             <div id="finance-real-content">
             <div style="display:flex; justify-content:center; margin-bottom:0.35rem;">
-               <div id="finance-controls-row" style="display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:0.6rem; width:100%; max-width:980px;">
-                  <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; flex-wrap:wrap;">
+               <div id="finance-controls-row">
+                  <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; flex-wrap:wrap; flex-shrink:0;">
                      <select id="sel-mes" class="date-select" onchange="atualizarTudo()" aria-label="Mês"></select>
                      <select id="sel-ano" class="date-select" onchange="atualizarTudo()" aria-label="Ano"></select>
                   </div>
 
-                  <div id="top-filtros-lancamento" style="display:none; align-items:center; justify-content:center; gap:0.6rem; flex-wrap:wrap; flex:1; min-width:280px;">
-                     <button id="btn-parcelados" onclick="toggleParcelados()" class="px-8 py-4 bg-slate-800 rounded-full text-[9px] font-black text-white uppercase tracking-widest shadow-lg" style="white-space:nowrap;">Somente Parcelados</button>
-                     <div style="position:relative; width:100%; max-width:340px; min-width:220px;">
+                  <div id="top-filtros-lancamento">
+                     <button id="btn-parcelados" onclick="toggleParcelados()" class="bg-slate-800 rounded-full font-black text-white uppercase shadow-lg">Somente Parcelados</button>
+                     <div id="busca-top-wrap">
                         <i class="fas fa-search" style="position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:#cbd5e1; font-size:0.75rem;"></i>
-                        <input id="busca-lancamento" type="text" placeholder="Buscar por descrição..." oninput="filtrarBuscaDescricao()" aria-label="Buscar lançamento por descrição" style="width:100%; padding:0.75rem 1rem 0.75rem 2.25rem; border-radius:9999px; border:1px solid #e2e8f0; font-size:0.75rem; font-weight:700; outline:none;">
+                        <input id="busca-lancamento" type="text" placeholder="Buscar por descrição..." oninput="filtrarBuscaDescricao()" aria-label="Buscar lançamento por descrição">
                      </div>
                   </div>
                </div>
             </div>
-            <p id="periodo-exibido" style="text-align:center; font-size:0.6rem; font-weight:800; color:#94a3b8; margin:0 0 1.5rem;"></p>
-            <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-               <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-slate-100 text-center">
-                  <p id="txt-label-1" class="text-[9px] font-black text-slate-400 uppercase mb-1">Saldo em Conta</p>
-                  <h3 id="res-valor-1" class="text-2xl font-black text-slate-800 tracking-tighter">R$ 0,00</h3>
+            <div id="finance-periodo-wrap">
+               <p id="periodo-exibido"></p>
+            </div>
+            <section class="finance-summary-grid">
+               <div class="finance-summary-card">
+                  <p id="txt-label-1" class="text-slate-400">Saldo em Conta</p>
+                  <h3 id="res-valor-1" class="text-slate-800">R$ 0,00</h3>
                </div>
-               <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-slate-100 text-center">
-                  <p id="txt-label-2" class="text-[9px] font-black text-slate-400 uppercase mb-1">Faturas</p>
-                  <h3 id="res-valor-2" class="text-2xl font-black text-slate-800 tracking-tighter">R$ 0,00</h3>
+               <div class="finance-summary-card">
+                  <p id="txt-label-2" class="text-slate-400">Faturas</p>
+                  <h3 id="res-valor-2" class="text-slate-800">R$ 0,00</h3>
                </div>
-               <div class="bg-white p-6 rounded-[1.5rem] shadow-sm border border-blue-100 bg-blue-50/20 text-center">
-                  <p id="txt-label-3" class="text-[9px] font-black text-blue-600 uppercase mb-1">Balanço do Mês</p>
-                  <h3 id="res-total" class="text-2xl font-black text-blue-700 tracking-tighter">R$ 0,00</h3>
+               <div class="finance-summary-card primary">
+                  <p id="txt-label-3" class="text-blue-600">Balanço do Mês</p>
+                  <h3 id="res-total" class="text-blue-700">R$ 0,00</h3>
                </div>
             </section>
             <div id="view-relatorio" style="display: none;">
@@ -342,7 +365,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.12.1</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.12.2</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -1412,7 +1435,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse PDF. Confirme que está usando o importador v2026.07.26.12.1.';
+            'Não encontrei transações nesse PDF. Confirme que está usando o importador v2026.07.26.12.2.';
          return;
       }
 
