@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.07.26.13">
+   <meta name="gemulo-build" content="2026.08.03.14">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.07.26.13';
+      window.GEMULO_BUILD = '2026.08.03.14';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -382,7 +382,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Funciona com faturas do Nubank e do Itaú Pão de Açúcar, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.07.26.13</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.03.14</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -393,10 +393,11 @@ Despesa de terceiro
             </div>
          </div>
          <label for="imp-arquivo" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.5rem; border:2px dashed #cbd5e1; border-radius:1rem; padding:2rem 1rem; cursor:pointer; text-align:center;">
-            <i class="fas fa-file-pdf" style="font-size:1.5rem; color:#a855f7;"></i>
-            <span style="font-size:0.7rem; font-weight:800; color:#475569; text-transform:uppercase;">Toque para escolher o PDF da fatura</span>
+            <i class="fas fa-file-import" style="font-size:1.5rem; color:#a855f7;"></i>
+            <span style="font-size:0.7rem; font-weight:800; color:#475569; text-transform:uppercase;">Escolher PDF completo ou CSV parcial</span>
+            <span style="font-size:0.55rem; color:#94a3b8; font-weight:700;">CSV parcial disponível para o Nubank</span>
          </label>
-         <input id="imp-arquivo" type="file" accept="application/pdf" style="display:none;" onchange="if(this.files[0]) processarArquivoFatura(this.files[0])">
+         <input id="imp-arquivo" type="file" accept=".pdf,.csv,application/pdf,text/csv,application/csv,application/vnd.ms-excel" style="display:none;" onchange="if(this.files[0]) processarArquivoFatura(this.files[0])">
          <p id="imp-status" style="display:none; font-size:0.7rem; font-weight:800; color:#475569; text-align:center;"></p>
          <div id="imp-cancelamentos"></div>
          <div id="imp-revisao" style="display:none;">
@@ -585,8 +586,15 @@ function inferirAnoFatura(mesTransacao, mesEmissao, anoEmissao) {
 
 // "Saldo restante da fatura anterior" e "Pagamento em..." não são gastos de verdade.
 function ehLinhaIgnoravel(descricao) {
-   const d = descricao.trim().toLowerCase();
-   return d.startsWith('saldo restante da fatura anterior') || d.startsWith('pagamento em ');
+   const d = normalizarTexto(descricao || '').replace(/\s+/g, ' ').trim();
+
+   return (
+      d.startsWith('saldo restante da fatura anterior') ||
+      d.startsWith('pagamento em ') ||
+      d.startsWith('pagamento recebido') ||
+      d.startsWith('pagamento da fatura') ||
+      d.startsWith('pagamento de fatura')
+   );
 }
 
 function extrairTransacoesBrutas(textoCompleto) {
@@ -1379,32 +1387,246 @@ async function buscarParcelasFuturasParaCancelar(baseNome, dataEstorno, cartaoId
    );
 }
 
+// Converte um CSV em matriz, respeitando campos entre aspas, vírgulas dentro
+// do valor e aspas duplicadas. Não depende de biblioteca externa.
+function lerCsvMatriz(textoCsv) {
+   const texto = String(textoCsv || '').replace(/^\uFEFF/, '');
+   const linhas = [];
+   let linha = [];
+   let campo = '';
+   let entreAspas = false;
+
+   for (let i = 0; i < texto.length; i++) {
+      const caractere = texto[i];
+
+      if (entreAspas) {
+         if (caractere === '"') {
+            if (texto[i + 1] === '"') {
+               campo += '"';
+               i++;
+            } else {
+               entreAspas = false;
+            }
+         } else {
+            campo += caractere;
+         }
+         continue;
+      }
+
+      if (caractere === '"') {
+         entreAspas = true;
+      } else if (caractere === ',') {
+         linha.push(campo);
+         campo = '';
+      } else if (caractere === '\n') {
+         linha.push(campo.replace(/\r$/, ''));
+         if (linha.some(valor => String(valor).trim() !== '')) linhas.push(linha);
+         linha = [];
+         campo = '';
+      } else {
+         campo += caractere;
+      }
+   }
+
+   linha.push(campo.replace(/\r$/, ''));
+   if (linha.some(valor => String(valor).trim() !== '')) linhas.push(linha);
+
+   if (entreAspas) {
+      throw new Error('O CSV possui um campo entre aspas que não foi encerrado.');
+   }
+
+   return linhas;
+}
+
+function formatarValorParaTextoNubank(valor) {
+   const numero = Number(valor);
+   const sinal = numero < 0 ? '-R$ ' : 'R$ ';
+   return sinal + Math.abs(numero).toFixed(2).replace('.', ',');
+}
+
+function detectarCompetenciaCsvNubank(transacoes, cartaoId) {
+   const cartao = obterCartaoPorId(cartaoId);
+   const fechamento = normalizarDiaFechamento(cartao?.dia_fechamento);
+
+   if (!fechamento) {
+      throw new Error('Cadastre o dia de fechamento do cartão Nubank antes de importar uma fatura parcial em CSV.');
+   }
+
+   const contagem = new Map();
+
+   transacoes.forEach(transacao => {
+      const calculada = calcularCompetenciaPorData(transacao.data, cartaoId).competencia_fatura;
+      if (!calculada) return;
+      const chave = String(calculada).slice(0, 7);
+      contagem.set(chave, (contagem.get(chave) || 0) + 1);
+   });
+
+   const ordenadas = [...contagem.entries()].sort((a, b) => {
+      if (b[1] !== a[1]) return b[1] - a[1];
+      return b[0].localeCompare(a[0]);
+   });
+
+   if (!ordenadas.length) {
+      throw new Error('Não foi possível determinar a competência da fatura parcial.');
+   }
+
+   const [chave, quantidadePrincipal] = ordenadas[0];
+   const quantidadeTotal = transacoes.length;
+
+   // Um CSV válido do ciclo atual normalmente concentra todos os lançamentos
+   // na mesma competência. Uma minoria fora dela pode ocorrer por ajuste de data;
+   // a competência predominante é usada e a situação é informada na revisão.
+   return {
+      competencia: `${chave}-01`,
+      fechamento,
+      quantidadePrincipal,
+      quantidadeTotal,
+      competenciasEncontradas: ordenadas
+   };
+}
+
+function converterCsvNubankParaTextoFatura(textoCsv, cartaoId) {
+   const matriz = lerCsvMatriz(textoCsv);
+
+   if (matriz.length < 2) {
+      throw new Error('O CSV está vazio ou não possui lançamentos.');
+   }
+
+   const cabecalho = matriz[0].map(valor =>
+      normalizarTexto(valor || '').replace(/[^a-z0-9]/g, '')
+   );
+
+   const indiceData = cabecalho.indexOf('date');
+   const indiceTitulo = cabecalho.indexOf('title');
+   const indiceValor = cabecalho.indexOf('amount');
+
+   if (indiceData < 0 || indiceTitulo < 0 || indiceValor < 0) {
+      throw new Error('O CSV do Nubank deve possuir as colunas date, title e amount.');
+   }
+
+   const transacoes = [];
+   const ignoradas = [];
+   const invalidas = [];
+
+   matriz.slice(1).forEach((colunas, indice) => {
+      const numeroLinha = indice + 2;
+      const data = String(colunas[indiceData] || '').trim();
+      const descricao = String(colunas[indiceTitulo] || '').replace(/\s+/g, ' ').trim();
+      const valorTexto = String(colunas[indiceValor] || '').trim();
+
+      if (!data && !descricao && !valorTexto) return;
+
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(data) || !descricao || !valorTexto) {
+         invalidas.push(numeroLinha);
+         return;
+      }
+
+      const valor = round2(parseValorMoeda(valorTexto));
+      if (!Number.isFinite(valor)) {
+         invalidas.push(numeroLinha);
+         return;
+      }
+
+      const transacao = { data, descricao, valor };
+
+      if (ehLinhaIgnoravel(descricao)) {
+         ignoradas.push(transacao);
+      } else {
+         transacoes.push(transacao);
+      }
+   });
+
+   if (invalidas.length) {
+      throw new Error(`O CSV possui linha(s) inválida(s): ${invalidas.slice(0, 8).join(', ')}${invalidas.length > 8 ? '…' : ''}. Nenhum lançamento foi importado.`);
+   }
+
+   if (!transacoes.length) {
+      throw new Error('Não encontrei compras ou créditos importáveis nesse CSV.');
+   }
+
+   const deteccao = detectarCompetenciaCsvNubank(transacoes, cartaoId);
+   const [ano, mes] = deteccao.competencia.slice(0, 7).split('-').map(Number);
+   const abreviacoes = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+
+   const linhasSinteticas = [
+      'Nubank',
+      `EMISSÃO E ENVIO 01 ${abreviacoes[mes - 1]} ${ano}`,
+      'TRANSAÇÕES',
+      ...transacoes.map(transacao => {
+         const [anoData, mesData, diaData] = transacao.data.split('-').map(Number);
+         return `${String(diaData).padStart(2, '0')} ${abreviacoes[mesData - 1]} ${transacao.descricao} ${formatarValorParaTextoNubank(transacao.valor)}`;
+      })
+   ];
+
+   return {
+      texto: linhasSinteticas.join('\n'),
+      competencia: deteccao.competencia,
+      fechamento: deteccao.fechamento,
+      transacoes,
+      ignoradas,
+      competenciasEncontradas: deteccao.competenciasEncontradas,
+      totalImportavel: round2(transacoes.reduce((soma, item) => soma + Number(item.valor || 0), 0))
+   };
+}
+
 // Estado da importação em andamento (transações revisadas antes de confirmar).
 let importacaoFaturaAtual = [];
 let cancelamentosPorEstorno = [];
 let competenciaImportacaoAtual = null;
 let fechamentoImportacaoAtual = null;
+let origemImportacaoAtual = 'pdf';
+let detalhesCsvImportacaoAtual = null;
 
 async function processarArquivoFatura(arquivo) {
    const cartaoId = document.getElementById('imp-cartao').value;
-   if (!cartaoId) { mostrarToast('Escolha o banco/cartão desta fatura.'); return; }
+   if (!cartaoId) {
+      mostrarToast('Escolha o banco/cartão desta fatura.');
+      return;
+   }
 
-   document.getElementById('imp-status').textContent = 'Lendo o PDF...';
+   const nomeArquivo = String(arquivo?.name || '');
+   const tipoArquivo = String(arquivo?.type || '').toLowerCase();
+   const ehCsv = /\.csv$/i.test(nomeArquivo) || tipoArquivo.includes('csv');
+   const ehPdf = /\.pdf$/i.test(nomeArquivo) || tipoArquivo === 'application/pdf';
+
+   if (!ehCsv && !ehPdf) {
+      mostrarToast('Escolha um arquivo PDF ou CSV.', 'erro', 3500);
+      return;
+   }
+
+   document.getElementById('imp-status').textContent = ehCsv ? 'Lendo o CSV parcial...' : 'Lendo o PDF...';
    document.getElementById('imp-status').style.display = 'block';
    document.getElementById('imp-revisao').style.display = 'none';
+   document.getElementById('imp-cancelamentos').innerHTML = '';
 
    try {
-      const arrayBuffer = await arquivo.arrayBuffer();
-      const texto = await extrairTextoPdf(arrayBuffer);
-
-      // O banco selecionado também orienta o parser. Isso evita falhas quando
-      // a extração do PDF separa palavras ou omite algum cabeçalho visual.
-      const cartaoSelecionado = cacheBancos.find(c => String(c.id) === String(cartaoId));
+      const cartaoSelecionado = obterCartaoPorId(cartaoId);
       const nomeCartao = normalizarTexto(cartaoSelecionado?.nome || '').replace(/\s+/g, ' ');
+
+      let texto = '';
+      origemImportacaoAtual = ehCsv ? 'csv-nubank-parcial' : 'pdf';
+      detalhesCsvImportacaoAtual = null;
+
+      if (ehCsv) {
+         if (!nomeCartao.includes('nubank')) {
+            document.getElementById('imp-status').textContent =
+               'O formato CSV parcial está disponível para o cartão Nubank. Selecione o Nubank e tente novamente.';
+            return;
+         }
+
+         const textoCsv = await arquivo.text();
+         detalhesCsvImportacaoAtual = converterCsvNubankParaTextoFatura(textoCsv, cartaoId);
+         texto = detalhesCsvImportacaoAtual.texto;
+      } else {
+         const arrayBuffer = await arquivo.arrayBuffer();
+         texto = await extrairTextoPdf(arrayBuffer);
+      }
 
       let modelo = null;
 
-      if (
+      if (ehCsv) {
+         modelo = 'nubank';
+      } else if (
          nomeCartao.includes('pao de acucar') ||
          nomeCartao.includes('itau pda') ||
          nomeCartao.includes('itau pao')
@@ -1418,7 +1640,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (!modelo) {
          document.getElementById('imp-status').textContent =
-            'Não reconheci este modelo de fatura. Confirme o banco selecionado e use um PDF do Nubank ou do Itaú Pão de Açúcar.';
+            'Não reconheci este modelo. Use PDF do Nubank ou Itaú Pão de Açúcar, ou CSV parcial do Nubank.';
          return;
       }
 
@@ -1427,14 +1649,12 @@ async function processarArquivoFatura(arquivo) {
          : extrairMesAnoEmissao(texto);
 
       if (!refData) {
-         // Não achou automaticamente -> usa o mês e o ano escolhidos manualmente.
          const mesManual = parseInt(document.getElementById('imp-mes-manual').value);
          const anoManual = parseInt(document.getElementById('imp-ano-manual').value);
 
          refData = {
             mes: mesManual,
             ano: anoManual,
-            // O primeiro dia mantém parcelas manuais dentro do mês informado.
             dataISO: `${anoManual}-${String(mesManual + 1).padStart(2, '0')}-01`
          };
 
@@ -1443,8 +1663,6 @@ async function processarArquivoFatura(arquivo) {
          document.getElementById('imp-aviso-manual').style.display = 'none';
       }
 
-      // Todos os lançamentos atuais do PDF pertencem à competência da própria
-      // fatura, independentemente da data original de cada compra.
       competenciaImportacaoAtual = competenciaISO(refData.ano, refData.mes);
       fechamentoImportacaoAtual = normalizarDiaFechamento(cartaoSelecionado?.dia_fechamento);
 
@@ -1452,12 +1670,10 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse PDF. Confirme que está usando o importador v2026.07.26.13.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.03.14.';
          return;
       }
 
-      // No Itaú, confere se a soma extraída bate com o total oficial da fatura.
-      // Se não bater, a importação é interrompida para evitar salvar uma fatura incompleta.
       if (modelo === 'itau-pao-de-acucar') {
          const totalOficial = extrairTotalOficialFaturaItau(texto);
          const totalExtraido = round2(daFatura.reduce((soma, item) => soma + Number(item.valor || 0), 0));
@@ -1485,17 +1701,22 @@ async function processarArquivoFatura(arquivo) {
             .gte('data', datas[0] + 'T00:00:00').lte('data', datas[datas.length - 1] + 'T23:59:59'),
          'Erro ao verificar lançamentos existentes'
       );
-      if (error) { document.getElementById('imp-status').textContent = 'Erro ao comparar com o que já está lançado.'; return; }
+
+      if (error) {
+         document.getElementById('imp-status').textContent = 'Erro ao comparar com o que já está lançado.';
+         return;
+      }
 
       const jaLancadasNormalizadas = (existentes || []).map(e => ({
-         id: e.id, data: new Date(e.data).toISOString().slice(0, 10), descricao: e.descricao, valor: round2(e.valor)
+         id: e.id,
+         data: new Date(e.data).toISOString().slice(0, 10),
+         descricao: e.descricao,
+         valor: round2(e.valor)
       }));
 
-      // 1) Separa e trata linhas de PARCELA (não duplica entre meses, projeta parcelas futuras).
       const { novasParcelas, linhasNormais, atualizacoesSilenciosas, existentesRestantes } =
          processarLinhasDeParcelaEExtrairRestante(daFatura, jaLancadasNormalizadas);
 
-      // Aplica correções de data/valor em parcelas já projetadas que vieram um pouco diferentes na fatura real.
       if (atualizacoesSilenciosas.length > 0) {
          await Promise.all(atualizacoesSilenciosas.map(u => chamarSupabase(
             _supabase.from('despesas').update({
@@ -1508,51 +1729,67 @@ async function processarArquivoFatura(arquivo) {
          )));
       }
 
-      // 2) Linhas normais (sem "- Parcela i/N") seguem a comparação de sempre (exata + fuzzy).
       const novasNormais = compararComExistentes(linhasNormais, existentesRestantes);
-
       const novas = [...novasParcelas, ...novasNormais];
       const qtdJaLancadas = daFatura.length - novas.length;
 
       const historico = await carregarHistoricoCategorizacao();
-      importacaoFaturaAtual = novas.map((t, idx) => ({
-         id: `tmp_${idx}`,
-         ...t,
-         incluir: !t.possivelDuplicata,
-         categoria_id: resolverSugestaoCategoria(t.descricao, historico, cacheCategorias) || '',
+
+      importacaoFaturaAtual = novas.map((transacao, indice) => ({
+         id: `tmp_${indice}`,
+         ...transacao,
+         incluir: !transacao.possivelDuplicata,
+         categoria_id: resolverSugestaoCategoria(transacao.descricao, historico, cacheCategorias) || '',
          de_terceiro: false,
          terceiro_nome: '',
          competencia_fatura: competenciaImportacaoAtual,
          dia_fechamento_aplicado: fechamentoImportacaoAtual,
-         projecoesFuturas: (t.projecoesFuturas || []).map((f, indiceFuturo) => ({
-            ...f,
+         projecoesFuturas: (transacao.projecoesFuturas || []).map((futura, indiceFuturo) => ({
+            ...futura,
             competencia_fatura: adicionarMesesCompetencia(competenciaImportacaoAtual, indiceFuturo + 1),
             dia_fechamento_aplicado: fechamentoImportacaoAtual
          }))
       }));
 
-      // 3) Detecta estornos que parecem cancelar uma compra parcelada.
       cancelamentosPorEstorno = [];
 
-      // 3a) Estorno na MESMA fatura, cancelando uma parcela recém-criada nesta importação.
-      detectarCancelamentosMesmaFatura(daFatura, novas).forEach(c => {
-         const idxNaLista = novas.indexOf(c.parcelaAlvo);
+      detectarCancelamentosMesmaFatura(daFatura, novas).forEach(cancelamento => {
+         const idxNaLista = novas.indexOf(cancelamento.parcelaAlvo);
+
          if (idxNaLista >= 0) {
             cancelamentosPorEstorno.push({
-               tipo: 'nova', idxNaLista, incluirCancelamento: true,
-               nomeEstorno: c.estorno.nomeEstorno, qtdParcelas: importacaoFaturaAtual[idxNaLista].projecoesFuturas.length
+               tipo: 'nova',
+               idxNaLista,
+               incluirCancelamento: true,
+               nomeEstorno: cancelamento.estorno.nomeEstorno,
+               qtdParcelas: importacaoFaturaAtual[idxNaLista].projecoesFuturas.length
             });
          }
       });
 
-      // 3b) Estorno cancelando um parcelamento criado em uma importação de mês ANTERIOR.
-      const nomesJaTratados = new Set(cancelamentosPorEstorno.map(c => normalizarTexto(c.nomeEstorno)));
+      const nomesJaTratados = new Set(
+         cancelamentosPorEstorno.map(cancelamento => normalizarTexto(cancelamento.nomeEstorno))
+      );
+
       const estornosDaFatura = daFatura
-         .map(t => ({ ...t, nomeEstorno: extrairNomeEstorno(t.descricao, t) }))
-         .filter(t => t.nomeEstorno && t.valor < 0 && !nomesJaTratados.has(normalizarTexto(t.nomeEstorno)));
+         .map(transacao => ({
+            ...transacao,
+            nomeEstorno: extrairNomeEstorno(transacao.descricao, transacao)
+         }))
+         .filter(transacao =>
+            transacao.nomeEstorno &&
+            transacao.valor < 0 &&
+            !nomesJaTratados.has(normalizarTexto(transacao.nomeEstorno))
+         );
 
       for (const estorno of estornosDaFatura) {
-         const linhasFuturas = await buscarParcelasFuturasParaCancelar(estorno.nomeEstorno, estorno.data, cartaoId, estorno.valor);
+         const linhasFuturas = await buscarParcelasFuturasParaCancelar(
+            estorno.nomeEstorno,
+            estorno.data,
+            cartaoId,
+            estorno.valor
+         );
+
          if (linhasFuturas.length > 0) {
             cancelamentosPorEstorno.push({
                tipo: 'existente',
@@ -1566,30 +1803,82 @@ async function processarArquivoFatura(arquivo) {
 
       const qtdSuspeitas = novas.filter(t => t.possivelDuplicata).length;
       const qtdComProjecao = novas.filter(t => t.projecoesFuturas && t.projecoesFuturas.length).length;
-      const qtdParcelasFuturas = novas.reduce((soma, t) => soma + (t.projecoesFuturas?.length || 0), 0);
-      const valorParcelasFuturas = round2(novas.reduce((soma, t) =>
-         soma + (t.projecoesFuturas || []).reduce((subtotal, f) => subtotal + Number(f.valor), 0), 0
-      ));
-      const nomeModelo = modelo === 'itau-pao-de-acucar' ? 'Itaú Pão de Açúcar' : 'Nubank';
+      const qtdParcelasFuturas = novas.reduce(
+         (soma, t) => soma + (t.projecoesFuturas?.length || 0),
+         0
+      );
+      const valorParcelasFuturas = round2(
+         novas.reduce(
+            (soma, t) =>
+               soma + (t.projecoesFuturas || []).reduce(
+                  (subtotal, futura) => subtotal + Number(futura.valor),
+                  0
+               ),
+            0
+         )
+      );
 
-      const totalReconhecido = round2(daFatura.reduce((soma, item) => soma + Number(item.valor || 0), 0));
-      let msg = `${nomeModelo}: ${daFatura.length} transações encontradas — ${qtdJaLancadas} já estavam lançadas, ${novas.length} são novas`;
+      const nomeModelo = origemImportacaoAtual === 'csv-nubank-parcial'
+         ? 'Nubank CSV parcial'
+         : modelo === 'itau-pao-de-acucar'
+            ? 'Itaú Pão de Açúcar'
+            : 'Nubank';
+
+      const totalReconhecido = round2(
+         daFatura.reduce((soma, item) => soma + Number(item.valor || 0), 0)
+      );
+
+      let msg =
+         `${nomeModelo}: ${daFatura.length} transações encontradas — ` +
+         `${qtdJaLancadas} já estavam lançadas, ${novas.length} são novas`;
+
+      msg += `<br><span style="color:#1d4ed8;font-weight:900;">Competência detectada: ${formatarCompetenciaISO(competenciaImportacaoAtual)}</span>`;
+
+      if (origemImportacaoAtual === 'csv-nubank-parcial' && detalhesCsvImportacaoAtual) {
+         msg += `<br><span style="color:#065f46;font-weight:900;">Total atual do CSV importável: R$ ${fmtBRL(detalhesCsvImportacaoAtual.totalImportavel)}</span>`;
+
+         if (detalhesCsvImportacaoAtual.ignoradas.length > 0) {
+            msg += `<br><span style="color:#64748b;">${detalhesCsvImportacaoAtual.ignoradas.length} pagamento(s) da fatura foi(ram) ignorado(s), pois não são despesas.</span>`;
+         }
+
+         if (detalhesCsvImportacaoAtual.competenciasEncontradas.length > 1) {
+            const resumoCompetencias = detalhesCsvImportacaoAtual.competenciasEncontradas
+               .map(([chave, quantidade]) => `${chave}: ${quantidade}`)
+               .join(' · ');
+
+            msg += `<br><span style="color:#b45309;">Atenção: havia datas distribuídas em mais de uma competência (${resumoCompetencias}). Foi usada a competência predominante.</span>`;
+         }
+      }
+
       if (modelo === 'itau-pao-de-acucar') {
          msg += `<br><span style="color:#065f46;font-weight:900;">Conferência dos lançamentos atuais: R$ ${fmtBRL(totalReconhecido)}</span>`;
       }
-      if (qtdSuspeitas > 0) msg += `<br><span style="color:#b45309;">⚠️ ${qtdSuspeitas} podem já ter sido lançadas manualmente com outro texto — revise antes de confirmar.</span>`;
-      if (atualizacoesSilenciosas.length > 0) msg += `<br><span style="color:#0891b2;">🔄 ${atualizacoesSilenciosas.length} parcela(s) já projetada(s) tiveram data/valor confirmados com a fatura real.</span>`;
-      if (qtdComProjecao > 0) msg += `<br><span style="color:#7c3aed;">📅 ${qtdComProjecao} compra(s) parcelada(s) vão gerar ${qtdParcelasFuturas} parcela(s) futura(s), no total de R$ ${fmtBRL(valorParcelasFuturas)}.</span>`;
-      if (cancelamentosPorEstorno.length > 0) msg += `<br><span style="color:#dc2626;">🔁 ${cancelamentosPorEstorno.length} estorno(s) parecem cancelar compra(s) parcelada(s) — revise abaixo.</span>`;
+
+      if (qtdSuspeitas > 0) {
+         msg += `<br><span style="color:#b45309;">⚠️ ${qtdSuspeitas} podem já ter sido lançadas manualmente com outro texto — revise antes de confirmar.</span>`;
+      }
+
+      if (atualizacoesSilenciosas.length > 0) {
+         msg += `<br><span style="color:#0891b2;">🔄 ${atualizacoesSilenciosas.length} parcela(s) já projetada(s) tiveram data/valor confirmados com o arquivo atual.</span>`;
+      }
+
+      if (qtdComProjecao > 0) {
+         msg += `<br><span style="color:#7c3aed;">📅 ${qtdComProjecao} compra(s) parcelada(s) vão gerar ${qtdParcelasFuturas} parcela(s) futura(s), no total de R$ ${fmtBRL(valorParcelasFuturas)}.</span>`;
+      }
+
+      if (cancelamentosPorEstorno.length > 0) {
+         msg += `<br><span style="color:#dc2626;">🔁 ${cancelamentosPorEstorno.length} estorno(s) parecem cancelar compra(s) parcelada(s) — revise abaixo.</span>`;
+      }
 
       document.getElementById('imp-status').innerHTML = msg;
       renderRevisaoImportacao();
       renderCancelamentosEstorno();
       document.getElementById('imp-revisao').style.display = novas.length ? 'block' : 'none';
-   } catch (e) {
-      console.error(e);
+   } catch (erro) {
+      console.error(erro);
       document.getElementById('imp-status').textContent =
-         'Não consegui ler esse PDF. Confira se é uma fatura do Nubank ou do Itaú Pão de Açúcar exportada em PDF.';
+         erro?.message || 'Não consegui ler o arquivo. Confira se é um PDF compatível ou um CSV parcial do Nubank.';
+      document.getElementById('imp-revisao').style.display = 'none';
    }
 }
 
@@ -1715,6 +2004,8 @@ async function confirmarImportacaoFatura() {
 function abrirImportarFatura() {
    importacaoFaturaAtual = [];
    cancelamentosPorEstorno = [];
+   origemImportacaoAtual = 'pdf';
+   detalhesCsvImportacaoAtual = null;
    competenciaImportacaoAtual = null;
    fechamentoImportacaoAtual = null;
    document.getElementById('imp-cancelamentos').innerHTML = '';
