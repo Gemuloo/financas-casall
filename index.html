@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.08.03.14">
+   <meta name="gemulo-build" content="2026.08.03.15">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.08.03.14';
+      window.GEMULO_BUILD = '2026.08.03.15';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -382,7 +382,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.03.14</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.03.15</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -1241,9 +1241,30 @@ function compararComExistentes(daFatura, jaLancadas) {
 
 // Reconhece o padrão "- Parcela i/N" no fim da descrição de uma transação da fatura.
 function extrairInfoParcela(descricao) {
-   const m = (descricao || '').match(/^(.*?)\s-\s*Parcela\s+(\d+)\/(\d+)\s*$/i);
+   const texto = String(descricao || '').trim();
+   let m = texto.match(/^(.*?)\s-\s*Parcela\s+(\d+)\/(\d+)\s*$/i);
+   if (!m) m = texto.match(/^(.*?)\s*\(\s*(\d+)\/(\d+)\s*\)\s*$/i);
    if (!m) return null;
-   return { base: m[1].trim(), atual: parseInt(m[2]), total: parseInt(m[3]) };
+   const atual = parseInt(m[2], 10);
+   const total = parseInt(m[3], 10);
+   if (!atual || !total || atual > total) return null;
+   return { base: m[1].trim(), atual, total };
+}
+
+
+function normalizarBaseIdentidadeParcela(base) {
+   return normalizarTexto(base || '').replace(/[^a-z0-9]+/g, '').trim();
+}
+
+function obterIdentidadeParcela(descricao) {
+   const info = extrairInfoParcela(descricao);
+   if (!info) return null;
+   const baseNormalizada = normalizarBaseIdentidadeParcela(info.base);
+   return { ...info, baseNormalizada, chave: `${baseNormalizada}|${info.atual}|${info.total}` };
+}
+
+function valoresDeParcelaCompativeis(valorA, valorB) {
+   return Math.abs(round2(valorA) - round2(valorB)) <= 0.011;
 }
 
 // Gera as parcelas FUTURAS (atual+1 até total) de uma compra parcelada vinda da fatura,
@@ -1269,55 +1290,59 @@ function gerarParcelasFuturas(item, info) {
 // - Se é a primeira vez que aparece, entra como "nova" E já leva consigo a projeção das
 //   parcelas futuras, que serão criadas junto quando a pessoa confirmar a importação.
 function processarLinhasDeParcelaEExtrairRestante(daFatura, existentesNoBanco) {
-   const existentesDisp = existentesNoBanco.map(e => ({ ...e, usado: false }));
+   const existentesDisp = existentesNoBanco.map(e => ({
+      ...e,
+      usado: false,
+      identidadeParcela: obterIdentidadeParcela(e.descricao)
+   }));
    const novasParcelas = [];
    const atualizacoesSilenciosas = [];
    const linhasNormais = [];
 
    daFatura.forEach(t => {
-      const info = extrairInfoParcela(t.descricao);
-
-      if (!info) {
+      const identidadeAtual = obterIdentidadeParcela(t.descricao);
+      if (!identidadeAtual) {
          linhasNormais.push(t);
          return;
       }
 
-      // Primeiro procura a parcela projetada com mesma descrição E mesmo valor.
-      // Isso evita associar duas compras diferentes feitas no mesmo estabelecimento.
       let match = existentesDisp.find(e =>
-         !e.usado &&
-         normalizarCaixa(e.descricao) === normalizarCaixa(t.descricao) &&
-         round2(e.valor) === round2(t.valor)
+         !e.usado && e.identidadeParcela &&
+         e.identidadeParcela.chave === identidadeAtual.chave &&
+         valoresDeParcelaCompativeis(e.valor, t.valor)
       );
 
-      // Fallback: a parcela projetada pode ter vindo com pequeno ajuste de valor
-      // na fatura real. Ainda assim, cada linha existente só pode ser usada uma vez.
       if (!match) {
          match = existentesDisp.find(e =>
             !e.usado &&
-            normalizarCaixa(e.descricao) === normalizarCaixa(t.descricao)
+            normalizarCaixa(e.descricao) === normalizarCaixa(t.descricao) &&
+            valoresDeParcelaCompativeis(e.valor, t.valor)
          );
       }
 
       if (match) {
          match.usado = true;
-
-         if (round2(match.valor) !== round2(t.valor) || match.data !== t.data) {
+         const valorBanco = round2(match.valor);
+         const valorFatura = round2(t.valor);
+         if (valorBanco !== valorFatura || match.data !== t.data) {
             atualizacoesSilenciosas.push({
                id: match.id,
-               valor: round2(t.valor),
+               valor: valorFatura,
                data: t.data,
-               descricao: t.descricao
+               descricao: t.descricao,
+               valorAnterior: valorBanco,
+               diferencaValor: round2(valorFatura - valorBanco)
             });
          }
-      } else {
-         novasParcelas.push({
-            ...t,
-            possivelDuplicata: false,
-            duplicataDescricao: null,
-            projecoesFuturas: gerarParcelasFuturas(t, info)
-         });
+         return;
       }
+
+      novasParcelas.push({
+         ...t,
+         possivelDuplicata: false,
+         duplicataDescricao: null,
+         projecoesFuturas: gerarParcelasFuturas(t, identidadeAtual)
+      });
    });
 
    return {
@@ -1670,7 +1695,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.03.14.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.03.15.';
          return;
       }
 
@@ -1696,9 +1721,14 @@ async function processarArquivoFatura(arquivo) {
       }
 
       const datas = daFatura.map(t => t.data).sort();
+      const inicioBusca = new Date(datas[0] + 'T12:00:00');
+      const fimBusca = new Date(datas[datas.length - 1] + 'T12:00:00');
+      inicioBusca.setDate(inicioBusca.getDate() - 15);
+      fimBusca.setDate(fimBusca.getDate() + 15);
+
       const { data: existentes, error } = await chamarSupabase(
          _supabase.from('despesas').select('id, descricao, valor, data').eq('usuario', eu()).eq('cartao_id', cartaoId)
-            .gte('data', datas[0] + 'T00:00:00').lte('data', datas[datas.length - 1] + 'T23:59:59'),
+            .gte('data', inicioBusca.toISOString()).lte('data', fimBusca.toISOString()),
          'Erro ao verificar lançamentos existentes'
       );
 
@@ -1859,7 +1889,11 @@ async function processarArquivoFatura(arquivo) {
       }
 
       if (atualizacoesSilenciosas.length > 0) {
-         msg += `<br><span style="color:#0891b2;">🔄 ${atualizacoesSilenciosas.length} parcela(s) já projetada(s) tiveram data/valor confirmados com o arquivo atual.</span>`;
+         const ajustesCentavo = atualizacoesSilenciosas.filter(item =>
+            Math.abs(Number(item.diferencaValor || 0)) > 0 &&
+            Math.abs(Number(item.diferencaValor || 0)) <= 0.011
+         ).length;
+         msg += `<br><span style="color:#0891b2;">🔄 ${atualizacoesSilenciosas.length} parcela(s) já lançada(s) foram reconhecidas e tiveram data/valor confirmados com o arquivo atual.${ajustesCentavo ? ` ${ajustesCentavo} ajuste(s) era(m) diferença de R$ 0,01 por arredondamento.` : ''}</span>`;
       }
 
       if (qtdComProjecao > 0) {
