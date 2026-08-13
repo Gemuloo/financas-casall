@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.08.03.17">
+   <meta name="gemulo-build" content="2026.08.03.18">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.08.03.17';
+      window.GEMULO_BUILD = '2026.08.03.18';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -126,6 +126,8 @@
       aside#f-aside { width: 260px; background: white; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow-y: auto; }
       #sidebar-cartoes { display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; }
       .date-select { appearance: none; background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1.5rem; border-radius: 9999px; font-weight: 900; font-size: 0.65rem; text-transform: uppercase; cursor: pointer; }
+      .btn-exportar-csv { display:none; align-items:center; justify-content:center; gap:0.4rem; background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; padding:0.52rem 0.9rem; border-radius:9999px; font-size:0.6rem; font-weight:900; text-transform:uppercase; letter-spacing:0.04em; cursor:pointer; white-space:nowrap; }
+      .btn-exportar-csv:hover { background:#d1fae5; border-color:#6ee7b7; }
       .floating-controls { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; align-items: flex-end; gap: 1rem; z-index: 90; width: max-content; pointer-events: none; }
       .floating-controls button { pointer-events: auto; }
       .floating-controls button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -293,6 +295,9 @@
                   <div style="display:flex; align-items:center; justify-content:center; gap:0.5rem; flex-wrap:wrap; flex-shrink:0;">
                      <select id="sel-mes" class="date-select" onchange="atualizarTudo()" aria-label="Mês"></select>
                      <select id="sel-ano" class="date-select" onchange="atualizarTudo()" aria-label="Ano"></select>
+                     <button id="btn-exportar-csv" type="button" class="btn-exportar-csv" onclick="exportarCsvCartaoAtual()" title="Exportar lançamentos desta competência no formato CSV">
+                        <i class="fas fa-file-csv"></i> CSV
+                     </button>
                   </div>
 
                   <div id="top-filtros-lancamento">
@@ -382,7 +387,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.03.17</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.03.18</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -1695,7 +1700,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.03.17.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.03.18.';
          return;
       }
 
@@ -2823,6 +2828,7 @@ async function atualizarTudo(forcarRecarga = false) {
       document.getElementById('view-relatorio').style.display = 'block';
       document.getElementById('view-placeholder').style.display = 'none';
       document.getElementById('top-filtros-lancamento').style.display = 'flex';
+      document.getElementById('btn-exportar-csv').style.display = 'inline-flex';
 
       let dTab = todasDaCompetencia.filter(d => String(d.cartao_id) === String(filtroCartao));
       if (filtroParcelado) dTab = dTab.filter(d => d.is_parcelado);
@@ -2834,10 +2840,96 @@ async function atualizarTudo(forcarRecarga = false) {
       document.getElementById('view-relatorio').style.display = 'none';
       document.getElementById('view-placeholder').style.display = 'block';
       document.getElementById('top-filtros-lancamento').style.display = 'none';
+      document.getElementById('btn-exportar-csv').style.display = 'none';
       zerarResumo();
    }
 
    mostrarSkeleton('finance', false);
+}
+
+
+function escaparCampoCsv(valor) {
+   const texto = String(valor ?? '');
+   const precisaAspas = texto.includes(',') || texto.includes('"') || texto.includes('\n') || texto.includes('\r');
+   if (!precisaAspas) return texto;
+   return '"' + texto.replace(/"/g, '""') + '"';
+}
+
+function formatarValorCsvNubank(valor) {
+   const numero = round2(Number(valor || 0));
+   const absoluto = Math.abs(numero).toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+   });
+   return numero < 0 ? `- ${absoluto}` : absoluto;
+}
+
+function nomeSeguroArquivoCsv(texto) {
+   return String(texto || 'cartao')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9_-]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'cartao';
+}
+
+function exportarCsvCartaoAtual() {
+   if (!filtroCartao) {
+      mostrarToast('Selecione um cartão antes de exportar o CSV.');
+      return;
+   }
+
+   const mes = parseInt(document.getElementById('sel-mes').value);
+   const ano = parseInt(document.getElementById('sel-ano').value);
+   const cartao = obterCartaoPorId(filtroCartao);
+
+   // Para comparação com a fatura, exporta TODOS os lançamentos do cartão
+   // pertencentes à competência escolhida. Busca e "Somente Parcelados"
+   // não interferem no arquivo.
+   const lancamentos = cacheDespesas
+      .filter(d =>
+         String(d.cartao_id) === String(filtroCartao) &&
+         pertenceACompetencia(d, ano, mes)
+      )
+      .slice()
+      .sort((a, b) => String(b.data || '').localeCompare(String(a.data || '')));
+
+   if (!lancamentos.length) {
+      mostrarToast('Não há lançamentos nesta competência para exportar.');
+      return;
+   }
+
+   const linhas = ['date,title,amount'];
+
+   lancamentos.forEach(item => {
+      const data = String(item.data || '').slice(0, 10);
+      const titulo = String(item.descricao || '').trim();
+      const valor = formatarValorCsvNubank(item.valor);
+
+      linhas.push([
+         escaparCampoCsv(data),
+         escaparCampoCsv(titulo),
+         escaparCampoCsv(valor)
+      ].join(','));
+   });
+
+   // BOM UTF-8 para abrir corretamente no Excel/Windows.
+   const conteudo = '\uFEFF' + linhas.join('\r\n');
+   const blob = new Blob([conteudo], { type: 'text/csv;charset=utf-8;' });
+   const url = URL.createObjectURL(blob);
+   const link = document.createElement('a');
+
+   const nomeCartao = nomeSeguroArquivoCsv(cartao?.nome || 'cartao');
+   const competencia = `${ano}-${String(mes + 1).padStart(2, '0')}`;
+
+   link.href = url;
+   link.download = `${nomeCartao}_${competencia}_sistema.csv`;
+   document.body.appendChild(link);
+   link.click();
+   link.remove();
+
+   setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+   mostrarToast(`CSV exportado com ${lancamentos.length} lançamento${lancamentos.length === 1 ? '' : 's'}.`);
 }
 
 // Filtra a lista atual (já filtrada por banco/parcelado) pelo texto digitado na busca.
