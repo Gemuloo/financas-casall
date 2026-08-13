@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.08.03.18">
+   <meta name="gemulo-build" content="2026.08.13.20">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.08.03.18';
+      window.GEMULO_BUILD = '2026.08.13.20';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -387,7 +387,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e verificação de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.03.18</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.13.20</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -1197,51 +1197,218 @@ function normalizarCaixa(s) {
 // - Match "fuzzy" (mesma data+valor, descrição diferente): pode ser a mesma compra
 //   lançada manualmente com outro texto -> entra no resultado, mas SINALIZADA e
 //   desmarcada por padrão, pra você decidir com seus próprios olhos.
-function compararComExistentes(daFatura, jaLancadas) {
-   // Cada linha existente pode ser consumida apenas uma vez.
-   // Assim, se a fatura tiver duas compras idênticas e o banco tiver somente uma,
-   // uma será reconhecida como já lançada e a outra continuará disponível para importar.
-   const existentes = jaLancadas.map(t => ({ ...t, usado: false }));
-   const resultado = [];
 
-   daFatura.forEach(t => {
-      const valorAtual = round2(t.valor);
+function diasEntreDatasISO(dataA, dataB) {
+   const a = new Date(String(dataA).slice(0, 10) + 'T12:00:00');
+   const b = new Date(String(dataB).slice(0, 10) + 'T12:00:00');
+   return Math.abs(Math.round((a - b) / 86400000));
+}
 
-      const exato = existentes.find(e =>
-         !e.usado &&
-         e.data === t.data &&
-         normalizarCaixa(e.descricao) === normalizarCaixa(t.descricao) &&
-         round2(e.valor) === valorAtual
-      );
+function normalizarDescricaoCompra(descricao) {
+   return normalizarTexto(descricao || '')
+      .replace(/\s+/g, ' ')
+      .replace(/[“”"']/g, '')
+      .trim();
+}
 
-      if (exato) {
-         exato.usado = true;
+// Prefixos genéricos são excluídos para evitar unir compras diferentes.
+// "Shopee", "Komprao", "Mundodanone", "Mercadolivre" etc. são específicos
+// o suficiente para reconhecer mudanças feitas pelo adquirente entre parciais.
+function familiaComerciante(descricao) {
+   const texto = normalizarDescricaoCompra(descricao);
+   const primeiro = (texto.split(/[\s*\/\\|:_-]+/).find(Boolean) || '')
+      .replace(/[^a-z0-9]/g, '');
+
+   const genericos = new Set([
+      'mercado', 'supermercado', 'posto', 'farmacia', 'drogaria',
+      'auto', 'pagamento', 'compra', 'loja', 'grupo', 'rede',
+      'mp', 'pg', 'dl', 'adiq', 'adiqplu', 'pix', 'iof'
+   ]);
+
+   if (primeiro.length < 5 || genericos.has(primeiro)) return null;
+   return primeiro;
+}
+
+function valoresNormaisCompativeis(valorA, valorB) {
+   return Math.abs(round2(valorA) - round2(valorB)) <= 0.021;
+}
+
+function mesmaIdentidadeComerciante(descricaoA, descricaoB) {
+   const descA = normalizarDescricaoCompra(descricaoA);
+   const descB = normalizarDescricaoCompra(descricaoB);
+   if (descA === descB) return true;
+
+   const familiaA = familiaComerciante(descricaoA);
+   const familiaB = familiaComerciante(descricaoB);
+   return !!familiaA && familiaA === familiaB;
+}
+
+function pontuarMatchCompraNormal(atual, existente) {
+   if (!valoresNormaisCompativeis(atual.valor, existente.valor)) return Infinity;
+
+   const dias = diasEntreDatasISO(atual.data, existente.data);
+   if (dias > 2) return Infinity;
+
+   const descIgual =
+      normalizarDescricaoCompra(atual.descricao) ===
+      normalizarDescricaoCompra(existente.descricao);
+
+   if (descIgual && dias === 0 && round2(atual.valor) === round2(existente.valor)) return 0;
+   if (descIgual && dias === 0) return 1;
+   if (descIgual) return 10 + dias;
+
+   const familiaAtual = familiaComerciante(atual.descricao);
+   const familiaExistente = familiaComerciante(existente.descricao);
+
+   if (familiaAtual && familiaAtual === familiaExistente) {
+      return 30 + dias;
+   }
+
+   // Mesmo dia + mesmo valor, mas descrição sem identidade segura:
+   // continua apenas como possível duplicidade para revisão manual.
+   if (dias === 0 && round2(atual.valor) === round2(existente.valor)) return 80;
+
+   return Infinity;
+}
+
+// Reconciliador occurrence-aware para compras normais:
+// 1) aceita mudança de data de até 2 dias;
+// 2) aceita diferença de até R$ 0,02;
+// 3) aceita alteração do complemento do estabelecimento quando a família é segura;
+// 4) cada registro existente só pode ser consumido uma vez;
+// 5) detecta uma versão antiga EXTRA depois que a versão atual já foi pareada.
+function reconciliarLancamentosNormais(daFatura, jaLancadas) {
+   const atuais = (daFatura || []).map((item, indice) => ({ ...item, _indice: indice }));
+
+   const existentes = (jaLancadas || [])
+      .filter(item => !obterIdentidadeParcela(item.descricao))
+      .map(item => ({ ...item, usado: false }));
+
+   const novos = [];
+   const atualizacoes = [];
+   const pareamentos = [];
+
+   atuais.forEach(atual => {
+      const candidatos = existentes
+         .filter(existente => !existente.usado)
+         .map(existente => ({
+            existente,
+            score: pontuarMatchCompraNormal(atual, existente)
+         }))
+         .filter(c => Number.isFinite(c.score))
+         .sort((a, b) => {
+            if (a.score !== b.score) return a.score - b.score;
+            return diasEntreDatasISO(atual.data, a.existente.data) -
+                   diasEntreDatasISO(atual.data, b.existente.data);
+         });
+
+      const automatico = candidatos.find(c => c.score < 80);
+
+      if (automatico) {
+         const existente = automatico.existente;
+         existente.usado = true;
+         pareamentos.push({ atual, existente });
+
+         const valorNovo = round2(atual.valor);
+         const valorAntigo = round2(existente.valor);
+
+         if (
+            existente.data !== atual.data ||
+            normalizarCaixa(existente.descricao) !== normalizarCaixa(atual.descricao) ||
+            valorNovo !== valorAntigo
+         ) {
+            atualizacoes.push({
+               id: existente.id,
+               descricao: atual.descricao,
+               descricaoAnterior: existente.descricao,
+               data: atual.data,
+               dataAnterior: existente.data,
+               valor: valorNovo,
+               valorAnterior: valorAntigo,
+               diferencaValor: round2(valorNovo - valorAntigo)
+            });
+         }
          return;
       }
 
-      const fuzzy = existentes.find(e =>
-         !e.usado &&
-         e.data === t.data &&
-         round2(e.valor) === valorAtual
-      );
-
-      if (fuzzy) {
-         fuzzy.usado = true;
-         resultado.push({
-            ...t,
+      const suspeito = candidatos.find(c => c.score === 80);
+      if (suspeito) {
+         suspeito.existente.usado = true;
+         novos.push({
+            ...atual,
             possivelDuplicata: true,
-            duplicataDescricao: fuzzy.descricao
+            duplicataDescricao: suspeito.existente.descricao
          });
-      } else {
-         resultado.push({
-            ...t,
-            possivelDuplicata: false,
-            duplicataDescricao: null
-         });
+         return;
       }
+
+      novos.push({
+         ...atual,
+         possivelDuplicata: false,
+         duplicataDescricao: null
+      });
    });
 
-   return resultado;
+   // Se a versão atual já encontrou um correspondente e ainda sobrou outro
+   // registro muito parecido, o excedente é a versão antiga deixada por uma
+   // parcial anterior. Nenhuma exclusão ocorre aqui; apenas é preparada para
+   // a tela de confirmação.
+   const reconciliacoes = [];
+   const idsMarcados = new Set();
+
+   pareamentos.forEach(par => {
+      const extras = existentes
+         .filter(existente =>
+            !existente.usado &&
+            !idsMarcados.has(String(existente.id)) &&
+            valoresNormaisCompativeis(existente.valor, par.atual.valor) &&
+            diasEntreDatasISO(existente.data, par.atual.data) <= 2 &&
+            mesmaIdentidadeComerciante(existente.descricao, par.atual.descricao)
+         )
+         .sort((a, b) =>
+            diasEntreDatasISO(b.data, par.atual.data) -
+            diasEntreDatasISO(a.data, par.atual.data)
+         );
+
+      extras.forEach(extra => {
+         idsMarcados.add(String(extra.id));
+         extra.usado = true;
+
+         reconciliacoes.push({
+            id: extra.id,
+            alvoId: par.existente.id,
+            descricaoAntiga: extra.descricao,
+            dataAntiga: extra.data,
+            valorAntigo: round2(extra.valor),
+            descricaoAtual: par.atual.descricao,
+            dataAtual: par.atual.data,
+            valorAtual: round2(par.atual.valor),
+
+            categoria_id: extra.categoria_id || null,
+            de_terceiro: extra.de_terceiro === true,
+            terceiro_nome: extra.terceiro_nome || null,
+
+            alvo_categoria_id: par.existente.categoria_id || null,
+            alvo_de_terceiro: par.existente.de_terceiro === true,
+            alvo_terceiro_nome: par.existente.terceiro_nome || null,
+
+            aplicar: true,
+            reconciliacao_automatica: true
+         });
+      });
+   });
+
+   return {
+      novos,
+      atualizacoes,
+      reconciliacoes,
+      existentesRestantes: existentes.filter(item => !item.usado)
+   };
+}
+
+// Mantida para compatibilidade com o restante do painel.
+function compararComExistentes(daFatura, jaLancadas) {
+   return reconciliarLancamentosNormais(daFatura, jaLancadas).novos;
 }
 
 // Reconhece o padrão "- Parcela i/N" no fim da descrição de uma transação da fatura.
@@ -1606,8 +1773,13 @@ let competenciaImportacaoAtual = null;
 let fechamentoImportacaoAtual = null;
 let origemImportacaoAtual = 'pdf';
 let detalhesCsvImportacaoAtual = null;
+let atualizacoesNormaisAtuais = [];
+let reconciliacoesNormaisAtuais = [];
 
 async function processarArquivoFatura(arquivo) {
+   atualizacoesNormaisAtuais = [];
+   reconciliacoesNormaisAtuais = [];
+
    const cartaoId = document.getElementById('imp-cartao').value;
    if (!cartaoId) {
       mostrarToast('Escolha o banco/cartão desta fatura.');
@@ -1700,7 +1872,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.03.18.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.13.20.';
          return;
       }
 
@@ -1734,7 +1906,7 @@ async function processarArquivoFatura(arquivo) {
       const [resultadoPeriodo, resultadoParcelas] = await Promise.all([
          chamarSupabase(
             _supabase.from('despesas')
-               .select('id, descricao, valor, data, is_parcelado')
+               .select('id, descricao, valor, data, is_parcelado, categoria_id, de_terceiro, terceiro_nome, is_fixa, grupo_id')
                .eq('usuario', eu())
                .eq('cartao_id', cartaoId)
                .gte('data', inicioBusca.toISOString())
@@ -1743,7 +1915,7 @@ async function processarArquivoFatura(arquivo) {
          ),
          chamarSupabase(
             _supabase.from('despesas')
-               .select('id, descricao, valor, data, is_parcelado')
+               .select('id, descricao, valor, data, is_parcelado, categoria_id, de_terceiro, terceiro_nome, is_fixa, grupo_id')
                .eq('usuario', eu())
                .eq('cartao_id', cartaoId)
                .eq('is_parcelado', true),
@@ -1768,7 +1940,12 @@ async function processarArquivoFatura(arquivo) {
          data: new Date(e.data).toISOString().slice(0, 10),
          descricao: e.descricao,
          valor: round2(e.valor),
-         is_parcelado: e.is_parcelado === true
+         is_parcelado: e.is_parcelado === true,
+         categoria_id: e.categoria_id || null,
+         de_terceiro: e.de_terceiro === true,
+         terceiro_nome: e.terceiro_nome || null,
+         is_fixa: e.is_fixa === true,
+         grupo_id: e.grupo_id || null
       }));
 
       const { novasParcelas, linhasNormais, atualizacoesSilenciosas, existentesRestantes } =
@@ -1786,7 +1963,13 @@ async function processarArquivoFatura(arquivo) {
          )));
       }
 
-      const novasNormais = compararComExistentes(linhasNormais, existentesRestantes);
+      const reconciliacaoNormal = reconciliarLancamentosNormais(linhasNormais, existentesRestantes);
+      atualizacoesNormaisAtuais = reconciliacaoNormal.atualizacoes;
+      reconciliacoesNormaisAtuais = origemImportacaoAtual === 'csv-nubank-parcial'
+         ? reconciliacaoNormal.reconciliacoes
+         : [];
+
+      const novasNormais = reconciliacaoNormal.novos;
       const novas = [...novasParcelas, ...novasNormais];
       const qtdJaLancadas = daFatura.length - novas.length;
 
@@ -1916,6 +2099,17 @@ async function processarArquivoFatura(arquivo) {
          msg += `<br><span style="color:#b45309;">⚠️ ${qtdSuspeitas} podem já ter sido lançadas manualmente com outro texto — revise antes de confirmar.</span>`;
       }
 
+      if (atualizacoesNormaisAtuais.length > 0) {
+         msg += `<br><span style="color:#0369a1;">🧩 ${atualizacoesNormaisAtuais.length} compra(s) comum(ns) já existente(s) foram reconhecidas mesmo com mudança de data, descrição ou centavos.</span>`;
+      }
+
+      if (reconciliacoesNormaisAtuais.length > 0) {
+         const totalObsoleto = round2(reconciliacoesNormaisAtuais.reduce(
+            (soma, item) => soma + Number(item.valorAntigo || 0), 0
+         ));
+         msg += `<br><span style="color:#b91c1c;font-weight:900;">🧹 ${reconciliacoesNormaisAtuais.length} versão(ões) antiga(s) de parciais anteriores foram identificadas com alta confiança como duplicadas (R$ ${fmtBRL(totalObsoleto)}). A limpeza será feita automaticamente ao confirmar.</span>`;
+      }
+
       if (atualizacoesSilenciosas.length > 0) {
          const ajustesCentavo = atualizacoesSilenciosas.filter(item =>
             Math.abs(Number(item.diferencaValor || 0)) > 0 &&
@@ -1935,7 +2129,17 @@ async function processarArquivoFatura(arquivo) {
       document.getElementById('imp-status').innerHTML = msg;
       renderRevisaoImportacao();
       renderCancelamentosEstorno();
-      document.getElementById('imp-revisao').style.display = novas.length ? 'block' : 'none';
+      const temCorrecaoSemNovos =
+         atualizacoesNormaisAtuais.length > 0 ||
+         reconciliacoesNormaisAtuais.length > 0;
+
+      document.getElementById('imp-revisao').style.display =
+         (novas.length || temCorrecaoSemNovos) ? 'block' : 'none';
+
+      const btnConfirmar = document.getElementById('btn-confirmar-importacao');
+      if (btnConfirmar) {
+         btnConfirmar.textContent = novas.length ? 'Confirmar Importação' : 'Aplicar Correções';
+      }
    } catch (erro) {
       console.error(erro);
       document.getElementById('imp-status').textContent =
@@ -1944,24 +2148,82 @@ async function processarArquivoFatura(arquivo) {
    }
 }
 
+
 function renderCancelamentosEstorno() {
    const container = document.getElementById('imp-cancelamentos');
-   if (cancelamentosPorEstorno.length === 0) { container.innerHTML = ''; return; }
-   container.innerHTML = cancelamentosPorEstorno.map((c, idx) => `
-      <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:1rem; padding:1rem; margin-bottom:0.75rem;">
-         <p style="font-size:0.7rem; font-weight:800; color:#991b1b; margin:0 0 0.5rem;">
-            <i class="fas fa-rotate-left"></i> Estorno de "${escapeHtml(c.nomeEstorno)}" parece cancelar essa compra parcelada.
-         </p>
-         <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.65rem; font-weight:700; color:#7f1d1d; cursor:pointer;">
-            <input type="checkbox" ${c.incluirCancelamento ? 'checked' : ''} onchange="cancelamentosPorEstorno[${idx}].incluirCancelamento = this.checked" style="width:16px;height:16px;">
-            Cancelar ${c.qtdParcelas} parcela(s) futura(s) desta compra junto com a importação
-         </label>
-      </div>
-   `).join('');
+   const blocos = [];
+
+   if (reconciliacoesNormaisAtuais.length > 0) {
+      const totalAutomatico = round2(
+         reconciliacoesNormaisAtuais.reduce(
+            (soma, item) => soma + Number(item.valorAntigo || 0),
+            0
+         )
+      );
+
+      blocos.push(`
+         <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:1rem; padding:1rem; margin-bottom:0.75rem;">
+            <p style="font-size:0.72rem; font-weight:900; color:#047857; margin:0 0 0.35rem;">
+               <i class="fas fa-wand-magic-sparkles"></i> Reconciliação automática
+            </p>
+            <p style="font-size:0.6rem; font-weight:700; color:#065f46; margin:0 0 0.75rem;">
+               O sistema encontrou ${reconciliacoesNormaisAtuais.length} versão(ões) antiga(s)
+               de compras que o Nubank alterou entre parciais. Elas serão removidas automaticamente
+               ao confirmar, totalizando R$ ${fmtBRL(totalAutomatico)}.
+            </p>
+            ${reconciliacoesNormaisAtuais.map((item, idx) => `
+               <div style="display:flex;align-items:flex-start;gap:0.55rem;padding:0.55rem 0;border-top:${idx ? '1px solid #d1fae5' : '0'};">
+                  <span style="margin-top:0.05rem;color:#059669;font-size:0.72rem;">
+                     <i class="fas fa-check-circle"></i>
+                  </span>
+                  <span style="font-size:0.6rem; color:#065f46; font-weight:700;">
+                     Remover automaticamente:
+                     <strong>${escapeHtml(item.descricaoAntiga)}</strong>
+                     · ${new Date(item.dataAntiga + 'T12:00:00').toLocaleDateString('pt-BR')}
+                     · R$ ${fmtBRL(item.valorAntigo)}
+                     <br>
+                     <span style="color:#64748b;">
+                        Mantida como versão atual: ${escapeHtml(item.descricaoAtual)}
+                        · ${new Date(item.dataAtual + 'T12:00:00').toLocaleDateString('pt-BR')}
+                     </span>
+                  </span>
+               </div>
+            `).join('')}
+         </div>
+      `);
+   }
+
+   if (cancelamentosPorEstorno.length > 0) {
+      blocos.push(cancelamentosPorEstorno.map((c, idx) => `
+         <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:1rem; padding:1rem; margin-bottom:0.75rem;">
+            <p style="font-size:0.7rem; font-weight:800; color:#991b1b; margin:0 0 0.5rem;">
+               <i class="fas fa-rotate-left"></i> Estorno de "${escapeHtml(c.nomeEstorno)}" parece cancelar essa compra parcelada.
+            </p>
+            <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.65rem; font-weight:700; color:#7f1d1d; cursor:pointer;">
+               <input type="checkbox" ${c.incluirCancelamento ? 'checked' : ''} onchange="cancelamentosPorEstorno[${idx}].incluirCancelamento = this.checked" style="width:16px;height:16px;">
+               Cancelar ${c.qtdParcelas} parcela(s) futura(s) desta compra junto com a importação
+            </label>
+         </div>
+      `).join(''));
+   }
+
+   container.innerHTML = blocos.join('');
 }
 
+
 function renderRevisaoImportacao() {
-   document.getElementById('imp-lista').innerHTML = importacaoFaturaAtual.map((t, idx) => `
+   const lista = document.getElementById('imp-lista');
+
+   if (importacaoFaturaAtual.length === 0) {
+      lista.innerHTML = `
+         <div style="padding:1rem;text-align:center;font-size:0.65rem;font-weight:800;color:#64748b;">
+            Nenhum lançamento novo. Você pode confirmar apenas as correções detectadas acima.
+         </div>
+      `;
+      return;
+   }
+
+   lista.innerHTML = importacaoFaturaAtual.map((t, idx) => `
       <div style="padding:0.8rem; border-bottom:1px solid #f1f5f9; ${t.possivelDuplicata ? 'background:#fffbeb;' : ''}">
          <div style="display:flex; align-items:flex-start; gap:0.6rem;">
             <input type="checkbox" ${t.incluir ? 'checked' : ''} onchange="importacaoFaturaAtual[${idx}].incluir = this.checked" style="width:18px;height:18px;flex-shrink:0;margin-top:0.15rem;">
@@ -1988,32 +2250,95 @@ function renderRevisaoImportacao() {
    `).join('');
 }
 
+
 async function confirmarImportacaoFatura() {
    const cartaoId = document.getElementById('imp-cartao').value;
 
    const selecionadas = importacaoFaturaAtual.filter(t => t.incluir);
-   if (selecionadas.length === 0) { mostrarToast('Nenhuma transação selecionada.'); return; }
+   const limpezasSelecionadas = reconciliacoesNormaisAtuais.slice();
 
-   const semResponsavel = selecionadas.find(t => t.de_terceiro === true && !String(t.terceiro_nome || '').trim());
+   const temAcoes =
+      selecionadas.length > 0 ||
+      limpezasSelecionadas.length > 0 ||
+      atualizacoesNormaisAtuais.length > 0;
+
+   if (!temAcoes) {
+      mostrarToast('Nenhuma importação ou correção selecionada.');
+      return;
+   }
+
+   const semResponsavel = selecionadas.find(
+      t => t.de_terceiro === true && !String(t.terceiro_nome || '').trim()
+   );
    if (semResponsavel) {
       mostrarToast(`Informe o responsável por "${semResponsavel.descricao}".`, 'erro', 4500);
       return;
    }
 
-   // Só aplica cancelamentos depois de validar toda a revisão da importação.
-   for (const c of cancelamentosPorEstorno) {
-      if (!c.incluirCancelamento) continue;
-      if (c.tipo === 'nova') {
-         importacaoFaturaAtual[c.idxNaLista].projecoesFuturas = [];
-      } else if (c.tipo === 'existente') {
-         await Promise.all(c.linhasFuturas.map(l => chamarSupabase(
-            _supabase.from('despesas').delete().eq('id', l.id), 'Erro ao cancelar parcela futura'
-         )));
+   await comBotaoOcupado('btn-confirmar-importacao', 'Aplicando...', async () => {
+      // 1. Atualiza compras comuns que o Nubank alterou entre parciais.
+      for (const u of atualizacoesNormaisAtuais) {
+         const { error } = await chamarSupabase(
+            _supabase.from('despesas').update({
+               descricao: u.descricao,
+               valor: u.valor,
+               data: new Date(u.data + 'T12:00:00').toISOString(),
+               competencia_fatura: competenciaImportacaoAtual,
+               dia_fechamento_aplicado: fechamentoImportacaoAtual
+            }).eq('id', u.id),
+            'Erro ao atualizar compra reconhecida'
+         );
+         if (error) return;
       }
-   }
 
-   await comBotaoOcupado('btn-confirmar-importacao', 'Importando...', async () => {
+      // 2. Remove automaticamente versões antigas duplicadas de alta confiança.
+      // Se a versão antiga tinha categoria/terceiro e a atual ainda não,
+      // transfere esses metadados antes de apagar a antiga.
+      for (const item of limpezasSelecionadas) {
+         const patch = {};
+
+         if (!item.alvo_categoria_id && item.categoria_id) {
+            patch.categoria_id = item.categoria_id;
+         }
+
+         if (item.de_terceiro && !item.alvo_de_terceiro) {
+            patch.de_terceiro = true;
+            patch.terceiro_nome = item.terceiro_nome || null;
+         }
+
+         if (Object.keys(patch).length > 0 && item.alvoId) {
+            const { error: erroPatch } = await chamarSupabase(
+               _supabase.from('despesas').update(patch).eq('id', item.alvoId),
+               'Erro ao preservar dados da versão anterior'
+            );
+            if (erroPatch) return;
+         }
+
+         const { error: erroDelete } = await chamarSupabase(
+            _supabase.from('despesas').delete().eq('id', item.id),
+            'Erro ao remover versão antiga duplicada'
+         );
+         if (erroDelete) return;
+      }
+
+      // 3. Cancelamentos de parcelas por estorno.
+      for (const c of cancelamentosPorEstorno) {
+         if (!c.incluirCancelamento) continue;
+
+         if (c.tipo === 'nova') {
+            importacaoFaturaAtual[c.idxNaLista].projecoesFuturas = [];
+         } else if (c.tipo === 'existente') {
+            const resultados = await Promise.all(c.linhasFuturas.map(l => chamarSupabase(
+               _supabase.from('despesas').delete().eq('id', l.id),
+               'Erro ao cancelar parcela futura'
+            )));
+            if (resultados.some(r => r.error)) return;
+         }
+      }
+
+      // 4. Insere somente o que realmente é novo.
       const registros = [];
+
       selecionadas.forEach(t => {
          const temProjecao = t.projecoesFuturas && t.projecoesFuturas.length > 0;
          const grupoId = temProjecao ? gerarGrupoId() : null;
@@ -2021,41 +2346,85 @@ async function confirmarImportacaoFatura() {
          const terceiroNome = deTerceiro ? String(t.terceiro_nome || '').trim() : null;
 
          registros.push({
-            descricao: t.descricao, valor: t.valor, data: new Date(t.data + 'T12:00:00').toISOString(),
-            cartao_id: cartaoId, categoria_id: t.categoria_id || null,
-            is_fixa: false, is_parcelado: temProjecao, grupo_id: grupoId, usuario: eu(),
-            de_terceiro: deTerceiro, terceiro_nome: terceiroNome,
+            descricao: t.descricao,
+            valor: t.valor,
+            data: new Date(t.data + 'T12:00:00').toISOString(),
+            cartao_id: cartaoId,
+            categoria_id: t.categoria_id || null,
+            is_fixa: false,
+            is_parcelado: temProjecao,
+            grupo_id: grupoId,
+            usuario: eu(),
+            de_terceiro: deTerceiro,
+            terceiro_nome: terceiroNome,
             competencia_fatura: t.competencia_fatura || competenciaImportacaoAtual,
             dia_fechamento_aplicado: t.dia_fechamento_aplicado ?? fechamentoImportacaoAtual
          });
 
          if (temProjecao) {
             t.projecoesFuturas.forEach(f => registros.push({
-               descricao: f.descricao, valor: f.valor, data: new Date(f.data + 'T12:00:00').toISOString(),
-               cartao_id: cartaoId, categoria_id: t.categoria_id || null,
-               is_fixa: false, is_parcelado: true, grupo_id: grupoId, usuario: eu(),
-               de_terceiro: deTerceiro, terceiro_nome: terceiroNome,
-               competencia_fatura: f.competencia_fatura || calcularCompetenciaPorData(f.data, cartaoId).competencia_fatura,
-               dia_fechamento_aplicado: f.dia_fechamento_aplicado ?? fechamentoImportacaoAtual
+               descricao: f.descricao,
+               valor: f.valor,
+               data: new Date(f.data + 'T12:00:00').toISOString(),
+               cartao_id: cartaoId,
+               categoria_id: t.categoria_id || null,
+               is_fixa: false,
+               is_parcelado: true,
+               grupo_id: grupoId,
+               usuario: eu(),
+               de_terceiro: deTerceiro,
+               terceiro_nome: terceiroNome,
+               competencia_fatura:
+                  f.competencia_fatura ||
+                  calcularCompetenciaPorData(f.data, cartaoId).competencia_fatura,
+               dia_fechamento_aplicado:
+                  f.dia_fechamento_aplicado ?? fechamentoImportacaoAtual
             }));
          }
       });
 
-      const { data: inserido, error } = await chamarSupabase(
-         _supabase.from('despesas').insert(registros).select(),
-         'Erro ao importar transações. Confirme se as colunas de terceiro e competência foram criadas no Supabase.'
-      );
-      if (error) return;
+      let qtdInserida = 0;
 
-      const qtdProjetadas = registros.length - selecionadas.length;
+      if (registros.length > 0) {
+         const { data: inserido, error } = await chamarSupabase(
+            _supabase.from('despesas').insert(registros).select(),
+            'Erro ao importar transações. Confirme se as colunas de terceiro e competência foram criadas no Supabase.'
+         );
+         if (error) return;
+         qtdInserida = inserido ? inserido.length : registros.length;
+      }
+
+      const qtdProjetadas = Math.max(0, registros.length - selecionadas.length);
       const qtdTerceiros = registros.filter(r => r.de_terceiro).length;
-      let mensagem = `${inserido ? inserido.length : registros.length} lançamento(s) importado(s)`;
-      if (qtdProjetadas > 0) mensagem += `, incluindo ${qtdProjetadas} parcela(s) futura(s)`;
-      if (qtdTerceiros > 0) mensagem += `; ${qtdTerceiros} marcado(s) como terceiro`;
-      mostrarToast(`${mensagem}.`, 'sucesso', 4000);
+
+      const partes = [];
+
+      if (qtdInserida > 0) {
+         let texto = `${qtdInserida} lançamento(s) importado(s)`;
+         if (qtdProjetadas > 0) texto += `, incluindo ${qtdProjetadas} parcela(s) futura(s)`;
+         if (qtdTerceiros > 0) texto += `; ${qtdTerceiros} marcado(s) como terceiro`;
+         partes.push(texto);
+      }
+
+      if (atualizacoesNormaisAtuais.length > 0) {
+         partes.push(`${atualizacoesNormaisAtuais.length} compra(s) atualizada(s)`);
+      }
+
+      if (limpezasSelecionadas.length > 0) {
+         const totalLimpo = round2(limpezasSelecionadas.reduce(
+            (soma, item) => soma + Number(item.valorAntigo || 0), 0
+         ));
+         partes.push(
+            `${limpezasSelecionadas.length} duplicidade(s) removida(s) (R$ ${fmtBRL(totalLimpo)})`
+         );
+      }
+
+      mostrarToast(`${partes.join('; ')}.`, 'sucesso', 5000);
 
       cacheHistoricoCategorizacao = null;
       importacaoFaturaAtual = [];
+      atualizacoesNormaisAtuais = [];
+      reconciliacoesNormaisAtuais = [];
       competenciaImportacaoAtual = null;
       fechamentoImportacaoAtual = null;
       fecharModais();
@@ -2068,6 +2437,8 @@ function abrirImportarFatura() {
    cancelamentosPorEstorno = [];
    origemImportacaoAtual = 'pdf';
    detalhesCsvImportacaoAtual = null;
+   atualizacoesNormaisAtuais = [];
+   reconciliacoesNormaisAtuais = [];
    competenciaImportacaoAtual = null;
    fechamentoImportacaoAtual = null;
    document.getElementById('imp-cancelamentos').innerHTML = '';
