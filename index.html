@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.08.13.20">
+   <meta name="gemulo-build" content="2026.08.26.21">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.08.13.20';
+      window.GEMULO_BUILD = '2026.08.26.21';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -106,6 +106,13 @@
       .finance-projection-value { display: block; color: #1d4ed8; font-size: 0.94rem; font-weight: 900; letter-spacing: -0.03em; margin-top: 0.25rem; white-space: nowrap; }
       .finance-projection-card.negativo .finance-projection-value { color: #dc2626; }
       .finance-projection-caption { display: block; color: #94a3b8; font-size: 0.49rem; font-weight: 800; margin-top: 0.08rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .reserva-grid { display:grid; grid-template-columns:1fr; gap:0.75rem; }
+      .reserva-field { background:#f8fafc; border:1px solid #e2e8f0; border-radius:1rem; padding:0.9rem 1rem; }
+      .reserva-field label { display:block; font-size:0.58rem; font-weight:900; text-transform:uppercase; color:#64748b; margin-bottom:0.35rem; letter-spacing:0.05em; }
+      .reserva-field input { width:100%; border:0; background:transparent; outline:none; font-size:0.95rem; font-weight:900; color:#0f172a; }
+      .reserva-total { margin-top:0.9rem; padding:0.9rem 1rem; border-radius:1rem; background:#eff6ff; border:1px solid #bfdbfe; display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+      .reserva-total span { font-size:0.6rem; font-weight:900; text-transform:uppercase; color:#475569; }
+      .reserva-total strong { font-size:0.95rem; font-weight:900; color:#1d4ed8; }
       #finance-controls-row { display:flex; align-items:center; justify-content:center; gap:0.75rem; width:100%; max-width:980px; margin:0 auto; }
       #finance-periodo-wrap { display:flex; justify-content:center; width:100%; margin:0 0 1.15rem; }
       #top-filtros-lancamento { display:none; align-items:center; justify-content:flex-end; gap:0.65rem; flex-wrap:wrap; flex:1; min-width:280px; }
@@ -352,8 +359,39 @@
    <!-- Finance Modals -->
    <div id="modal-excluir-parcela" class="modal-overlay"><div class="modal-content"><h3 class="font-black text-slate-800 text-lg uppercase mb-6 text-center italic">Como deseja excluir?</h3><div id="opcoes-exclusao" class="space-y-3"></div><button onclick="fecharModais()" class="w-full mt-4 p-4 text-[10px] font-black text-slate-400 uppercase">Cancelar</button></div></div>
    <div id="modal-escopo-edicao" class="modal-overlay" style="z-index:400;"><div class="modal-content" style="max-width:360px;"><h3 class="font-black text-slate-800 text-lg uppercase mb-2 text-center italic">Aplicar alteração a:</h3><p style="font-size:0.65rem;color:#94a3b8;text-align:center;font-weight:700;margin-bottom:1.5rem;">Descrição, valor, banco e categoria valem para as parcelas escolhidas. A data só muda em "apenas esta parcela".</p><div class="space-y-3"><button onclick="resolverEscopoEdicao('unica')" class="w-full p-4 bg-slate-50 rounded-xl text-slate-700 font-black uppercase text-[10px] text-left">Apenas esta parcela</button><button onclick="resolverEscopoEdicao('futuras')" class="w-full p-4 bg-orange-50 rounded-xl text-orange-700 font-black uppercase text-[10px] text-left">Esta e as próximas</button><button onclick="resolverEscopoEdicao('todas')" class="w-full p-4 bg-red-50 rounded-xl text-red-700 font-black uppercase text-[10px] text-left">Todo o parcelamento</button></div><button onclick="resolverEscopoEdicao(null)" class="w-full mt-4 p-4 text-[10px] font-black text-slate-400 uppercase">Cancelar</button></div></div>
-   <div id="modal-menu-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModais(); abrirImportarFatura()" class="w-full p-6 bg-purple-50 rounded-2xl flex items-center gap-4 text-purple-700 font-black uppercase text-xs"><i class="fas fa-file-pdf"></i> Importar Fatura</button><button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4 text-blue-700 font-black uppercase text-xs"><i class="fas fa-credit-card"></i> Bancos</button><button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4 text-emerald-700 font-black uppercase text-xs"><i class="fas fa-tags"></i> Categorias</button><button onclick="fecharModais(); abrirModal('modal-salario')" class="w-full p-6 bg-orange-50 rounded-2xl flex items-center gap-4 text-orange-700 font-black uppercase text-xs"><i class="fas fa-money-bill-wave"></i> Salário</button></div></div></div>
+   <div id="modal-menu-config" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-lg uppercase mb-8 text-center italic">Configurações</h3><div class="space-y-4"><button onclick="fecharModais(); abrirImportarFatura()" class="w-full p-6 bg-purple-50 rounded-2xl flex items-center gap-4 text-purple-700 font-black uppercase text-xs"><i class="fas fa-file-pdf"></i> Importar Fatura</button><button onclick="fecharModais(); abrirModal('modal-bancos')" class="w-full p-6 bg-blue-50 rounded-2xl flex items-center gap-4 text-blue-700 font-black uppercase text-xs"><i class="fas fa-credit-card"></i> Bancos</button><button onclick="fecharModais(); abrirModal('modal-categorias')" class="w-full p-6 bg-emerald-50 rounded-2xl flex items-center gap-4 text-emerald-700 font-black uppercase text-xs"><i class="fas fa-tags"></i> Categorias</button><button onclick="fecharModais(); abrirModal('modal-salario')" class="w-full p-6 bg-orange-50 rounded-2xl flex items-center gap-4 text-orange-700 font-black uppercase text-xs"><i class="fas fa-money-bill-wave"></i> Salário</button><button onclick="fecharModais(); abrirReservasMensais()" class="w-full p-6 bg-cyan-50 rounded-2xl flex items-center gap-4 text-cyan-700 font-black uppercase text-xs"><i class="fas fa-basket-shopping"></i> Comida, Lanches e Outros</button></div></div></div>
    <div id="modal-salario" class="modal-overlay"><div class="modal-content"><i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Salários</h3><div class="space-y-4 mb-6"><div class="grid grid-cols-2 gap-2"><select id="f-sal-mes" class="bg-slate-50 border p-3 rounded-xl font-bold text-xs" aria-label="Mês do salário"></select><select id="f-sal-ano" class="bg-slate-50 border p-3 rounded-xl font-bold text-xs" aria-label="Ano do salário"></select></div><div class="flex gap-2"><input id="f-sal-valor" type="number" placeholder="Valor" aria-label="Valor do salário" class="flex-1 bg-slate-50 border p-3 rounded-xl font-black text-blue-600 outline-none"><button id="btn-salvar-salario" onclick="salvarSalario()" class="bg-orange-600 text-white px-5 rounded-xl font-black uppercase text-[10px] btn-confirm">Add</button></div></div><div id="lista-salarios-modal" class="space-y-2 max-h-60 overflow-y-auto"></div></div></div>
+
+   <div id="modal-reservas-mensais" class="modal-overlay">
+      <div class="modal-content">
+         <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
+         <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Reservas Mensais</h3>
+         <p style="font-size:0.62rem;color:#94a3b8;font-weight:700;text-align:center;margin:0 0 1.25rem;">
+            Valores usados somente no detalhamento dos meses futuros em “Quanto posso gastar”.
+         </p>
+         <div class="reserva-grid">
+            <div class="reserva-field">
+               <label for="reserva-comida"><i class="fas fa-utensils" style="margin-right:0.35rem;"></i>Comida</label>
+               <input id="reserva-comida" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" oninput="atualizarTotalReservasModal()">
+            </div>
+            <div class="reserva-field">
+               <label for="reserva-lanches"><i class="fas fa-burger" style="margin-right:0.35rem;"></i>Lanches</label>
+               <input id="reserva-lanches" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" oninput="atualizarTotalReservasModal()">
+            </div>
+            <div class="reserva-field">
+               <label for="reserva-outros"><i class="fas fa-ellipsis" style="margin-right:0.35rem;"></i>Outros</label>
+               <input id="reserva-outros" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" oninput="atualizarTotalReservasModal()">
+            </div>
+         </div>
+         <div class="reserva-total">
+            <span>Reserva mensal total</span>
+            <strong id="reserva-total-valor">R$ 0,00</strong>
+         </div>
+         <button id="btn-salvar-reservas" onclick="salvarReservasMensais()" class="w-full mt-5 p-4 bg-cyan-600 text-white rounded-2xl font-black uppercase text-[10px] btn-confirm">
+            Salvar Valores
+         </button>
+      </div>
+   </div>
    <div id="modal-anual" class="modal-overlay"><div class="modal-content"><i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModais()"></i><h3 class="font-black text-slate-800 text-xl uppercase mb-4 text-center italic">Resumo Anual</h3><div class="space-y-2 mb-6"><button onclick="gerarAnaliseGastos()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">O quanto posso gastar?</button><button onclick="gerarResumoCategoriasAnual()" class="w-full bg-emerald-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">Resumo por Categoria</button><button onclick="gerarParcelasAndamento()" class="w-full bg-purple-600 text-white font-black py-3 rounded-xl uppercase text-[10px] tracking-widest shadow-md">Parcelas em Andamento</button></div><div id="corpo-anual" class="space-y-2"></div></div></div>
 
    <div id="modal-parcelas-andamento" class="modal-overlay"><div class="modal-content">
@@ -387,7 +425,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.13.20</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.26.21</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -1872,7 +1910,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.13.20.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.26.21.';
          return;
       }
 
@@ -2777,6 +2815,7 @@ let edicaoDespesaCartaoOriginal = null;
 let edicaoDespesaCompetenciaOriginal = null;
 let edicaoDespesaFechamentoOriginal = null;
 let cacheBancos = [], cacheCategorias = [], cacheSalarios = [], cacheDespesas = [];
+let reservasMensais = { comida: 0, lanches: 0, outros: 0 };
 let mapaBancos = new Map(), mapaCategorias = new Map(), mapaSalarios = new Map();
 let cacheResumoCompetencias = new Map();
 let cacheFinanceiroPronto = false;
@@ -3067,6 +3106,91 @@ function obterSalarioCompetencia(ano, mesZero) {
    return registro ? Number(registro.valor || 0) : 0;
 }
 
+
+function chaveReservasMensaisUsuario() {
+   return `gemulo_reservas_mensais_${usuarioAtual?.login || 'anonimo'}`;
+}
+
+function normalizarValorReserva(valor) {
+   const numero = Number(valor || 0);
+   if (!Number.isFinite(numero) || numero < 0) return 0;
+   return round2(numero);
+}
+
+function carregarReservasMensais() {
+   try {
+      const bruto = localStorage.getItem(chaveReservasMensaisUsuario());
+      const dados = bruto ? JSON.parse(bruto) : {};
+      reservasMensais = {
+         comida: normalizarValorReserva(dados.comida),
+         lanches: normalizarValorReserva(dados.lanches),
+         outros: normalizarValorReserva(dados.outros)
+      };
+   } catch (erro) {
+      reservasMensais = { comida: 0, lanches: 0, outros: 0 };
+   }
+   return reservasMensais;
+}
+
+function totalReservasMensais() {
+   return round2(
+      Number(reservasMensais.comida || 0) +
+      Number(reservasMensais.lanches || 0) +
+      Number(reservasMensais.outros || 0)
+   );
+}
+
+function atualizarTotalReservasModal() {
+   const comida = normalizarValorReserva(document.getElementById('reserva-comida')?.value);
+   const lanches = normalizarValorReserva(document.getElementById('reserva-lanches')?.value);
+   const outros = normalizarValorReserva(document.getElementById('reserva-outros')?.value);
+   const total = round2(comida + lanches + outros);
+
+   const el = document.getElementById('reserva-total-valor');
+   if (el) el.textContent = `R$ ${fmtBRL(total)}`;
+}
+
+function abrirReservasMensais() {
+   carregarReservasMensais();
+
+   document.getElementById('reserva-comida').value = reservasMensais.comida || '';
+   document.getElementById('reserva-lanches').value = reservasMensais.lanches || '';
+   document.getElementById('reserva-outros').value = reservasMensais.outros || '';
+   atualizarTotalReservasModal();
+
+   abrirModal('modal-reservas-mensais');
+}
+
+async function salvarReservasMensais() {
+   const nova = {
+      comida: normalizarValorReserva(document.getElementById('reserva-comida').value),
+      lanches: normalizarValorReserva(document.getElementById('reserva-lanches').value),
+      outros: normalizarValorReserva(document.getElementById('reserva-outros').value)
+   };
+
+   reservasMensais = nova;
+   localStorage.setItem(chaveReservasMensaisUsuario(), JSON.stringify(nova));
+
+   atualizarTotalReservasModal();
+   renderProjecaoRapida();
+
+   mostrarToast('Valores mensais salvos.', 'sucesso', 3000);
+   fecharModais();
+}
+
+function descricaoHoverProjecao(ref, salario, gastos, disponivel) {
+   if (ref.atual) {
+      return `${mesesNomes[ref.mes]} de ${ref.ano}: salário R$ ${fmtBRL(salario)}, gastos R$ ${fmtBRL(gastos)}, disponível R$ ${fmtBRL(disponivel)}.`;
+   }
+
+   const comida = Number(reservasMensais.comida || 0);
+   const lanches = Number(reservasMensais.lanches || 0);
+   const outros = Number(reservasMensais.outros || 0);
+   const restante = round2(disponivel - comida - lanches - outros);
+
+   return `${mesesNomes[ref.mes]} de ${ref.ano}: disponível R$ ${fmtBRL(disponivel)} - comida R$ ${fmtBRL(comida)} - lanches R$ ${fmtBRL(lanches)} - outros R$ ${fmtBRL(outros)} = restante R$ ${fmtBRL(restante)}.`;
+}
+
 function aplicarEstadoProjecaoRapida() {
    const area = document.querySelector('.finance-projection-area');
    const botao = document.getElementById('btn-toggle-projecao');
@@ -3105,6 +3229,8 @@ function renderProjecaoRapida(despesas = cacheDespesas) {
    const container = document.getElementById('projecao-rapida-meses');
    if (!container) return;
 
+   carregarReservasMensais();
+
    // Mantém compatibilidade caso a função seja chamada com uma lista externa.
    if (despesas !== cacheDespesas) {
       cacheDespesas = despesas || [];
@@ -3132,11 +3258,12 @@ function renderProjecaoRapida(despesas = cacheDespesas) {
       if (!temSalario) legenda = 'salário não cadastrado';
       else if (negativo) legenda = 'acima do salário previsto';
 
-      const titulo =
-         `${mesesNomes[ref.mes]} de ${ref.ano}: ` +
-         `salário R$ ${fmtBRL(salario)}, ` +
-         `gastos R$ ${fmtBRL(resumo.total)}, ` +
-         `disponível R$ ${fmtBRL(disponivel)}.`;
+      const titulo = descricaoHoverProjecao(
+         ref,
+         salario,
+         resumo.total,
+         disponivel
+      );
 
       return `
          <button type="button"
