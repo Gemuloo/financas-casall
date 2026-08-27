@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.08.27.22">
+   <meta name="gemulo-build" content="2026.08.27.23">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.08.27.22';
+      window.GEMULO_BUILD = '2026.08.27.23';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -425,7 +425,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.27.22</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.27.23</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -1436,6 +1436,190 @@ function pontuarMatchCompraNormal(atual, existente) {
    return Infinity;
 }
 
+
+function pontuarMatchSnapshotFinal(atual, existente) {
+   const parcelaAtual = obterIdentidadeParcela(atual.descricao);
+   const parcelaExistente = obterIdentidadeParcela(existente.descricao);
+
+   if (parcelaAtual || parcelaExistente) {
+      if (!parcelaAtual || !parcelaExistente) return Infinity;
+      if (parcelaAtual.chave !== parcelaExistente.chave) return Infinity;
+      if (!valoresDeParcelaCompativeis(atual.valor, existente.valor)) return Infinity;
+
+      const dias = diasEntreDatasISO(atual.data, existente.data);
+      const mesmaDescricao = normalizarCaixa(atual.descricao) === normalizarCaixa(existente.descricao);
+      const mesmoValor = round2(atual.valor) === round2(existente.valor);
+
+      if (mesmaDescricao && mesmoValor && dias === 0) return 0;
+      return 5 + Math.min(dias, 90) / 100;
+   }
+
+   const normal = pontuarMatchCompraNormal(atual, existente);
+   if (Number.isFinite(normal)) return normal;
+
+   const mesmaDescricao =
+      normalizarDescricaoCompra(atual.descricao) ===
+      normalizarDescricaoCompra(existente.descricao);
+
+   const dias = diasEntreDatasISO(atual.data, existente.data);
+   if (mesmaDescricao && valoresNormaisCompativeis(atual.valor, existente.valor) && dias <= 5) {
+      return 45 + dias;
+   }
+
+   return Infinity;
+}
+
+function reconciliarSnapshotFaturaFechada(transacoesFinais, registrosPool) {
+   const finais = (transacoesFinais || []).map((item, indice) => ({ ...item, _indice: indice }));
+   const existentes = (registrosPool || []).map(item => ({ ...item, usado: false }));
+
+   const novos = [];
+   const atualizacoes = [];
+   const pareamentos = [];
+
+   finais.forEach(atual => {
+      const candidatos = existentes
+         .filter(existente => !existente.usado)
+         .map(existente => ({
+            existente,
+            score: pontuarMatchSnapshotFinal(atual, existente)
+         }))
+         .filter(c => Number.isFinite(c.score))
+         .sort((a, b) => {
+            if (a.score !== b.score) return a.score - b.score;
+            if (a.existente.naCompetenciaAtual !== b.existente.naCompetenciaAtual) {
+               return a.existente.naCompetenciaAtual ? -1 : 1;
+            }
+            return diasEntreDatasISO(atual.data, a.existente.data) -
+                   diasEntreDatasISO(atual.data, b.existente.data);
+         });
+
+      const escolhido = candidatos[0];
+
+      if (!escolhido) {
+         novos.push({
+            ...atual,
+            possivelDuplicata: false,
+            duplicataDescricao: null
+         });
+         return;
+      }
+
+      const existente = escolhido.existente;
+      existente.usado = true;
+      pareamentos.push({ atual, existente });
+
+      const valorAtual = round2(atual.valor);
+      const valorExistente = round2(existente.valor);
+      const mudou =
+         !existente.naCompetenciaAtual ||
+         existente.data !== atual.data ||
+         normalizarCaixa(existente.descricao) !== normalizarCaixa(atual.descricao) ||
+         valorAtual !== valorExistente;
+
+      if (mudou) {
+         atualizacoes.push({
+            id: existente.id,
+            descricao: atual.descricao,
+            descricaoAnterior: existente.descricao,
+            data: atual.data,
+            dataAnterior: existente.data,
+            valor: valorAtual,
+            valorAnterior: valorExistente,
+            diferencaValor: round2(valorAtual - valorExistente),
+            estavaNaCompetenciaAtual: existente.naCompetenciaAtual === true
+         });
+      }
+   });
+
+   // Em PDF fechado, o conjunto final da competência é autoritativo.
+   // Qualquer registro não consumido que ainda esteja nessa competência é excedente.
+   // Parcelas de competências futuras nunca entram nessa lista de exclusão.
+   const extras = existentes
+      .filter(item => !item.usado && item.naCompetenciaAtual)
+      .map(extra => {
+         const alvo = pareamentos
+            .map(par => ({
+               par,
+               score: pontuarMatchSnapshotFinal(par.atual, extra)
+            }))
+            .filter(x => Number.isFinite(x.score) && x.score < 80)
+            .sort((a, b) => a.score - b.score)[0]?.par || null;
+
+         return {
+            id: extra.id,
+            alvoId: alvo?.existente?.id || null,
+            descricaoAntiga: extra.descricao,
+            dataAntiga: extra.data,
+            valorAntigo: round2(extra.valor),
+            descricaoAtual: alvo?.atual?.descricao || 'Não consta no PDF fechado',
+            dataAtual: alvo?.atual?.data || extra.data,
+            valorAtual: alvo?.atual ? round2(alvo.atual.valor) : 0,
+            categoria_id: extra.categoria_id || null,
+            de_terceiro: extra.de_terceiro === true,
+            terceiro_nome: extra.terceiro_nome || null,
+            alvo_categoria_id: alvo?.existente?.categoria_id || null,
+            alvo_de_terceiro: alvo?.existente?.de_terceiro === true,
+            alvo_terceiro_nome: alvo?.existente?.terceiro_nome || null,
+            aplicar: true,
+            reconciliacao_automatica: true,
+            motivo: alvo ? 'versao_antiga' : 'ausente_pdf_fechado'
+         };
+      });
+
+   const totalAntes = round2(
+      existentes
+         .filter(item => item.naCompetenciaAtual)
+         .reduce((soma, item) => soma + Number(item.valor || 0), 0)
+   );
+
+   let totalDepois = totalAntes;
+
+   atualizacoes.forEach(item => {
+      totalDepois += item.estavaNaCompetenciaAtual
+         ? Number(item.valor || 0) - Number(item.valorAnterior || 0)
+         : Number(item.valor || 0);
+   });
+
+   extras.forEach(item => {
+      totalDepois -= Number(item.valorAntigo || 0);
+   });
+
+   novos.forEach(item => {
+      totalDepois += Number(item.valor || 0);
+   });
+
+   totalDepois = round2(totalDepois);
+
+   return {
+      novos,
+      atualizacoes,
+      extras,
+      pareamentos,
+      totalAntes,
+      totalDepois
+   };
+}
+
+function gerarParcelasFuturasSemDuplicar(transacao, registrosPool) {
+   const info = extrairInfoParcela(transacao.descricao);
+   if (!info) return [];
+
+   const futuras = gerarParcelasFuturas(transacao, info);
+
+   return futuras.filter(futura => {
+      const identidade = obterIdentidadeParcela(futura.descricao);
+      if (!identidade) return true;
+
+      return !(registrosPool || []).some(existente => {
+         const identidadeExistente = obterIdentidadeParcela(existente.descricao);
+         return identidadeExistente &&
+            identidadeExistente.chave === identidade.chave &&
+            valoresDeParcelaCompativeis(existente.valor, futura.valor);
+      });
+   });
+}
+
 // Reconciliador occurrence-aware para compras normais:
 // 1) aceita mudança de data de até 2 dias;
 // 2) aceita diferença de até R$ 0,02;
@@ -1937,11 +2121,15 @@ let fechamentoImportacaoAtual = null;
 let origemImportacaoAtual = 'pdf';
 let detalhesCsvImportacaoAtual = null;
 let atualizacoesNormaisAtuais = [];
+let atualizacoesParcelasAtuais = [];
 let reconciliacoesNormaisAtuais = [];
+let reconciliacaoFinalPdfAtual = null;
 
 async function processarArquivoFatura(arquivo) {
    atualizacoesNormaisAtuais = [];
+   atualizacoesParcelasAtuais = [];
    reconciliacoesNormaisAtuais = [];
+   reconciliacaoFinalPdfAtual = null;
 
    const cartaoId = document.getElementById('imp-cartao').value;
    if (!cartaoId) {
@@ -2035,7 +2223,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.27.22.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.27.23.';
          return;
       }
 
@@ -2138,17 +2326,9 @@ async function processarArquivoFatura(arquivo) {
       const { novasParcelas, linhasNormais, atualizacoesSilenciosas, existentesRestantes } =
          processarLinhasDeParcelaEExtrairRestante(daFatura, jaLancadasNormalizadas);
 
-      if (atualizacoesSilenciosas.length > 0) {
-         await Promise.all(atualizacoesSilenciosas.map(u => chamarSupabase(
-            _supabase.from('despesas').update({
-               valor: u.valor,
-               data: new Date(u.data + 'T12:00:00').toISOString(),
-               competencia_fatura: competenciaImportacaoAtual,
-               dia_fechamento_aplicado: fechamentoImportacaoAtual
-            }).eq('id', u.id),
-            'Erro ao atualizar parcela projetada'
-         )));
-      }
+      // Não altera mais o banco apenas por selecionar um arquivo.
+      // Ajustes de parcelas ficam preparados e só são aplicados ao confirmar.
+      atualizacoesParcelasAtuais = atualizacoesSilenciosas.map(u => ({ ...u }));
 
       const reconciliacaoNormal = reconciliarLancamentosNormais(linhasNormais, existentesRestantes);
       atualizacoesNormaisAtuais = reconciliacaoNormal.atualizacoes;
@@ -2157,8 +2337,93 @@ async function processarArquivoFatura(arquivo) {
          : [];
 
       const novasNormais = reconciliacaoNormal.novos;
-      const novas = [...novasParcelas, ...novasNormais];
-      const qtdJaLancadas = daFatura.length - novas.length;
+      let novas = [...novasParcelas, ...novasNormais];
+      let qtdJaLancadas = daFatura.length - novas.length;
+
+      if (modelo === 'nubank' && ehPdf) {
+         const { data: registrosCompetencia, error: erroCompetencia } = await chamarSupabase(
+            _supabase.from('despesas')
+               .select('id, descricao, valor, data, is_parcelado, categoria_id, de_terceiro, terceiro_nome, is_fixa, grupo_id, competencia_fatura')
+               .eq('usuario', eu())
+               .eq('cartao_id', cartaoId)
+               .eq('competencia_fatura', competenciaImportacaoAtual),
+            'Erro ao conferir a competência fechada'
+         );
+
+         if (erroCompetencia) return;
+
+         const poolSnapshot = new Map();
+
+         (resultadoParcelas.data || []).forEach(e => {
+            poolSnapshot.set(String(e.id), {
+               id: e.id,
+               data: new Date(e.data).toISOString().slice(0, 10),
+               descricao: e.descricao,
+               valor: round2(e.valor),
+               is_parcelado: e.is_parcelado === true,
+               categoria_id: e.categoria_id || null,
+               de_terceiro: e.de_terceiro === true,
+               terceiro_nome: e.terceiro_nome || null,
+               is_fixa: e.is_fixa === true,
+               grupo_id: e.grupo_id || null,
+               naCompetenciaAtual: false
+            });
+         });
+
+         (registrosCompetencia || []).forEach(e => {
+            poolSnapshot.set(String(e.id), {
+               id: e.id,
+               data: new Date(e.data).toISOString().slice(0, 10),
+               descricao: e.descricao,
+               valor: round2(e.valor),
+               is_parcelado: e.is_parcelado === true,
+               categoria_id: e.categoria_id || null,
+               de_terceiro: e.de_terceiro === true,
+               terceiro_nome: e.terceiro_nome || null,
+               is_fixa: e.is_fixa === true,
+               grupo_id: e.grupo_id || null,
+               naCompetenciaAtual: true
+            });
+         });
+
+         const poolFinal = [...poolSnapshot.values()];
+         const snapshot = reconciliarSnapshotFaturaFechada(daFatura, poolFinal);
+         const totalOficialNubank = extrairTotalOficialFaturaNubank(texto);
+
+         snapshot.novos = snapshot.novos.map(t => ({
+            ...t,
+            projecoesFuturas: gerarParcelasFuturasSemDuplicar(t, poolFinal)
+         }));
+
+         if (
+            totalOficialNubank !== null &&
+            Math.abs(snapshot.totalDepois - totalOficialNubank) > 0.021
+         ) {
+            document.getElementById('imp-status').innerHTML =
+               `O PDF foi lido corretamente, mas a simulação da reconciliação ainda não fecha com a fatura.<br>` +
+               `<span style="color:#b91c1c;font-weight:900;">Sistema agora: R$ ${fmtBRL(snapshot.totalAntes)} · ` +
+               `Após correções: R$ ${fmtBRL(snapshot.totalDepois)} · ` +
+               `PDF oficial: R$ ${fmtBRL(totalOficialNubank)}</span><br>` +
+               `<span style="font-size:0.62rem;">Por segurança, nenhuma alteração foi feita. Não confirme até usar uma versão corrigida do painel.</span>`;
+            document.getElementById('imp-revisao').style.display = 'none';
+            return;
+         }
+
+         atualizacoesNormaisAtuais = snapshot.atualizacoes;
+         atualizacoesParcelasAtuais = [];
+         reconciliacoesNormaisAtuais = snapshot.extras;
+         novas = snapshot.novos;
+         qtdJaLancadas = daFatura.length - novas.length;
+
+         reconciliacaoFinalPdfAtual = {
+            totalAntes: snapshot.totalAntes,
+            totalDepois: snapshot.totalDepois,
+            totalOficial: totalOficialNubank,
+            qtdExtras: snapshot.extras.length,
+            qtdAtualizacoes: snapshot.atualizacoes.length,
+            qtdNovos: snapshot.novos.length
+         };
+      }
 
       const historico = await carregarHistoricoCategorizacao();
 
@@ -2285,6 +2550,18 @@ async function processarArquivoFatura(arquivo) {
             msg += `<br><span style="color:#065f46;font-weight:900;">PDF fechado conferido: R$ ${fmtBRL(totalOficialNubank)}.</span>`;
             msg += `<br><span style="color:#64748b;">O PDF fechado prevalece sobre valores provisórios do CSV parcial, inclusive diferenças de centavos.</span>`;
          }
+
+         if (reconciliacaoFinalPdfAtual) {
+            msg += `<br><span style="color:#1d4ed8;font-weight:900;">Reconciliação final: sistema R$ ${fmtBRL(reconciliacaoFinalPdfAtual.totalAntes)} → R$ ${fmtBRL(reconciliacaoFinalPdfAtual.totalDepois)}.</span>`;
+
+            if (reconciliacaoFinalPdfAtual.qtdExtras > 0) {
+               msg += `<br><span style="color:#b91c1c;font-weight:900;">🧹 ${reconciliacaoFinalPdfAtual.qtdExtras} lançamento(s) excedente(s) da competência serão removidos ao aplicar as correções.</span>`;
+            }
+
+            if (reconciliacaoFinalPdfAtual.qtdAtualizacoes > 0) {
+               msg += `<br><span style="color:#0369a1;font-weight:900;">🧩 ${reconciliacaoFinalPdfAtual.qtdAtualizacoes} lançamento(s) serão ajustados para data, descrição e valor definitivos do PDF.</span>`;
+            }
+         }
       }
 
       if (modelo === 'itau-pao-de-acucar') {
@@ -2327,6 +2604,7 @@ async function processarArquivoFatura(arquivo) {
       renderCancelamentosEstorno();
       const temCorrecaoSemNovos =
          atualizacoesNormaisAtuais.length > 0 ||
+         atualizacoesParcelasAtuais.length > 0 ||
          reconciliacoesNormaisAtuais.length > 0;
 
       document.getElementById('imp-revisao').style.display =
@@ -2456,7 +2734,8 @@ async function confirmarImportacaoFatura() {
    const temAcoes =
       selecionadas.length > 0 ||
       limpezasSelecionadas.length > 0 ||
-      atualizacoesNormaisAtuais.length > 0;
+      atualizacoesNormaisAtuais.length > 0 ||
+      atualizacoesParcelasAtuais.length > 0;
 
    if (!temAcoes) {
       mostrarToast('Nenhuma importação ou correção selecionada.');
@@ -2472,7 +2751,21 @@ async function confirmarImportacaoFatura() {
    }
 
    await comBotaoOcupado('btn-confirmar-importacao', 'Aplicando...', async () => {
-      // 1. Atualiza compras comuns que o Nubank alterou entre parciais.
+      // 0. Ajusta parcelas projetadas somente agora, após confirmação.
+      for (const u of atualizacoesParcelasAtuais) {
+         const { error } = await chamarSupabase(
+            _supabase.from('despesas').update({
+               valor: u.valor,
+               data: new Date(u.data + 'T12:00:00').toISOString(),
+               competencia_fatura: competenciaImportacaoAtual,
+               dia_fechamento_aplicado: fechamentoImportacaoAtual
+            }).eq('id', u.id),
+            'Erro ao atualizar parcela projetada'
+         );
+         if (error) return;
+      }
+
+      // 1. Atualiza compras reconhecidas para a versão definitiva do arquivo.
       for (const u of atualizacoesNormaisAtuais) {
          const { error } = await chamarSupabase(
             _supabase.from('despesas').update({
@@ -2603,7 +2896,11 @@ async function confirmarImportacaoFatura() {
       }
 
       if (atualizacoesNormaisAtuais.length > 0) {
-         partes.push(`${atualizacoesNormaisAtuais.length} compra(s) atualizada(s)`);
+         partes.push(`${atualizacoesNormaisAtuais.length} lançamento(s) atualizado(s)`);
+      }
+
+      if (atualizacoesParcelasAtuais.length > 0) {
+         partes.push(`${atualizacoesParcelasAtuais.length} parcela(s) projetada(s) confirmada(s)`);
       }
 
       if (limpezasSelecionadas.length > 0) {
@@ -2615,12 +2912,43 @@ async function confirmarImportacaoFatura() {
          );
       }
 
-      mostrarToast(`${partes.join('; ')}.`, 'sucesso', 5000);
+      if (reconciliacaoFinalPdfAtual?.totalOficial !== null && reconciliacaoFinalPdfAtual?.totalOficial !== undefined) {
+         const { data: conferidos, error: erroConferenciaFinal } = await chamarSupabase(
+            _supabase.from('despesas')
+               .select('valor')
+               .eq('usuario', eu())
+               .eq('cartao_id', cartaoId)
+               .eq('competencia_fatura', competenciaImportacaoAtual),
+            'Erro ao conferir o total após a reconciliação'
+         );
+
+         if (!erroConferenciaFinal) {
+            const totalBanco = round2((conferidos || []).reduce(
+               (soma, item) => soma + Number(item.valor || 0), 0
+            ));
+
+            if (Math.abs(totalBanco - reconciliacaoFinalPdfAtual.totalOficial) > 0.021) {
+               mostrarToast(
+                  `A reconciliação terminou, mas o total armazenado ficou em R$ ${fmtBRL(totalBanco)} e o PDF é R$ ${fmtBRL(reconciliacaoFinalPdfAtual.totalOficial)}. Não importe outro CSV antes de revisar.`,
+                  'erro',
+                  7000
+               );
+               await atualizarTudo(true);
+               return;
+            }
+
+            partes.push(`total final conferido em R$ ${fmtBRL(totalBanco)}`);
+         }
+      }
+
+      mostrarToast(`${partes.join('; ')}.`, 'sucesso', 6000);
 
       cacheHistoricoCategorizacao = null;
       importacaoFaturaAtual = [];
       atualizacoesNormaisAtuais = [];
+      atualizacoesParcelasAtuais = [];
       reconciliacoesNormaisAtuais = [];
+      reconciliacaoFinalPdfAtual = null;
       competenciaImportacaoAtual = null;
       fechamentoImportacaoAtual = null;
       fecharModais();
@@ -2634,7 +2962,9 @@ function abrirImportarFatura() {
    origemImportacaoAtual = 'pdf';
    detalhesCsvImportacaoAtual = null;
    atualizacoesNormaisAtuais = [];
+   atualizacoesParcelasAtuais = [];
    reconciliacoesNormaisAtuais = [];
+   reconciliacaoFinalPdfAtual = null;
    competenciaImportacaoAtual = null;
    fechamentoImportacaoAtual = null;
    document.getElementById('imp-cancelamentos').innerHTML = '';
