@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.08.27.23">
+   <meta name="gemulo-build" content="2026.08.29.24">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.08.27.23';
+      window.GEMULO_BUILD = '2026.08.29.24';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -68,7 +68,7 @@
       .hub-header .welcome { color: rgba(255,255,255,0.45); font-size: 0.65rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 0.5rem; }
       .hub-header h1 { color: white; font-size: 1.8rem; font-weight: 900; margin: 0; }
       .hub-header h1 span { color: #60a5fa; }
-      .hub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; width: 100%; max-width: 480px; position: relative; z-index: 1; }
+      .hub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; width: 100%; max-width: 720px; position: relative; z-index: 1; }
       .hub-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 1.75rem; padding: 2rem 1.25rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s; }
       .hub-card:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); transform: translateY(-2px); }
       .hub-card .icon-wrap { width: 64px; height: 64px; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
@@ -76,6 +76,7 @@
       .hub-card .card-sub { color: rgba(255,255,255,0.35); font-size: 0.6rem; font-weight: 700; text-transform: uppercase; text-align: center; margin-top: -0.5rem; }
       .ic-finance { background: rgba(37,99,235,0.25); color: #60a5fa; }
       .ic-auto { background: rgba(234,88,12,0.25); color: #fb923c; }
+      .ic-study { background: rgba(139,92,246,0.25); color: #c4b5fd; }
       .hub-logout { position: absolute; top: 1.5rem; right: 1.5rem; z-index: 2; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; padding: 0.6rem 1rem; color: rgba(255,255,255,0.5); font-size: 0.65rem; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
       .hub-logout:hover { background: rgba(255,255,255,0.14); color: white; }
 
@@ -163,6 +164,13 @@
          #busca-top-wrap { max-width:420px; }
       }
       @media (max-width: 768px) {
+         .hub-grid { grid-template-columns:1fr; max-width:360px; }
+         .study-body { padding:1rem; padding-bottom:5rem; }
+         .study-stats { grid-template-columns:1fr 1fr 1fr; gap:0.45rem; }
+         .study-stat { padding:0.7rem; }
+         .study-stat strong { font-size:0.9rem; }
+         .study-map-grid { grid-template-columns:1fr; }
+         .study-viewer-stage { padding:0.4rem; }
          aside#f-aside { display: none !important; }
          #btn-menu-bancos { display: flex; }
          .content-wrapper { padding-top: 1rem; }
@@ -177,6 +185,71 @@
          #btn-parcelados { width:auto; }
          #busca-top-wrap { min-width:0; max-width:none; }
       }
+
+
+      /* STUDY */
+      #view-study { flex-direction: column; background: #f8fafc; }
+      .study-body { flex: 1; padding: 1.5rem; padding-bottom: 6rem; max-width: 1440px; width: 100%; margin: 0 auto; }
+      .study-headline { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+      .study-headline h3 { margin:0; font-size:1.35rem; line-height:1.1; font-weight:900; color:#1e293b; letter-spacing:-0.04em; }
+      .study-headline p { margin:0.25rem 0 0; font-size:0.68rem; font-weight:700; color:#94a3b8; }
+      .study-primary-btn { border:0; border-radius:9999px; background:#7c3aed; color:white; padding:0.75rem 1rem; font-size:0.62rem; font-weight:900; text-transform:uppercase; letter-spacing:0.06em; cursor:pointer; box-shadow:0 5px 16px rgba(124,58,237,0.22); }
+      .study-primary-btn:hover { background:#6d28d9; }
+      .study-breadcrumb { display:flex; align-items:center; gap:0.35rem; flex-wrap:wrap; margin-bottom:1.1rem; color:#94a3b8; font-size:0.6rem; font-weight:900; text-transform:uppercase; }
+      .study-breadcrumb button { border:0; background:transparent; color:#7c3aed; font:inherit; cursor:pointer; padding:0; }
+      .study-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.75rem; margin-bottom:1.25rem; }
+      .study-stat { background:white; border:1px solid #e2e8f0; border-radius:1.2rem; padding:0.9rem 1rem; }
+      .study-stat small { display:block; color:#94a3b8; font-size:0.52rem; font-weight:900; text-transform:uppercase; letter-spacing:0.06em; }
+      .study-stat strong { display:block; color:#1e293b; font-size:1.05rem; font-weight:900; margin-top:0.2rem; }
+      .study-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:1rem; }
+      .study-entity-card { background:white; border:1px solid #e2e8f0; border-radius:1.5rem; padding:1.15rem; min-height:140px; position:relative; transition:transform .15s,border-color .15s,box-shadow .15s; }
+      .study-entity-card:hover { transform:translateY(-2px); border-color:#c4b5fd; box-shadow:0 8px 22px rgba(15,23,42,.06); }
+      .study-entity-icon { width:48px; height:48px; display:flex; align-items:center; justify-content:center; border-radius:1rem; background:#f5f3ff; color:#7c3aed; font-size:1.15rem; margin-bottom:0.85rem; }
+      .study-entity-card h4 { margin:0; color:#1e293b; font-size:0.82rem; font-weight:900; }
+      .study-entity-card .meta { margin-top:0.25rem; color:#94a3b8; font-size:0.58rem; font-weight:700; }
+      .study-card-open { position:absolute; inset:0; border:0; background:transparent; cursor:pointer; z-index:1; border-radius:inherit; }
+      .study-card-actions { position:absolute; top:0.75rem; right:0.75rem; z-index:3; display:flex; gap:0.3rem; }
+      .study-icon-btn { width:32px; height:32px; border-radius:0.75rem; border:1px solid #e2e8f0; background:white; color:#94a3b8; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+      .study-icon-btn:hover { color:#7c3aed; border-color:#c4b5fd; }
+      .study-empty { background:white; border:1px dashed #cbd5e1; border-radius:1.5rem; padding:3rem 1.25rem; text-align:center; color:#94a3b8; }
+      .study-empty i { font-size:2rem; color:#c4b5fd; margin-bottom:0.75rem; }
+      .study-empty h4 { margin:0; color:#64748b; font-size:0.78rem; font-weight:900; text-transform:uppercase; }
+      .study-empty p { margin:0.35rem 0 0; font-size:0.62rem; font-weight:700; }
+      .study-map-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; }
+      .study-map-card { background:white; border:1px solid #e2e8f0; border-radius:1.35rem; overflow:hidden; position:relative; box-shadow:0 3px 12px rgba(15,23,42,.035); }
+      .study-map-thumb { height:190px; background:#f1f5f9; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer; }
+      .study-map-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+      .study-map-thumb .pdf { display:flex; flex-direction:column; align-items:center; gap:0.4rem; color:#ef4444; font-size:2.2rem; }
+      .study-map-thumb .pdf span { color:#94a3b8; font-size:0.55rem; font-weight:900; text-transform:uppercase; }
+      .study-map-info { padding:0.9rem 1rem 1rem; }
+      .study-map-title { margin:0; font-size:0.76rem; font-weight:900; color:#1e293b; line-height:1.3; }
+      .study-read-meta { display:flex; align-items:center; justify-content:space-between; gap:0.5rem; margin-top:0.6rem; flex-wrap:wrap; }
+      .study-read-count { background:#ede9fe; color:#6d28d9; border-radius:9999px; padding:0.24rem 0.55rem; font-size:0.55rem; font-weight:900; text-transform:uppercase; }
+      .study-last-read { color:#94a3b8; font-size:0.54rem; font-weight:700; }
+      .study-map-actions { display:flex; gap:0.45rem; margin-top:0.75rem; }
+      .study-map-actions button { flex:1; border:1px solid #e2e8f0; background:#f8fafc; color:#475569; border-radius:0.8rem; padding:0.55rem; font-size:0.54rem; font-weight:900; text-transform:uppercase; cursor:pointer; }
+      .study-map-actions button:hover { border-color:#c4b5fd; color:#6d28d9; }
+      .study-filter-row { display:flex; justify-content:flex-end; margin-bottom:0.8rem; }
+      .study-filter-row select { background:white; border:1px solid #e2e8f0; border-radius:9999px; padding:0.55rem 0.85rem; font-size:0.58rem; font-weight:900; color:#64748b; text-transform:uppercase; outline:none; }
+      .study-viewer-modal { z-index:230; padding:0.5rem; }
+      .study-viewer-shell { width:100%; height:96vh; max-width:98vw; background:#0f172a; border-radius:1.35rem; display:flex; flex-direction:column; overflow:hidden; position:relative; }
+      .study-viewer-bar { min-height:58px; padding:0.7rem 0.9rem; display:flex; align-items:center; justify-content:space-between; gap:0.75rem; background:#111827; border-bottom:1px solid rgba(255,255,255,.08); }
+      .study-viewer-title { min-width:0; color:white; font-size:0.72rem; font-weight:900; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .study-viewer-tools { display:flex; gap:0.4rem; align-items:center; flex-shrink:0; }
+      .study-viewer-tools button { width:38px; height:38px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.06); color:white; border-radius:0.75rem; cursor:pointer; }
+      .study-viewer-stage { flex:1; min-height:0; overflow:auto; display:flex; align-items:flex-start; justify-content:center; padding:1rem; background:#111827; }
+      .study-viewer-stage img { display:block; max-width:none; height:auto; transition:width .12s ease; border-radius:0.4rem; }
+      .study-viewer-stage iframe { width:100%; height:100%; border:0; border-radius:0.5rem; background:white; }
+      .study-viewer-footer { padding:0.75rem; background:#111827; border-top:1px solid rgba(255,255,255,.08); display:flex; justify-content:center; }
+      .study-read-btn { min-width:min(440px,94vw); border:0; border-radius:1rem; background:#16a34a; color:white; padding:0.9rem 1rem; font-size:0.68rem; font-weight:900; text-transform:uppercase; letter-spacing:0.06em; cursor:pointer; box-shadow:0 6px 18px rgba(22,163,74,.25); }
+      .study-read-btn:hover { background:#15803d; }
+      .study-history-item { display:flex; justify-content:space-between; gap:0.75rem; align-items:center; padding:0.8rem 0.9rem; border-radius:0.9rem; background:#f8fafc; margin-bottom:0.5rem; }
+      .study-history-item span:first-child { font-size:0.65rem; font-weight:900; color:#475569; }
+      .study-history-item span:last-child { font-size:0.55rem; font-weight:800; color:#94a3b8; text-transform:uppercase; }
+      .study-upload-zone { display:block; border:2px dashed #c4b5fd; background:#faf9ff; border-radius:1.1rem; padding:1.4rem 1rem; text-align:center; cursor:pointer; }
+      .study-upload-zone i { color:#7c3aed; font-size:1.6rem; }
+      .study-upload-zone strong { display:block; color:#5b21b6; font-size:0.65rem; text-transform:uppercase; margin-top:0.45rem; }
+      .study-upload-zone span { display:block; color:#94a3b8; font-size:0.55rem; font-weight:700; margin-top:0.2rem; }
 
       /* AUTO */
       #view-auto { flex-direction: column; background: #f8fafc; }
@@ -247,6 +320,10 @@
       <div class="hub-card" onclick="irPara('auto')">
          <div class="icon-wrap ic-auto"><i class="fas fa-car"></i></div>
          <div><p class="card-label">Automóvel</p><p class="card-sub">Manutenções</p></div>
+      </div>
+      <div class="hub-card" onclick="irPara('study')">
+         <div class="icon-wrap ic-study"><i class="fas fa-book-open"></i></div>
+         <div><p class="card-label">Estudos</p><p class="card-sub">Mapas & Leituras</p></div>
       </div>
    </div>
 </div>
@@ -425,7 +502,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.27.23</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.29.24</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -450,6 +527,123 @@ Despesa de terceiro
          </div>
       </div>
    </div></div>
+</div>
+
+
+<!-- STUDY APP -->
+<div id="view-study" class="view">
+   <div class="app-topbar">
+      <button id="btn-estudo-voltar" class="btn-back" onclick="estudoVoltar()"><i class="fas fa-chevron-left"></i> Hub</button>
+      <h2><i class="fas fa-book-open" style="color:#7c3aed;margin-right:0.5rem;"></i>Estudos</h2>
+      <button class="btn-back" onclick="voltarHub()"><i class="fas fa-house"></i> Hub</button>
+   </div>
+
+   <main class="study-body">
+      <div id="estudo-breadcrumb" class="study-breadcrumb"></div>
+
+      <div class="study-headline">
+         <div>
+            <h3 id="estudo-titulo-contexto">Minhas matérias</h3>
+            <p id="estudo-subtitulo-contexto">Organize seus mapas e registre cada leitura concluída.</p>
+         </div>
+         <button id="btn-estudo-novo" class="study-primary-btn" onclick="acaoNovoEstudo()"><i class="fas fa-plus" style="margin-right:0.35rem;"></i> Nova matéria</button>
+      </div>
+
+      <div id="estudo-stats" class="study-stats"></div>
+
+      <div id="estudo-filtro-row" class="study-filter-row" style="display:none;">
+         <select id="estudo-filtro-mapas" onchange="renderMapasEstudo()" aria-label="Filtrar mapas">
+            <option value="todos">Todos os mapas</option>
+            <option value="nao-lidos">Nunca lidos</option>
+            <option value="lidos">Já lidos</option>
+            <option value="mais-lidos">Mais lidos</option>
+            <option value="menos-lidos">Menos lidos</option>
+            <option value="recentes">Leitura mais recente</option>
+         </select>
+      </div>
+
+      <section id="estudo-conteudo"></section>
+   </main>
+
+   <!-- Nova matéria -->
+   <div id="modal-estudo-materia" class="modal-overlay">
+      <div class="modal-content" style="max-width:420px;">
+         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisEstudo()"></i>
+         <h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Nova Matéria</h3>
+         <label class="field-label" for="estudo-nome-materia">Nome</label>
+         <input id="estudo-nome-materia" type="text" placeholder="Ex.: Engenharia Civil" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm outline-none">
+         <button id="btn-salvar-materia-estudo" onclick="salvarMateriaEstudo()" class="w-full mt-4 bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">Criar matéria</button>
+      </div>
+   </div>
+
+   <!-- Nova pasta -->
+   <div id="modal-estudo-pasta" class="modal-overlay">
+      <div class="modal-content" style="max-width:420px;">
+         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisEstudo()"></i>
+         <h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Nova Pasta</h3>
+         <label class="field-label" for="estudo-nome-pasta">Nome</label>
+         <input id="estudo-nome-pasta" type="text" placeholder="Ex.: Mecânica dos Solos" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm outline-none">
+         <button id="btn-salvar-pasta-estudo" onclick="salvarPastaEstudo()" class="w-full mt-4 bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">Criar pasta</button>
+      </div>
+   </div>
+
+   <!-- Upload mapa -->
+   <div id="modal-estudo-upload" class="modal-overlay">
+      <div class="modal-content" style="max-width:480px;">
+         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisEstudo()"></i>
+         <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Adicionar Mapa</h3>
+         <p style="font-size:0.6rem;color:#94a3b8;font-weight:700;text-align:center;margin:0 0 1.2rem;">PNG, JPG, WEBP ou PDF · até 20 MB.</p>
+         <label class="field-label" for="estudo-titulo-mapa">Título do mapa</label>
+         <input id="estudo-titulo-mapa" type="text" placeholder="Ex.: Mecânica dos Solos — Resumo" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm outline-none mb-4">
+         <label for="estudo-arquivo-mapa" class="study-upload-zone">
+            <i class="fas fa-cloud-arrow-up"></i>
+            <strong>Escolher arquivo</strong>
+            <span id="estudo-arquivo-selecionado">Nenhum arquivo selecionado</span>
+         </label>
+         <input id="estudo-arquivo-mapa" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" style="display:none;" onchange="arquivoMapaEstudoMudou(this.files[0])">
+         <button id="btn-upload-mapa-estudo" onclick="uploadMapaEstudo()" class="w-full mt-4 bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">Enviar mapa</button>
+      </div>
+   </div>
+
+   <!-- Renomear mapa -->
+   <div id="modal-estudo-renomear" class="modal-overlay">
+      <div class="modal-content" style="max-width:420px;">
+         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisEstudo()"></i>
+         <h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Renomear Mapa</h3>
+         <label class="field-label" for="estudo-novo-titulo-mapa">Título</label>
+         <input id="estudo-novo-titulo-mapa" type="text" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm outline-none">
+         <button id="btn-renomear-mapa-estudo" onclick="confirmarRenomearMapaEstudo()" class="w-full mt-4 bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">Salvar</button>
+      </div>
+   </div>
+
+   <!-- Histórico -->
+   <div id="modal-estudo-historico" class="modal-overlay">
+      <div class="modal-content" style="max-width:480px;">
+         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisEstudo()"></i>
+         <h3 id="estudo-historico-titulo" class="font-black text-slate-800 text-lg uppercase mb-2 text-center italic">Histórico</h3>
+         <p id="estudo-historico-resumo" style="text-align:center;color:#7c3aed;font-size:0.65rem;font-weight:900;margin:0 0 1rem;"></p>
+         <div id="estudo-historico-lista" style="max-height:55vh;overflow-y:auto;"></div>
+      </div>
+   </div>
+
+   <!-- Visualizador -->
+   <div id="modal-estudo-viewer" class="modal-overlay study-viewer-modal">
+      <div class="study-viewer-shell">
+         <div class="study-viewer-bar">
+            <div id="estudo-viewer-titulo" class="study-viewer-title">Mapa</div>
+            <div class="study-viewer-tools">
+               <button id="estudo-zoom-out" onclick="alterarZoomEstudo(-0.15)" title="Diminuir zoom"><i class="fas fa-minus"></i></button>
+               <button id="estudo-zoom-reset" onclick="resetZoomEstudo()" title="Restaurar zoom"><i class="fas fa-expand"></i></button>
+               <button id="estudo-zoom-in" onclick="alterarZoomEstudo(0.15)" title="Aumentar zoom"><i class="fas fa-plus"></i></button>
+               <button onclick="fecharViewerEstudo()" title="Fechar"><i class="fas fa-times"></i></button>
+            </div>
+         </div>
+         <div id="estudo-viewer-stage" class="study-viewer-stage"></div>
+         <div class="study-viewer-footer">
+            <button id="btn-marcar-leitura-estudo" class="study-read-btn" onclick="registrarLeituraEstudoAtual()"><i class="fas fa-check" style="margin-right:0.45rem;"></i> Terminei de ler</button>
+         </div>
+      </div>
+   </div>
 </div>
 
 <!-- AUTO APP -->
@@ -2223,7 +2417,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.27.23.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.29.24.';
          return;
       }
 
@@ -3210,6 +3404,12 @@ function limparCaches() {
    cacheDespesas = [];
    cacheVeiculos = [];
    cacheAutoRegistros = [];
+   cacheEstudoMaterias = [];
+   cacheEstudoPastas = [];
+   cacheEstudoMapas = [];
+   cacheEstudoLeituras = [];
+   estudoLeiturasPorMapa = new Map();
+   estudoUrls = new Map();
 
    mapaBancos = new Map();
    mapaCategorias = new Map();
@@ -3270,11 +3470,15 @@ function irPara(app) {
       document.getElementById('a-data').value = hojeLocalISO();
       carregarAuto();
    }
+   if (app === 'study') {
+      entrarEstudos();
+   }
 }
 
 function voltarHub() {
    fecharModais();
    fecharModaisAuto();
+   fecharModaisEstudo();
    mostrarView('hub');
 }
 
@@ -4182,6 +4386,11 @@ function voltarOuFecharModal() {
       return true;
    }
 
+   if (modal.id === 'modal-estudo-viewer') {
+      fecharViewerEstudo();
+      return true;
+   }
+
    modal.classList.remove('open');
 
    const paiId = MODAL_PAI[modal.id];
@@ -4546,6 +4755,835 @@ async function confirmarLancamento() {
       fecharModais(); await atualizarTudo(true);
    });
 }
+
+
+// =================== STUDY APP ===================
+const ESTUDO_BUCKET = 'estudos-mapas';
+const ESTUDO_MAX_BYTES = 20 * 1024 * 1024;
+
+let cacheEstudoMaterias = [];
+let cacheEstudoPastas = [];
+let cacheEstudoMapas = [];
+let cacheEstudoLeituras = [];
+let estudoLeiturasPorMapa = new Map();
+let estudoUrls = new Map();
+
+let estudoMateriaAtualId = null;
+let estudoPastaAtualId = null;
+let estudoMapaAtual = null;
+let estudoMapaRenomearId = null;
+let estudoArquivoSelecionado = null;
+let estudoZoom = 1;
+
+function abrirModalEstudo(id) {
+   document.getElementById(id)?.classList.add('open');
+}
+
+function fecharModaisEstudo() {
+   document.querySelectorAll('#view-study .modal-overlay').forEach(m => m.classList.remove('open'));
+   estudoArquivoSelecionado = null;
+}
+
+function formatarDataHoraEstudo(iso) {
+   if (!iso) return '—';
+   const d = new Date(iso);
+   if (Number.isNaN(d.getTime())) return '—';
+   return d.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+   });
+}
+
+function slugEstudo(texto) {
+   return String(texto || 'arquivo')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9._-]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 100) || 'arquivo';
+}
+
+function uuidEstudo() {
+   if (crypto?.randomUUID) return crypto.randomUUID();
+   return 'e_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+}
+
+function leiturasMapaEstudo(mapaId) {
+   return estudoLeiturasPorMapa.get(String(mapaId)) || [];
+}
+
+function resumoLeituraMapaEstudo(mapaId) {
+   const leituras = leiturasMapaEstudo(mapaId);
+   return {
+      quantidade: leituras.length,
+      ultima: leituras[0]?.lido_em || null
+   };
+}
+
+function reconstruirIndiceLeiturasEstudo() {
+   const mapa = new Map();
+
+   cacheEstudoLeituras
+      .slice()
+      .sort((a, b) => String(b.lido_em).localeCompare(String(a.lido_em)))
+      .forEach(leitura => {
+         const chave = String(leitura.mapa_id);
+         if (!mapa.has(chave)) mapa.set(chave, []);
+         mapa.get(chave).push(leitura);
+      });
+
+   estudoLeiturasPorMapa = mapa;
+}
+
+async function carregarEstudos() {
+   const usuario = eu();
+
+   const [rMaterias, rPastas, rMapas, rLeituras] = await Promise.all([
+      chamarSupabase(
+         _supabase.from('estudo_materias').select('*').eq('usuario', usuario).order('nome'),
+         'Erro ao carregar matérias. Execute o arquivo Supabase_Estudos_v24.sql'
+      ),
+      chamarSupabase(
+         _supabase.from('estudo_pastas').select('*').eq('usuario', usuario).order('nome'),
+         'Erro ao carregar pastas de estudo'
+      ),
+      chamarSupabase(
+         _supabase.from('estudo_mapas').select('*').eq('usuario', usuario).order('created_at', { ascending: false }),
+         'Erro ao carregar mapas'
+      ),
+      chamarSupabase(
+         _supabase.from('estudo_leituras').select('*').eq('usuario', usuario).order('lido_em', { ascending: false }),
+         'Erro ao carregar histórico de leituras'
+      )
+   ]);
+
+   if ([rMaterias, rPastas, rMapas, rLeituras].some(r => r.error)) return false;
+
+   cacheEstudoMaterias = rMaterias.data || [];
+   cacheEstudoPastas = rPastas.data || [];
+   cacheEstudoMapas = rMapas.data || [];
+   cacheEstudoLeituras = rLeituras.data || [];
+   reconstruirIndiceLeiturasEstudo();
+   return true;
+}
+
+async function entrarEstudos() {
+   estudoMateriaAtualId = null;
+   estudoPastaAtualId = null;
+   estudoMapaAtual = null;
+
+   document.getElementById('estudo-conteudo').innerHTML = `
+      <div class="study-empty"><i class="fas fa-spinner fa-spin"></i><h4>Carregando biblioteca</h4></div>
+   `;
+
+   const ok = await carregarEstudos();
+   if (ok) renderEstudos();
+}
+
+function materiaEstudoAtual() {
+   return cacheEstudoMaterias.find(m => String(m.id) === String(estudoMateriaAtualId)) || null;
+}
+
+function pastaEstudoAtual() {
+   return cacheEstudoPastas.find(p => String(p.id) === String(estudoPastaAtualId)) || null;
+}
+
+function mapasNoContextoEstudo() {
+   if (estudoPastaAtualId) {
+      return cacheEstudoMapas.filter(m => String(m.pasta_id) === String(estudoPastaAtualId));
+   }
+
+   if (estudoMateriaAtualId) {
+      const idsPastas = new Set(
+         cacheEstudoPastas
+            .filter(p => String(p.materia_id) === String(estudoMateriaAtualId))
+            .map(p => String(p.id))
+      );
+      return cacheEstudoMapas.filter(m => idsPastas.has(String(m.pasta_id)));
+   }
+
+   return cacheEstudoMapas.slice();
+}
+
+function renderStatsEstudo() {
+   const mapas = mapasNoContextoEstudo();
+   const lidos = mapas.filter(m => resumoLeituraMapaEstudo(m.id).quantidade > 0).length;
+   const leituras = mapas.reduce((soma, m) => soma + resumoLeituraMapaEstudo(m.id).quantidade, 0);
+
+   document.getElementById('estudo-stats').innerHTML = `
+      <div class="study-stat"><small>Mapas</small><strong>${mapas.length}</strong></div>
+      <div class="study-stat"><small>Já lidos</small><strong>${lidos}</strong></div>
+      <div class="study-stat"><small>Leituras</small><strong>${leituras}</strong></div>
+   `;
+}
+
+function renderContextoEstudo() {
+   const materia = materiaEstudoAtual();
+   const pasta = pastaEstudoAtual();
+   const breadcrumb = document.getElementById('estudo-breadcrumb');
+   const titulo = document.getElementById('estudo-titulo-contexto');
+   const subtitulo = document.getElementById('estudo-subtitulo-contexto');
+   const btnNovo = document.getElementById('btn-estudo-novo');
+   const btnVoltar = document.getElementById('btn-estudo-voltar');
+   const filtro = document.getElementById('estudo-filtro-row');
+
+   if (pasta && materia) {
+      breadcrumb.innerHTML = `
+         <button onclick="irRaizEstudo()">Matérias</button><i class="fas fa-chevron-right"></i>
+         <button onclick="abrirMateriaEstudo('${materia.id}')">${escapeHtml(materia.nome)}</button><i class="fas fa-chevron-right"></i>
+         <span>${escapeHtml(pasta.nome)}</span>
+      `;
+      titulo.textContent = pasta.nome;
+      subtitulo.textContent = 'Abra um mapa, leia no seu ritmo e registre quando terminar.';
+      btnNovo.innerHTML = '<i class="fas fa-plus" style="margin-right:0.35rem;"></i> Adicionar mapa';
+      btnVoltar.innerHTML = '<i class="fas fa-chevron-left"></i> Pastas';
+      filtro.style.display = 'flex';
+   } else if (materia) {
+      breadcrumb.innerHTML = `
+         <button onclick="irRaizEstudo()">Matérias</button><i class="fas fa-chevron-right"></i>
+         <span>${escapeHtml(materia.nome)}</span>
+      `;
+      titulo.textContent = materia.nome;
+      subtitulo.textContent = 'Crie pastas para separar os seus assuntos e mapas.';
+      btnNovo.innerHTML = '<i class="fas fa-plus" style="margin-right:0.35rem;"></i> Nova pasta';
+      btnVoltar.innerHTML = '<i class="fas fa-chevron-left"></i> Matérias';
+      filtro.style.display = 'none';
+   } else {
+      breadcrumb.innerHTML = '<span>Biblioteca de Estudos</span>';
+      titulo.textContent = 'Minhas matérias';
+      subtitulo.textContent = 'Organize seus mapas e registre cada leitura concluída.';
+      btnNovo.innerHTML = '<i class="fas fa-plus" style="margin-right:0.35rem;"></i> Nova matéria';
+      btnVoltar.innerHTML = '<i class="fas fa-chevron-left"></i> Hub';
+      filtro.style.display = 'none';
+   }
+}
+
+function renderEstudos() {
+   renderContextoEstudo();
+   renderStatsEstudo();
+
+   if (estudoPastaAtualId) {
+      renderMapasEstudo();
+   } else if (estudoMateriaAtualId) {
+      renderPastasEstudo();
+   } else {
+      renderMateriasEstudo();
+   }
+}
+
+function renderMateriasEstudo() {
+   const container = document.getElementById('estudo-conteudo');
+
+   if (!cacheEstudoMaterias.length) {
+      container.innerHTML = `
+         <div class="study-empty">
+            <i class="fas fa-book-open"></i>
+            <h4>Nenhuma matéria cadastrada</h4>
+            <p>Crie a primeira matéria para começar sua biblioteca visual.</p>
+         </div>
+      `;
+      return;
+   }
+
+   container.innerHTML = `<div class="study-grid">${
+      cacheEstudoMaterias.map(materia => {
+         const pastas = cacheEstudoPastas.filter(p => String(p.materia_id) === String(materia.id));
+         const idsPastas = new Set(pastas.map(p => String(p.id)));
+         const mapas = cacheEstudoMapas.filter(m => idsPastas.has(String(m.pasta_id)));
+         const leituras = mapas.reduce((s, m) => s + resumoLeituraMapaEstudo(m.id).quantidade, 0);
+
+         return `
+            <article class="study-entity-card">
+               <button class="study-card-open" onclick="abrirMateriaEstudo('${materia.id}')" aria-label="Abrir ${escapeHtml(materia.nome)}"></button>
+               <div class="study-card-actions">
+                  <button class="study-icon-btn" onclick="event.stopPropagation(); excluirMateriaEstudo('${materia.id}')" title="Excluir matéria"><i class="fas fa-trash"></i></button>
+               </div>
+               <div class="study-entity-icon"><i class="fas fa-book"></i></div>
+               <h4>${escapeHtml(materia.nome)}</h4>
+               <div class="meta">${pastas.length} pasta${pastas.length === 1 ? '' : 's'} · ${mapas.length} mapa${mapas.length === 1 ? '' : 's'} · ${leituras} leitura${leituras === 1 ? '' : 's'}</div>
+            </article>
+         `;
+      }).join('')
+   }</div>`;
+}
+
+function renderPastasEstudo() {
+   const container = document.getElementById('estudo-conteudo');
+   const pastas = cacheEstudoPastas.filter(
+      p => String(p.materia_id) === String(estudoMateriaAtualId)
+   );
+
+   if (!pastas.length) {
+      container.innerHTML = `
+         <div class="study-empty">
+            <i class="fas fa-folder-open"></i>
+            <h4>Nenhuma pasta nesta matéria</h4>
+            <p>Crie uma pasta para guardar os mapas de um assunto.</p>
+         </div>
+      `;
+      return;
+   }
+
+   container.innerHTML = `<div class="study-grid">${
+      pastas.map(pasta => {
+         const mapas = cacheEstudoMapas.filter(m => String(m.pasta_id) === String(pasta.id));
+         const lidos = mapas.filter(m => resumoLeituraMapaEstudo(m.id).quantidade > 0).length;
+         const leituras = mapas.reduce((s, m) => s + resumoLeituraMapaEstudo(m.id).quantidade, 0);
+
+         return `
+            <article class="study-entity-card">
+               <button class="study-card-open" onclick="abrirPastaEstudo('${pasta.id}')" aria-label="Abrir ${escapeHtml(pasta.nome)}"></button>
+               <div class="study-card-actions">
+                  <button class="study-icon-btn" onclick="event.stopPropagation(); excluirPastaEstudo('${pasta.id}')" title="Excluir pasta"><i class="fas fa-trash"></i></button>
+               </div>
+               <div class="study-entity-icon"><i class="fas fa-folder"></i></div>
+               <h4>${escapeHtml(pasta.nome)}</h4>
+               <div class="meta">${mapas.length} mapa${mapas.length === 1 ? '' : 's'} · ${lidos} já lido${lidos === 1 ? '' : 's'} · ${leituras} leitura${leituras === 1 ? '' : 's'}</div>
+            </article>
+         `;
+      }).join('')
+   }</div>`;
+}
+
+function ordenarFiltrarMapasEstudo(mapas) {
+   const filtro = document.getElementById('estudo-filtro-mapas')?.value || 'todos';
+   let lista = mapas.slice();
+
+   if (filtro === 'nao-lidos') {
+      lista = lista.filter(m => resumoLeituraMapaEstudo(m.id).quantidade === 0);
+   } else if (filtro === 'lidos') {
+      lista = lista.filter(m => resumoLeituraMapaEstudo(m.id).quantidade > 0);
+   }
+
+   if (filtro === 'mais-lidos') {
+      lista.sort((a, b) => resumoLeituraMapaEstudo(b.id).quantidade - resumoLeituraMapaEstudo(a.id).quantidade);
+   } else if (filtro === 'menos-lidos') {
+      lista.sort((a, b) => resumoLeituraMapaEstudo(a.id).quantidade - resumoLeituraMapaEstudo(b.id).quantidade);
+   } else if (filtro === 'recentes') {
+      lista.sort((a, b) => String(resumoLeituraMapaEstudo(b.id).ultima || '').localeCompare(String(resumoLeituraMapaEstudo(a.id).ultima || '')));
+   }
+
+   return lista;
+}
+
+function renderMapasEstudo() {
+   const container = document.getElementById('estudo-conteudo');
+   const mapasBase = cacheEstudoMapas.filter(m => String(m.pasta_id) === String(estudoPastaAtualId));
+   const mapas = ordenarFiltrarMapasEstudo(mapasBase);
+
+   if (!mapas.length) {
+      container.innerHTML = `
+         <div class="study-empty">
+            <i class="fas fa-images"></i>
+            <h4>Nenhum mapa para mostrar</h4>
+            <p>Adicione uma imagem ou PDF e comece a registrar suas leituras.</p>
+         </div>
+      `;
+      return;
+   }
+
+   container.innerHTML = `<div class="study-map-grid">${
+      mapas.map(mapa => {
+         const resumo = resumoLeituraMapaEstudo(mapa.id);
+         const url = estudoUrls.get(String(mapa.id));
+         const ehPdf = String(mapa.mime_type || '').includes('pdf');
+
+         const thumb = ehPdf
+            ? `<div class="pdf"><i class="fas fa-file-pdf"></i><span>PDF</span></div>`
+            : url
+               ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(mapa.titulo)}">`
+               : `<div style="text-align:center;color:#94a3b8;font-size:0.65rem;font-weight:800;"><i class="fas fa-spinner fa-spin" style="display:block;font-size:1.2rem;margin-bottom:0.4rem;"></i>Carregando miniatura</div>`;
+
+         return `
+            <article class="study-map-card">
+               <div class="study-card-actions">
+                  <button class="study-icon-btn" onclick="abrirRenomearMapaEstudo('${mapa.id}')" title="Renomear"><i class="fas fa-pen"></i></button>
+                  <button class="study-icon-btn" onclick="excluirMapaEstudo('${mapa.id}')" title="Excluir"><i class="fas fa-trash"></i></button>
+               </div>
+               <div class="study-map-thumb" onclick="abrirMapaEstudo('${mapa.id}')">${thumb}</div>
+               <div class="study-map-info">
+                  <h4 class="study-map-title">${escapeHtml(mapa.titulo)}</h4>
+                  <div class="study-read-meta">
+                     <span class="study-read-count">Lido ${resumo.quantidade}x</span>
+                     <span class="study-last-read">${resumo.ultima ? `Última: ${formatarDataHoraEstudo(resumo.ultima)}` : 'Ainda não lido'}</span>
+                  </div>
+                  <div class="study-map-actions">
+                     <button onclick="abrirMapaEstudo('${mapa.id}')"><i class="fas fa-expand" style="margin-right:0.3rem;"></i>Abrir</button>
+                     <button onclick="abrirHistoricoEstudo('${mapa.id}')"><i class="fas fa-clock-rotate-left" style="margin-right:0.3rem;"></i>Histórico</button>
+                  </div>
+               </div>
+            </article>
+         `;
+      }).join('')
+   }</div>`;
+
+   mapas.filter(m => !String(m.mime_type || '').includes('pdf') && !estudoUrls.has(String(m.id)))
+      .forEach(m => garantirUrlMapaEstudo(m.id));
+}
+
+async function garantirUrlMapaEstudo(mapaId, forcar = false) {
+   const chave = String(mapaId);
+   if (!forcar && estudoUrls.has(chave)) return estudoUrls.get(chave);
+
+   const mapa = cacheEstudoMapas.find(m => String(m.id) === chave);
+   if (!mapa) return null;
+
+   const { data, error } = await chamarSupabase(
+      _supabase.storage.from(ESTUDO_BUCKET).createSignedUrl(mapa.arquivo_path, 3600),
+      'Erro ao abrir arquivo do mapa'
+   );
+
+   if (error || !data?.signedUrl) return null;
+
+   estudoUrls.set(chave, data.signedUrl);
+
+   if (
+      estudoPastaAtualId &&
+      String(mapa.pasta_id) === String(estudoPastaAtualId) &&
+      !String(mapa.mime_type || '').includes('pdf')
+   ) {
+      renderMapasEstudo();
+   }
+
+   return data.signedUrl;
+}
+
+function irRaizEstudo() {
+   estudoMateriaAtualId = null;
+   estudoPastaAtualId = null;
+   renderEstudos();
+}
+
+function abrirMateriaEstudo(id) {
+   estudoMateriaAtualId = id;
+   estudoPastaAtualId = null;
+   renderEstudos();
+}
+
+async function abrirPastaEstudo(id) {
+   const pasta = cacheEstudoPastas.find(p => String(p.id) === String(id));
+   if (!pasta) return;
+
+   estudoMateriaAtualId = pasta.materia_id;
+   estudoPastaAtualId = id;
+   document.getElementById('estudo-filtro-mapas').value = 'todos';
+   renderEstudos();
+
+   const mapas = cacheEstudoMapas.filter(m => String(m.pasta_id) === String(id));
+   await Promise.all(
+      mapas
+         .filter(m => !String(m.mime_type || '').includes('pdf'))
+         .map(m => garantirUrlMapaEstudo(m.id))
+   );
+}
+
+function estudoVoltar() {
+   if (estudoPastaAtualId) {
+      estudoPastaAtualId = null;
+      renderEstudos();
+      return;
+   }
+
+   if (estudoMateriaAtualId) {
+      estudoMateriaAtualId = null;
+      renderEstudos();
+      return;
+   }
+
+   voltarHub();
+}
+
+function acaoNovoEstudo() {
+   if (estudoPastaAtualId) {
+      estudoArquivoSelecionado = null;
+      document.getElementById('estudo-titulo-mapa').value = '';
+      document.getElementById('estudo-arquivo-mapa').value = '';
+      document.getElementById('estudo-arquivo-selecionado').textContent = 'Nenhum arquivo selecionado';
+      abrirModalEstudo('modal-estudo-upload');
+      return;
+   }
+
+   if (estudoMateriaAtualId) {
+      document.getElementById('estudo-nome-pasta').value = '';
+      abrirModalEstudo('modal-estudo-pasta');
+      setTimeout(() => document.getElementById('estudo-nome-pasta')?.focus(), 50);
+      return;
+   }
+
+   document.getElementById('estudo-nome-materia').value = '';
+   abrirModalEstudo('modal-estudo-materia');
+   setTimeout(() => document.getElementById('estudo-nome-materia')?.focus(), 50);
+}
+
+async function salvarMateriaEstudo() {
+   const nome = document.getElementById('estudo-nome-materia').value.trim();
+   if (!nome) {
+      mostrarToast('Informe o nome da matéria.');
+      return;
+   }
+
+   await comBotaoOcupado('btn-salvar-materia-estudo', 'Criando...', async () => {
+      const { data, error } = await chamarSupabase(
+         _supabase.from('estudo_materias')
+            .insert({ usuario: eu(), nome })
+            .select()
+            .single(),
+         'Erro ao criar matéria'
+      );
+
+      if (error) return;
+
+      cacheEstudoMaterias.push(data);
+      cacheEstudoMaterias.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      fecharModaisEstudo();
+      renderEstudos();
+      mostrarToast('Matéria criada.', 'sucesso');
+   });
+}
+
+async function salvarPastaEstudo() {
+   const nome = document.getElementById('estudo-nome-pasta').value.trim();
+   if (!nome || !estudoMateriaAtualId) {
+      mostrarToast('Informe o nome da pasta.');
+      return;
+   }
+
+   await comBotaoOcupado('btn-salvar-pasta-estudo', 'Criando...', async () => {
+      const { data, error } = await chamarSupabase(
+         _supabase.from('estudo_pastas')
+            .insert({ usuario: eu(), materia_id: estudoMateriaAtualId, nome })
+            .select()
+            .single(),
+         'Erro ao criar pasta'
+      );
+
+      if (error) return;
+
+      cacheEstudoPastas.push(data);
+      cacheEstudoPastas.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      fecharModaisEstudo();
+      renderEstudos();
+      mostrarToast('Pasta criada.', 'sucesso');
+   });
+}
+
+function arquivoMapaEstudoMudou(file) {
+   estudoArquivoSelecionado = file || null;
+   const label = document.getElementById('estudo-arquivo-selecionado');
+
+   if (!file) {
+      label.textContent = 'Nenhum arquivo selecionado';
+      return;
+   }
+
+   label.textContent = `${file.name} · ${(file.size / 1024 / 1024).toFixed(1)} MB`;
+
+   if (!document.getElementById('estudo-titulo-mapa').value.trim()) {
+      document.getElementById('estudo-titulo-mapa').value =
+         file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+   }
+}
+
+async function uploadMapaEstudo() {
+   const titulo = document.getElementById('estudo-titulo-mapa').value.trim();
+   const file = estudoArquivoSelecionado;
+   const pasta = pastaEstudoAtual();
+
+   if (!pasta || !file) {
+      mostrarToast('Escolha o arquivo do mapa.');
+      return;
+   }
+
+   if (!titulo) {
+      mostrarToast('Informe um título para o mapa.');
+      return;
+   }
+
+   const permitidos = new Set(['image/png', 'image/jpeg', 'image/webp', 'application/pdf']);
+   if (!permitidos.has(file.type)) {
+      mostrarToast('Formato não permitido. Use PNG, JPG, WEBP ou PDF.');
+      return;
+   }
+
+   if (file.size > ESTUDO_MAX_BYTES) {
+      mostrarToast('O arquivo ultrapassa o limite de 20 MB.');
+      return;
+   }
+
+   await comBotaoOcupado('btn-upload-mapa-estudo', 'Enviando...', async () => {
+      const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+      const usuarioPath = slugEstudo(eu()).replace(/\./g, '_');
+      const path = `${usuarioPath}/${pasta.materia_id}/${pasta.id}/${Date.now()}_${uuidEstudo()}.${slugEstudo(ext)}`;
+
+      const { error: erroUpload } = await chamarSupabase(
+         _supabase.storage
+            .from(ESTUDO_BUCKET)
+            .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type }),
+         'Erro ao enviar arquivo. Execute Supabase_Estudos_v24.sql'
+      );
+
+      if (erroUpload) return;
+
+      const { data, error } = await chamarSupabase(
+         _supabase.from('estudo_mapas')
+            .insert({
+               usuario: eu(),
+               pasta_id: pasta.id,
+               titulo,
+               arquivo_path: path,
+               arquivo_nome: file.name,
+               mime_type: file.type
+            })
+            .select()
+            .single(),
+         'Erro ao salvar mapa'
+      );
+
+      if (error) {
+         await _supabase.storage.from(ESTUDO_BUCKET).remove([path]);
+         return;
+      }
+
+      cacheEstudoMapas.unshift(data);
+      estudoArquivoSelecionado = null;
+      fecharModaisEstudo();
+      renderEstudos();
+      await garantirUrlMapaEstudo(data.id, true);
+      mostrarToast('Mapa adicionado.', 'sucesso');
+   });
+}
+
+async function listarPathsMapasEstudo(predicate) {
+   return cacheEstudoMapas.filter(predicate).map(m => m.arquivo_path).filter(Boolean);
+}
+
+async function excluirMapaEstudo(id) {
+   const mapa = cacheEstudoMapas.find(m => String(m.id) === String(id));
+   if (!mapa) return;
+
+   if (!await confirmarAcao(`Excluir o mapa "${mapa.titulo}" e todo o histórico de leituras dele?`)) return;
+
+   const { error: erroArquivo } = await chamarSupabase(
+      _supabase.storage.from(ESTUDO_BUCKET).remove([mapa.arquivo_path]),
+      'Erro ao excluir o arquivo do mapa'
+   );
+   if (erroArquivo) return;
+
+   const { error } = await chamarSupabase(
+      _supabase.from('estudo_mapas').delete().eq('id', mapa.id).eq('usuario', eu()),
+      'Erro ao excluir mapa'
+   );
+   if (error) return;
+
+   cacheEstudoMapas = cacheEstudoMapas.filter(m => String(m.id) !== String(mapa.id));
+   cacheEstudoLeituras = cacheEstudoLeituras.filter(l => String(l.mapa_id) !== String(mapa.id));
+   estudoUrls.delete(String(mapa.id));
+   reconstruirIndiceLeiturasEstudo();
+   renderEstudos();
+   mostrarToast('Mapa excluído.', 'sucesso');
+}
+
+async function excluirPastaEstudo(id) {
+   const pasta = cacheEstudoPastas.find(p => String(p.id) === String(id));
+   if (!pasta) return;
+
+   const mapas = cacheEstudoMapas.filter(m => String(m.pasta_id) === String(id));
+   if (!await confirmarAcao(`Excluir a pasta "${pasta.nome}" e seus ${mapas.length} mapa(s)?`)) return;
+
+   const paths = mapas.map(m => m.arquivo_path).filter(Boolean);
+   if (paths.length) {
+      const { error: erroArquivos } = await chamarSupabase(
+         _supabase.storage.from(ESTUDO_BUCKET).remove(paths),
+         'Erro ao excluir os arquivos da pasta'
+      );
+      if (erroArquivos) return;
+   }
+
+   const { error } = await chamarSupabase(
+      _supabase.from('estudo_pastas').delete().eq('id', id).eq('usuario', eu()),
+      'Erro ao excluir pasta'
+   );
+   if (error) return;
+
+   const idsMapas = new Set(mapas.map(m => String(m.id)));
+   cacheEstudoPastas = cacheEstudoPastas.filter(p => String(p.id) !== String(id));
+   cacheEstudoMapas = cacheEstudoMapas.filter(m => !idsMapas.has(String(m.id)));
+   cacheEstudoLeituras = cacheEstudoLeituras.filter(l => !idsMapas.has(String(l.mapa_id)));
+   mapas.forEach(m => estudoUrls.delete(String(m.id)));
+   reconstruirIndiceLeiturasEstudo();
+   renderEstudos();
+   mostrarToast('Pasta excluída.', 'sucesso');
+}
+
+async function excluirMateriaEstudo(id) {
+   const materia = cacheEstudoMaterias.find(m => String(m.id) === String(id));
+   if (!materia) return;
+
+   const pastas = cacheEstudoPastas.filter(p => String(p.materia_id) === String(id));
+   const idsPastas = new Set(pastas.map(p => String(p.id)));
+   const mapas = cacheEstudoMapas.filter(m => idsPastas.has(String(m.pasta_id)));
+
+   if (!await confirmarAcao(`Excluir a matéria "${materia.nome}", ${pastas.length} pasta(s), ${mapas.length} mapa(s) e todos os históricos?`)) return;
+
+   const paths = mapas.map(m => m.arquivo_path).filter(Boolean);
+   if (paths.length) {
+      const { error: erroArquivos } = await chamarSupabase(
+         _supabase.storage.from(ESTUDO_BUCKET).remove(paths),
+         'Erro ao excluir os arquivos da matéria'
+      );
+      if (erroArquivos) return;
+   }
+
+   const { error } = await chamarSupabase(
+      _supabase.from('estudo_materias').delete().eq('id', id).eq('usuario', eu()),
+      'Erro ao excluir matéria'
+   );
+   if (error) return;
+
+   const idsMapas = new Set(mapas.map(m => String(m.id)));
+   cacheEstudoMaterias = cacheEstudoMaterias.filter(m => String(m.id) !== String(id));
+   cacheEstudoPastas = cacheEstudoPastas.filter(p => String(p.materia_id) !== String(id));
+   cacheEstudoMapas = cacheEstudoMapas.filter(m => !idsMapas.has(String(m.id)));
+   cacheEstudoLeituras = cacheEstudoLeituras.filter(l => !idsMapas.has(String(l.mapa_id)));
+   mapas.forEach(m => estudoUrls.delete(String(m.id)));
+   reconstruirIndiceLeiturasEstudo();
+   renderEstudos();
+   mostrarToast('Matéria excluída.', 'sucesso');
+}
+
+function abrirRenomearMapaEstudo(id) {
+   const mapa = cacheEstudoMapas.find(m => String(m.id) === String(id));
+   if (!mapa) return;
+   estudoMapaRenomearId = mapa.id;
+   document.getElementById('estudo-novo-titulo-mapa').value = mapa.titulo;
+   abrirModalEstudo('modal-estudo-renomear');
+}
+
+async function confirmarRenomearMapaEstudo() {
+   const mapa = cacheEstudoMapas.find(m => String(m.id) === String(estudoMapaRenomearId));
+   const titulo = document.getElementById('estudo-novo-titulo-mapa').value.trim();
+   if (!mapa || !titulo) {
+      mostrarToast('Informe o novo título.');
+      return;
+   }
+
+   await comBotaoOcupado('btn-renomear-mapa-estudo', 'Salvando...', async () => {
+      const { error } = await chamarSupabase(
+         _supabase.from('estudo_mapas')
+            .update({ titulo })
+            .eq('id', mapa.id)
+            .eq('usuario', eu()),
+         'Erro ao renomear mapa'
+      );
+      if (error) return;
+
+      mapa.titulo = titulo;
+      fecharModaisEstudo();
+      renderEstudos();
+      mostrarToast('Mapa renomeado.', 'sucesso');
+   });
+}
+
+async function abrirMapaEstudo(id) {
+   const mapa = cacheEstudoMapas.find(m => String(m.id) === String(id));
+   if (!mapa) return;
+
+   estudoMapaAtual = mapa;
+   estudoZoom = 1;
+
+   document.getElementById('estudo-viewer-titulo').textContent = mapa.titulo;
+   document.getElementById('estudo-viewer-stage').innerHTML =
+      '<div style="color:white;font-size:0.7rem;font-weight:800;margin:auto;"><i class="fas fa-spinner fa-spin"></i> Abrindo mapa...</div>';
+
+   abrirModalEstudo('modal-estudo-viewer');
+
+   const url = await garantirUrlMapaEstudo(mapa.id, true);
+   if (!url) return;
+
+   const ehPdf = String(mapa.mime_type || '').includes('pdf');
+   const stage = document.getElementById('estudo-viewer-stage');
+   const ferramentasZoom = ['estudo-zoom-out','estudo-zoom-reset','estudo-zoom-in'];
+
+   ferramentasZoom.forEach(id => {
+      document.getElementById(id).style.display = ehPdf ? 'none' : 'inline-flex';
+   });
+
+   stage.innerHTML = ehPdf
+      ? `<iframe src="${escapeHtml(url)}#toolbar=1&navpanes=0" title="${escapeHtml(mapa.titulo)}"></iframe>`
+      : `<img id="estudo-viewer-img" src="${escapeHtml(url)}" alt="${escapeHtml(mapa.titulo)}" style="width:100%;">`;
+}
+
+function fecharViewerEstudo() {
+   document.getElementById('modal-estudo-viewer').classList.remove('open');
+   document.getElementById('estudo-viewer-stage').innerHTML = '';
+   estudoMapaAtual = null;
+   estudoZoom = 1;
+}
+
+function alterarZoomEstudo(delta) {
+   const img = document.getElementById('estudo-viewer-img');
+   if (!img) return;
+   estudoZoom = Math.max(0.4, Math.min(3.5, estudoZoom + delta));
+   img.style.width = `${Math.round(estudoZoom * 100)}%`;
+}
+
+function resetZoomEstudo() {
+   estudoZoom = 1;
+   const img = document.getElementById('estudo-viewer-img');
+   if (img) img.style.width = '100%';
+}
+
+async function registrarLeituraEstudoAtual() {
+   const mapa = estudoMapaAtual;
+   if (!mapa) return;
+
+   await comBotaoOcupado('btn-marcar-leitura-estudo', 'Registrando...', async () => {
+      const { data, error } = await chamarSupabase(
+         _supabase.from('estudo_leituras')
+            .insert({ usuario: eu(), mapa_id: mapa.id })
+            .select()
+            .single(),
+         'Erro ao registrar leitura'
+      );
+
+      if (error) return;
+
+      cacheEstudoLeituras.unshift(data);
+      reconstruirIndiceLeiturasEstudo();
+      renderStatsEstudo();
+      if (estudoPastaAtualId) renderMapasEstudo();
+
+      const resumo = resumoLeituraMapaEstudo(mapa.id);
+      mostrarToast(`Leitura registrada. Você já leu este mapa ${resumo.quantidade} vez${resumo.quantidade === 1 ? '' : 'es'}.`, 'sucesso', 4500);
+      fecharViewerEstudo();
+   });
+}
+
+function abrirHistoricoEstudo(id) {
+   const mapa = cacheEstudoMapas.find(m => String(m.id) === String(id));
+   if (!mapa) return;
+
+   const leituras = leiturasMapaEstudo(mapa.id);
+
+   document.getElementById('estudo-historico-titulo').textContent = mapa.titulo;
+   document.getElementById('estudo-historico-resumo').textContent =
+      `${leituras.length} leitura${leituras.length === 1 ? '' : 's'} registrada${leituras.length === 1 ? '' : 's'}`;
+
+   document.getElementById('estudo-historico-lista').innerHTML = leituras.length
+      ? leituras.map((l, i) => `
+         <div class="study-history-item">
+            <span>${formatarDataHoraEstudo(l.lido_em)}</span>
+            <span>${leituras.length - i}ª leitura</span>
+         </div>
+      `).join('')
+      : '<div class="study-empty" style="padding:1.8rem;"><i class="fas fa-clock"></i><h4>Ainda não há leituras</h4></div>';
+
+   abrirModalEstudo('modal-estudo-historico');
+}
+
 
 // =================== AUTO APP ===================
 let cacheVeiculos = [], cacheAutoRegistros = [];
