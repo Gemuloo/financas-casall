@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.08.29.26">
+   <meta name="gemulo-build" content="2026.08.30.27">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.08.29.26';
+      window.GEMULO_BUILD = '2026.08.30.27';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -565,7 +565,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.29.26</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.30.27</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -607,7 +607,7 @@ Despesa de terceiro
       <div class="study-headline">
          <div>
             <h3 id="estudo-titulo-contexto">Minhas matérias</h3>
-            <p id="estudo-subtitulo-contexto">Organize seus mapas e registre cada leitura concluída.</p>
+            <p id="estudo-subtitulo-contexto">Entre em uma matéria, abra os mapas das aulas e registre cada leitura concluída.</p>
          </div>
          <button id="btn-estudo-novo" class="study-primary-btn" onclick="acaoNovoEstudo()"><i class="fas fa-plus" style="margin-right:0.35rem;"></i> Nova matéria</button>
       </div>
@@ -638,24 +638,12 @@ Despesa de terceiro
          <button id="btn-salvar-materia-estudo" onclick="salvarMateriaEstudo()" class="w-full mt-4 bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">Criar matéria</button>
       </div>
    </div>
-
-   <!-- Nova pasta -->
-   <div id="modal-estudo-pasta" class="modal-overlay">
-      <div class="modal-content" style="max-width:420px;">
-         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisEstudo()"></i>
-         <h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Nova Pasta</h3>
-         <label class="field-label" for="estudo-nome-pasta">Nome</label>
-         <input id="estudo-nome-pasta" type="text" placeholder="Ex.: Mecânica dos Solos" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm outline-none">
-         <button id="btn-salvar-pasta-estudo" onclick="salvarPastaEstudo()" class="w-full mt-4 bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">Criar pasta</button>
-      </div>
-   </div>
-
-   <!-- Upload mapa -->
+<!-- Upload mapa -->
    <div id="modal-estudo-upload" class="modal-overlay">
       <div class="modal-content" style="max-width:480px;">
          <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisEstudo()"></i>
          <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Adicionar Mapa</h3>
-         <p style="font-size:0.6rem;color:#94a3b8;font-weight:700;text-align:center;margin:0 0 1.2rem;">PNG, JPG, WEBP ou PDF · até 20 MB.</p>
+         <p style="font-size:0.6rem;color:#94a3b8;font-weight:700;text-align:center;margin:0 0 1.2rem;">Cada mapa pode representar uma aula. PNG, JPG, WEBP ou PDF · até 20 MB.</p>
          <label class="field-label" for="estudo-titulo-mapa">Título do mapa</label>
          <input id="estudo-titulo-mapa" type="text" placeholder="Ex.: Mecânica dos Solos — Resumo" class="w-full bg-slate-50 border p-4 rounded-xl font-bold text-sm outline-none mb-4">
          <label for="estudo-arquivo-mapa" class="study-upload-zone">
@@ -2480,7 +2468,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.29.26.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.30.27.';
          return;
       }
 
@@ -4825,14 +4813,13 @@ const ESTUDO_BUCKET = 'estudos-mapas';
 const ESTUDO_MAX_BYTES = 20 * 1024 * 1024;
 
 let cacheEstudoMaterias = [];
-let cacheEstudoPastas = [];
+let cacheEstudoPastas = []; // legado, sem uso na interface nova
 let cacheEstudoMapas = [];
 let cacheEstudoLeituras = [];
 let estudoLeiturasPorMapa = new Map();
 let estudoUrls = new Map();
 
 let estudoMateriaAtualId = null;
-let estudoPastaAtualId = null;
 let estudoMapaAtual = null;
 let estudoMapaRenomearId = null;
 let estudoArquivoSelecionado = null;
@@ -4852,11 +4839,8 @@ function formatarDataHoraEstudo(iso) {
    const d = new Date(iso);
    if (Number.isNaN(d.getTime())) return '—';
    return d.toLocaleString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
    });
 }
 
@@ -4880,15 +4864,11 @@ function leiturasMapaEstudo(mapaId) {
 
 function resumoLeituraMapaEstudo(mapaId) {
    const leituras = leiturasMapaEstudo(mapaId);
-   return {
-      quantidade: leituras.length,
-      ultima: leituras[0]?.lido_em || null
-   };
+   return { quantidade: leituras.length, ultima: leituras[0]?.lido_em || null };
 }
 
 function reconstruirIndiceLeiturasEstudo() {
    const mapa = new Map();
-
    cacheEstudoLeituras
       .slice()
       .sort((a, b) => String(b.lido_em).localeCompare(String(a.lido_em)))
@@ -4897,25 +4877,20 @@ function reconstruirIndiceLeiturasEstudo() {
          if (!mapa.has(chave)) mapa.set(chave, []);
          mapa.get(chave).push(leitura);
       });
-
    estudoLeiturasPorMapa = mapa;
 }
 
 async function carregarEstudos() {
    const usuario = eu();
 
-   const [rMaterias, rPastas, rMapas, rLeituras] = await Promise.all([
+   const [rMaterias, rMapas, rLeituras] = await Promise.all([
       chamarSupabase(
          _supabase.from('estudo_materias').select('*').eq('usuario', usuario).order('nome'),
-         'Erro ao carregar matérias. Execute o arquivo Supabase_Estudos_v24.sql'
-      ),
-      chamarSupabase(
-         _supabase.from('estudo_pastas').select('*').eq('usuario', usuario).order('nome'),
-         'Erro ao carregar pastas de estudo'
+         'Erro ao carregar matérias. Execute Supabase_Estudos_v27_sem_pastas.sql'
       ),
       chamarSupabase(
          _supabase.from('estudo_mapas').select('*').eq('usuario', usuario).order('created_at', { ascending: false }),
-         'Erro ao carregar mapas'
+         'Erro ao carregar mapas. Execute Supabase_Estudos_v27_sem_pastas.sql'
       ),
       chamarSupabase(
          _supabase.from('estudo_leituras').select('*').eq('usuario', usuario).order('lido_em', { ascending: false }),
@@ -4923,10 +4898,9 @@ async function carregarEstudos() {
       )
    ]);
 
-   if ([rMaterias, rPastas, rMapas, rLeituras].some(r => r.error)) return false;
+   if ([rMaterias, rMapas, rLeituras].some(r => r.error)) return false;
 
    cacheEstudoMaterias = rMaterias.data || [];
-   cacheEstudoPastas = rPastas.data || [];
    cacheEstudoMapas = rMapas.data || [];
    cacheEstudoLeituras = rLeituras.data || [];
    reconstruirIndiceLeiturasEstudo();
@@ -4935,12 +4909,9 @@ async function carregarEstudos() {
 
 async function entrarEstudos() {
    estudoMateriaAtualId = null;
-   estudoPastaAtualId = null;
    estudoMapaAtual = null;
-
-   document.getElementById('estudo-conteudo').innerHTML = `
-      <div class="study-empty"><i class="fas fa-spinner fa-spin"></i><h4>Carregando biblioteca</h4></div>
-   `;
+   document.getElementById('estudo-conteudo').innerHTML =
+      '<div class="study-empty"><i class="fas fa-spinner fa-spin"></i><h4>Carregando biblioteca</h4></div>';
 
    const ok = await carregarEstudos();
    if (ok) renderEstudos();
@@ -4950,24 +4921,10 @@ function materiaEstudoAtual() {
    return cacheEstudoMaterias.find(m => String(m.id) === String(estudoMateriaAtualId)) || null;
 }
 
-function pastaEstudoAtual() {
-   return cacheEstudoPastas.find(p => String(p.id) === String(estudoPastaAtualId)) || null;
-}
-
 function mapasNoContextoEstudo() {
-   if (estudoPastaAtualId) {
-      return cacheEstudoMapas.filter(m => String(m.pasta_id) === String(estudoPastaAtualId));
-   }
-
    if (estudoMateriaAtualId) {
-      const idsPastas = new Set(
-         cacheEstudoPastas
-            .filter(p => String(p.materia_id) === String(estudoMateriaAtualId))
-            .map(p => String(p.id))
-      );
-      return cacheEstudoMapas.filter(m => idsPastas.has(String(m.pasta_id)));
+      return cacheEstudoMapas.filter(m => String(m.materia_id) === String(estudoMateriaAtualId));
    }
-
    return cacheEstudoMapas.slice();
 }
 
@@ -4985,7 +4942,6 @@ function renderStatsEstudo() {
 
 function renderContextoEstudo() {
    const materia = materiaEstudoAtual();
-   const pasta = pastaEstudoAtual();
    const breadcrumb = document.getElementById('estudo-breadcrumb');
    const titulo = document.getElementById('estudo-titulo-contexto');
    const subtitulo = document.getElementById('estudo-subtitulo-contexto');
@@ -4993,31 +4949,20 @@ function renderContextoEstudo() {
    const btnVoltar = document.getElementById('btn-estudo-voltar');
    const filtro = document.getElementById('estudo-filtro-row');
 
-   if (pasta && materia) {
-      breadcrumb.innerHTML = `
-         <button onclick="irRaizEstudo()">Matérias</button><i class="fas fa-chevron-right"></i>
-         <button onclick="abrirMateriaEstudo('${materia.id}')">${escapeHtml(materia.nome)}</button><i class="fas fa-chevron-right"></i>
-         <span>${escapeHtml(pasta.nome)}</span>
-      `;
-      titulo.textContent = pasta.nome;
-      subtitulo.textContent = 'Abra um mapa, leia no seu ritmo e registre quando terminar.';
-      btnNovo.innerHTML = '<i class="fas fa-plus" style="margin-right:0.35rem;"></i> Adicionar mapa';
-      btnVoltar.innerHTML = '<i class="fas fa-chevron-left"></i> Pastas';
-      filtro.style.display = 'flex';
-   } else if (materia) {
+   if (materia) {
       breadcrumb.innerHTML = `
          <button onclick="irRaizEstudo()">Matérias</button><i class="fas fa-chevron-right"></i>
          <span>${escapeHtml(materia.nome)}</span>
       `;
       titulo.textContent = materia.nome;
-      subtitulo.textContent = 'Crie pastas para separar os seus assuntos e mapas.';
-      btnNovo.innerHTML = '<i class="fas fa-plus" style="margin-right:0.35rem;"></i> Nova pasta';
+      subtitulo.textContent = 'Cada mapa pode ser uma aula. Use o número da aula no título para manter a sequência.';
+      btnNovo.innerHTML = '<i class="fas fa-plus" style="margin-right:0.35rem;"></i> Adicionar mapa';
       btnVoltar.innerHTML = '<i class="fas fa-chevron-left"></i> Matérias';
-      filtro.style.display = 'none';
+      filtro.style.display = 'flex';
    } else {
       breadcrumb.innerHTML = '<span>Biblioteca de Estudos</span>';
       titulo.textContent = 'Minhas matérias';
-      subtitulo.textContent = 'Organize seus mapas e registre cada leitura concluída.';
+      subtitulo.textContent = 'Entre na matéria e organize as aulas diretamente pelos mapas.';
       btnNovo.innerHTML = '<i class="fas fa-plus" style="margin-right:0.35rem;"></i> Nova matéria';
       btnVoltar.innerHTML = '<i class="fas fa-chevron-left"></i> Hub';
       filtro.style.display = 'none';
@@ -5027,14 +4972,8 @@ function renderContextoEstudo() {
 function renderEstudos() {
    renderContextoEstudo();
    renderStatsEstudo();
-
-   if (estudoPastaAtualId) {
-      renderMapasEstudo();
-   } else if (estudoMateriaAtualId) {
-      renderPastasEstudo();
-   } else {
-      renderMateriasEstudo();
-   }
+   if (estudoMateriaAtualId) renderMapasEstudo();
+   else renderMateriasEstudo();
 }
 
 function renderMateriasEstudo() {
@@ -5046,16 +4985,14 @@ function renderMateriasEstudo() {
             <i class="fas fa-book-open"></i>
             <h4>Nenhuma matéria cadastrada</h4>
             <p>Crie a primeira matéria para começar sua biblioteca visual.</p>
-         </div>
-      `;
+         </div>`;
       return;
    }
 
    container.innerHTML = `<div class="study-grid">${
       cacheEstudoMaterias.map(materia => {
-         const pastas = cacheEstudoPastas.filter(p => String(p.materia_id) === String(materia.id));
-         const idsPastas = new Set(pastas.map(p => String(p.id)));
-         const mapas = cacheEstudoMapas.filter(m => idsPastas.has(String(m.pasta_id)));
+         const mapas = cacheEstudoMapas.filter(m => String(m.materia_id) === String(materia.id));
+         const lidos = mapas.filter(m => resumoLeituraMapaEstudo(m.id).quantidade > 0).length;
          const leituras = mapas.reduce((s, m) => s + resumoLeituraMapaEstudo(m.id).quantidade, 0);
 
          return `
@@ -5066,67 +5003,55 @@ function renderMateriasEstudo() {
                </div>
                <div class="study-entity-icon"><i class="fas fa-book"></i></div>
                <h4>${escapeHtml(materia.nome)}</h4>
-               <div class="meta">${pastas.length} pasta${pastas.length === 1 ? '' : 's'} · ${mapas.length} mapa${mapas.length === 1 ? '' : 's'} · ${leituras} leitura${leituras === 1 ? '' : 's'}</div>
-            </article>
-         `;
+               <div class="meta">${mapas.length} mapa${mapas.length === 1 ? '' : 's'} · ${lidos} já lido${lidos === 1 ? '' : 's'} · ${leituras} leitura${leituras === 1 ? '' : 's'}</div>
+            </article>`;
       }).join('')
    }</div>`;
 }
 
-function renderPastasEstudo() {
-   const container = document.getElementById('estudo-conteudo');
-   const pastas = cacheEstudoPastas.filter(
-      p => String(p.materia_id) === String(estudoMateriaAtualId)
-   );
+function chaveOrdenacaoMapaEstudo(mapa) {
+   const titulo = String(mapa.titulo || '').trim();
+   const m = titulo.match(/^(?:aula\s*)?(\d{1,3})(?:\s*[-–—.:)]|\s+)/i);
 
-   if (!pastas.length) {
-      container.innerHTML = `
-         <div class="study-empty">
-            <i class="fas fa-folder-open"></i>
-            <h4>Nenhuma pasta nesta matéria</h4>
-            <p>Crie uma pasta para guardar os mapas de um assunto.</p>
-         </div>
-      `;
-      return;
-   }
+   return {
+      temNumero: !!m,
+      numero: m ? parseInt(m[1], 10) : Number.MAX_SAFE_INTEGER,
+      titulo
+   };
+}
 
-   container.innerHTML = `<div class="study-grid">${
-      pastas.map(pasta => {
-         const mapas = cacheEstudoMapas.filter(m => String(m.pasta_id) === String(pasta.id));
-         const lidos = mapas.filter(m => resumoLeituraMapaEstudo(m.id).quantidade > 0).length;
-         const leituras = mapas.reduce((s, m) => s + resumoLeituraMapaEstudo(m.id).quantidade, 0);
+function ordenarMapasPorAula(lista) {
+   return lista.slice().sort((a, b) => {
+      const ka = chaveOrdenacaoMapaEstudo(a);
+      const kb = chaveOrdenacaoMapaEstudo(b);
 
-         return `
-            <article class="study-entity-card">
-               <button class="study-card-open" onclick="abrirPastaEstudo('${pasta.id}')" aria-label="Abrir ${escapeHtml(pasta.nome)}"></button>
-               <div class="study-card-actions">
-                  <button class="study-icon-btn" onclick="event.stopPropagation(); excluirPastaEstudo('${pasta.id}')" title="Excluir pasta"><i class="fas fa-trash"></i></button>
-               </div>
-               <div class="study-entity-icon"><i class="fas fa-folder"></i></div>
-               <h4>${escapeHtml(pasta.nome)}</h4>
-               <div class="meta">${mapas.length} mapa${mapas.length === 1 ? '' : 's'} · ${lidos} já lido${lidos === 1 ? '' : 's'} · ${leituras} leitura${leituras === 1 ? '' : 's'}</div>
-            </article>
-         `;
-      }).join('')
-   }</div>`;
+      if (ka.temNumero !== kb.temNumero) return ka.temNumero ? -1 : 1;
+      if (ka.numero !== kb.numero) return ka.numero - kb.numero;
+      return ka.titulo.localeCompare(kb.titulo, 'pt-BR', { numeric: true });
+   });
 }
 
 function ordenarFiltrarMapasEstudo(mapas) {
    const filtro = document.getElementById('estudo-filtro-mapas')?.value || 'todos';
-   let lista = mapas.slice();
+   let lista = ordenarMapasPorAula(mapas);
 
-   if (filtro === 'nao-lidos') {
-      lista = lista.filter(m => resumoLeituraMapaEstudo(m.id).quantidade === 0);
-   } else if (filtro === 'lidos') {
-      lista = lista.filter(m => resumoLeituraMapaEstudo(m.id).quantidade > 0);
-   }
+   if (filtro === 'nao-lidos') lista = lista.filter(m => resumoLeituraMapaEstudo(m.id).quantidade === 0);
+   else if (filtro === 'lidos') lista = lista.filter(m => resumoLeituraMapaEstudo(m.id).quantidade > 0);
 
    if (filtro === 'mais-lidos') {
-      lista.sort((a, b) => resumoLeituraMapaEstudo(b.id).quantidade - resumoLeituraMapaEstudo(a.id).quantidade);
+      lista.sort((a, b) =>
+         resumoLeituraMapaEstudo(b.id).quantidade - resumoLeituraMapaEstudo(a.id).quantidade
+      );
    } else if (filtro === 'menos-lidos') {
-      lista.sort((a, b) => resumoLeituraMapaEstudo(a.id).quantidade - resumoLeituraMapaEstudo(b.id).quantidade);
+      lista.sort((a, b) =>
+         resumoLeituraMapaEstudo(a.id).quantidade - resumoLeituraMapaEstudo(b.id).quantidade
+      );
    } else if (filtro === 'recentes') {
-      lista.sort((a, b) => String(resumoLeituraMapaEstudo(b.id).ultima || '').localeCompare(String(resumoLeituraMapaEstudo(a.id).ultima || '')));
+      lista.sort((a, b) =>
+         String(resumoLeituraMapaEstudo(b.id).ultima || '').localeCompare(
+            String(resumoLeituraMapaEstudo(a.id).ultima || '')
+         )
+      );
    }
 
    return lista;
@@ -5134,17 +5059,18 @@ function ordenarFiltrarMapasEstudo(mapas) {
 
 function renderMapasEstudo() {
    const container = document.getElementById('estudo-conteudo');
-   const mapasBase = cacheEstudoMapas.filter(m => String(m.pasta_id) === String(estudoPastaAtualId));
+   const mapasBase = cacheEstudoMapas.filter(
+      m => String(m.materia_id) === String(estudoMateriaAtualId)
+   );
    const mapas = ordenarFiltrarMapasEstudo(mapasBase);
 
    if (!mapas.length) {
       container.innerHTML = `
          <div class="study-empty">
             <i class="fas fa-images"></i>
-            <h4>Nenhum mapa para mostrar</h4>
-            <p>Adicione uma imagem ou PDF e comece a registrar suas leituras.</p>
-         </div>
-      `;
+            <h4>Nenhum mapa nesta matéria</h4>
+            <p>Adicione o primeiro mapa. Ex.: “Aula 01 — Conceito e formação dos solos”.</p>
+         </div>`;
       return;
    }
 
@@ -5178,12 +5104,12 @@ function renderMapasEstudo() {
                      <button onclick="abrirHistoricoEstudo('${mapa.id}')"><i class="fas fa-clock-rotate-left" style="margin-right:0.3rem;"></i>Histórico</button>
                   </div>
                </div>
-            </article>
-         `;
+            </article>`;
       }).join('')
    }</div>`;
 
-   mapas.filter(m => !String(m.mime_type || '').includes('pdf') && !estudoUrls.has(String(m.id)))
+   mapas
+      .filter(m => !String(m.mime_type || '').includes('pdf') && !estudoUrls.has(String(m.id)))
       .forEach(m => garantirUrlMapaEstudo(m.id));
 }
 
@@ -5204,8 +5130,8 @@ async function garantirUrlMapaEstudo(mapaId, forcar = false) {
    estudoUrls.set(chave, data.signedUrl);
 
    if (
-      estudoPastaAtualId &&
-      String(mapa.pasta_id) === String(estudoPastaAtualId) &&
+      estudoMateriaAtualId &&
+      String(mapa.materia_id) === String(estudoMateriaAtualId) &&
       !String(mapa.mime_type || '').includes('pdf')
    ) {
       renderMapasEstudo();
@@ -5216,26 +5142,15 @@ async function garantirUrlMapaEstudo(mapaId, forcar = false) {
 
 function irRaizEstudo() {
    estudoMateriaAtualId = null;
-   estudoPastaAtualId = null;
    renderEstudos();
 }
 
-function abrirMateriaEstudo(id) {
+async function abrirMateriaEstudo(id) {
    estudoMateriaAtualId = id;
-   estudoPastaAtualId = null;
-   renderEstudos();
-}
-
-async function abrirPastaEstudo(id) {
-   const pasta = cacheEstudoPastas.find(p => String(p.id) === String(id));
-   if (!pasta) return;
-
-   estudoMateriaAtualId = pasta.materia_id;
-   estudoPastaAtualId = id;
    document.getElementById('estudo-filtro-mapas').value = 'todos';
    renderEstudos();
 
-   const mapas = cacheEstudoMapas.filter(m => String(m.pasta_id) === String(id));
+   const mapas = cacheEstudoMapas.filter(m => String(m.materia_id) === String(id));
    await Promise.all(
       mapas
          .filter(m => !String(m.mime_type || '').includes('pdf'))
@@ -5244,35 +5159,21 @@ async function abrirPastaEstudo(id) {
 }
 
 function estudoVoltar() {
-   if (estudoPastaAtualId) {
-      estudoPastaAtualId = null;
-      renderEstudos();
-      return;
-   }
-
    if (estudoMateriaAtualId) {
       estudoMateriaAtualId = null;
       renderEstudos();
       return;
    }
-
    voltarHub();
 }
 
 function acaoNovoEstudo() {
-   if (estudoPastaAtualId) {
+   if (estudoMateriaAtualId) {
       estudoArquivoSelecionado = null;
       document.getElementById('estudo-titulo-mapa').value = '';
       document.getElementById('estudo-arquivo-mapa').value = '';
       document.getElementById('estudo-arquivo-selecionado').textContent = 'Nenhum arquivo selecionado';
       abrirModalEstudo('modal-estudo-upload');
-      return;
-   }
-
-   if (estudoMateriaAtualId) {
-      document.getElementById('estudo-nome-pasta').value = '';
-      abrirModalEstudo('modal-estudo-pasta');
-      setTimeout(() => document.getElementById('estudo-nome-pasta')?.focus(), 50);
       return;
    }
 
@@ -5290,13 +5191,9 @@ async function salvarMateriaEstudo() {
 
    await comBotaoOcupado('btn-salvar-materia-estudo', 'Criando...', async () => {
       const { data, error } = await chamarSupabase(
-         _supabase.from('estudo_materias')
-            .insert({ usuario: eu(), nome })
-            .select()
-            .single(),
+         _supabase.from('estudo_materias').insert({ usuario: eu(), nome }).select().single(),
          'Erro ao criar matéria'
       );
-
       if (error) return;
 
       cacheEstudoMaterias.push(data);
@@ -5304,32 +5201,6 @@ async function salvarMateriaEstudo() {
       fecharModaisEstudo();
       renderEstudos();
       mostrarToast('Matéria criada.', 'sucesso');
-   });
-}
-
-async function salvarPastaEstudo() {
-   const nome = document.getElementById('estudo-nome-pasta').value.trim();
-   if (!nome || !estudoMateriaAtualId) {
-      mostrarToast('Informe o nome da pasta.');
-      return;
-   }
-
-   await comBotaoOcupado('btn-salvar-pasta-estudo', 'Criando...', async () => {
-      const { data, error } = await chamarSupabase(
-         _supabase.from('estudo_pastas')
-            .insert({ usuario: eu(), materia_id: estudoMateriaAtualId, nome })
-            .select()
-            .single(),
-         'Erro ao criar pasta'
-      );
-
-      if (error) return;
-
-      cacheEstudoPastas.push(data);
-      cacheEstudoPastas.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-      fecharModaisEstudo();
-      renderEstudos();
-      mostrarToast('Pasta criada.', 'sucesso');
    });
 }
 
@@ -5353,13 +5224,12 @@ function arquivoMapaEstudoMudou(file) {
 async function uploadMapaEstudo() {
    const titulo = document.getElementById('estudo-titulo-mapa').value.trim();
    const file = estudoArquivoSelecionado;
-   const pasta = pastaEstudoAtual();
+   const materia = materiaEstudoAtual();
 
-   if (!pasta || !file) {
+   if (!materia || !file) {
       mostrarToast('Escolha o arquivo do mapa.');
       return;
    }
-
    if (!titulo) {
       mostrarToast('Informe um título para o mapa.');
       return;
@@ -5370,7 +5240,6 @@ async function uploadMapaEstudo() {
       mostrarToast('Formato não permitido. Use PNG, JPG, WEBP ou PDF.');
       return;
    }
-
    if (file.size > ESTUDO_MAX_BYTES) {
       mostrarToast('O arquivo ultrapassa o limite de 20 MB.');
       return;
@@ -5379,22 +5248,23 @@ async function uploadMapaEstudo() {
    await comBotaoOcupado('btn-upload-mapa-estudo', 'Enviando...', async () => {
       const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
       const usuarioPath = slugEstudo(eu()).replace(/\./g, '_');
-      const path = `${usuarioPath}/${pasta.materia_id}/${pasta.id}/${Date.now()}_${uuidEstudo()}.${slugEstudo(ext)}`;
+      const path = `${usuarioPath}/${materia.id}/${Date.now()}_${uuidEstudo()}.${slugEstudo(ext)}`;
 
       const { error: erroUpload } = await chamarSupabase(
-         _supabase.storage
-            .from(ESTUDO_BUCKET)
-            .upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type }),
-         'Erro ao enviar arquivo. Execute Supabase_Estudos_v24.sql'
+         _supabase.storage.from(ESTUDO_BUCKET).upload(
+            path, file,
+            { cacheControl: '3600', upsert: false, contentType: file.type }
+         ),
+         'Erro ao enviar arquivo. Execute Supabase_Estudos_v27_sem_pastas.sql'
       );
-
       if (erroUpload) return;
 
       const { data, error } = await chamarSupabase(
          _supabase.from('estudo_mapas')
             .insert({
                usuario: eu(),
-               pasta_id: pasta.id,
+               materia_id: materia.id,
+               pasta_id: null,
                titulo,
                arquivo_path: path,
                arquivo_nome: file.name,
@@ -5417,10 +5287,6 @@ async function uploadMapaEstudo() {
       await garantirUrlMapaEstudo(data.id, true);
       mostrarToast('Mapa adicionado.', 'sucesso');
    });
-}
-
-async function listarPathsMapasEstudo(predicate) {
-   return cacheEstudoMapas.filter(predicate).map(m => m.arquivo_path).filter(Boolean);
 }
 
 async function excluirMapaEstudo(id) {
@@ -5449,47 +5315,13 @@ async function excluirMapaEstudo(id) {
    mostrarToast('Mapa excluído.', 'sucesso');
 }
 
-async function excluirPastaEstudo(id) {
-   const pasta = cacheEstudoPastas.find(p => String(p.id) === String(id));
-   if (!pasta) return;
-
-   const mapas = cacheEstudoMapas.filter(m => String(m.pasta_id) === String(id));
-   if (!await confirmarAcao(`Excluir a pasta "${pasta.nome}" e seus ${mapas.length} mapa(s)?`)) return;
-
-   const paths = mapas.map(m => m.arquivo_path).filter(Boolean);
-   if (paths.length) {
-      const { error: erroArquivos } = await chamarSupabase(
-         _supabase.storage.from(ESTUDO_BUCKET).remove(paths),
-         'Erro ao excluir os arquivos da pasta'
-      );
-      if (erroArquivos) return;
-   }
-
-   const { error } = await chamarSupabase(
-      _supabase.from('estudo_pastas').delete().eq('id', id).eq('usuario', eu()),
-      'Erro ao excluir pasta'
-   );
-   if (error) return;
-
-   const idsMapas = new Set(mapas.map(m => String(m.id)));
-   cacheEstudoPastas = cacheEstudoPastas.filter(p => String(p.id) !== String(id));
-   cacheEstudoMapas = cacheEstudoMapas.filter(m => !idsMapas.has(String(m.id)));
-   cacheEstudoLeituras = cacheEstudoLeituras.filter(l => !idsMapas.has(String(l.mapa_id)));
-   mapas.forEach(m => estudoUrls.delete(String(m.id)));
-   reconstruirIndiceLeiturasEstudo();
-   renderEstudos();
-   mostrarToast('Pasta excluída.', 'sucesso');
-}
-
 async function excluirMateriaEstudo(id) {
    const materia = cacheEstudoMaterias.find(m => String(m.id) === String(id));
    if (!materia) return;
 
-   const pastas = cacheEstudoPastas.filter(p => String(p.materia_id) === String(id));
-   const idsPastas = new Set(pastas.map(p => String(p.id)));
-   const mapas = cacheEstudoMapas.filter(m => idsPastas.has(String(m.pasta_id)));
+   const mapas = cacheEstudoMapas.filter(m => String(m.materia_id) === String(id));
 
-   if (!await confirmarAcao(`Excluir a matéria "${materia.nome}", ${pastas.length} pasta(s), ${mapas.length} mapa(s) e todos os históricos?`)) return;
+   if (!await confirmarAcao(`Excluir a matéria "${materia.nome}", seus ${mapas.length} mapa(s) e todos os históricos?`)) return;
 
    const paths = mapas.map(m => m.arquivo_path).filter(Boolean);
    if (paths.length) {
@@ -5508,7 +5340,6 @@ async function excluirMateriaEstudo(id) {
 
    const idsMapas = new Set(mapas.map(m => String(m.id)));
    cacheEstudoMaterias = cacheEstudoMaterias.filter(m => String(m.id) !== String(id));
-   cacheEstudoPastas = cacheEstudoPastas.filter(p => String(p.materia_id) !== String(id));
    cacheEstudoMapas = cacheEstudoMapas.filter(m => !idsMapas.has(String(m.id)));
    cacheEstudoLeituras = cacheEstudoLeituras.filter(l => !idsMapas.has(String(l.mapa_id)));
    mapas.forEach(m => estudoUrls.delete(String(m.id)));
@@ -5528,6 +5359,7 @@ function abrirRenomearMapaEstudo(id) {
 async function confirmarRenomearMapaEstudo() {
    const mapa = cacheEstudoMapas.find(m => String(m.id) === String(estudoMapaRenomearId));
    const titulo = document.getElementById('estudo-novo-titulo-mapa').value.trim();
+
    if (!mapa || !titulo) {
       mostrarToast('Informe o novo título.');
       return;
@@ -5578,11 +5410,8 @@ async function abrirMapaEstudo(id) {
       ? `<iframe src="${escapeHtml(url)}#toolbar=1&navpanes=0" title="${escapeHtml(mapa.titulo)}"></iframe>`
       : `<img id="estudo-viewer-img" src="${escapeHtml(url)}" alt="${escapeHtml(mapa.titulo)}" style="width:100%;">`;
 
-   if (ehPdf) {
-      desativarPanEstudo();
-   } else {
-      ativarPanEstudo();
-   }
+   if (ehPdf) desativarPanEstudo();
+   else ativarPanEstudo();
 }
 
 function fecharViewerEstudo() {
@@ -5593,7 +5422,6 @@ function fecharViewerEstudo() {
    estudoZoom = 1;
 }
 
-
 function ativarPanEstudo() {
    const stage = document.getElementById('estudo-viewer-stage');
    const img = document.getElementById('estudo-viewer-img');
@@ -5602,10 +5430,7 @@ function ativarPanEstudo() {
    stage.classList.add('study-pan-enabled');
 
    let arrastando = false;
-   let inicioX = 0;
-   let inicioY = 0;
-   let scrollInicialX = 0;
-   let scrollInicialY = 0;
+   let inicioX = 0, inicioY = 0, scrollInicialX = 0, scrollInicialY = 0;
 
    const iniciar = (event) => {
       if (event.button !== undefined && event.button !== 0) return;
@@ -5615,23 +5440,15 @@ function ativarPanEstudo() {
       inicioY = event.clientY;
       scrollInicialX = stage.scrollLeft;
       scrollInicialY = stage.scrollTop;
-
       stage.classList.add('dragging');
 
-      try {
-         stage.setPointerCapture?.(event.pointerId);
-      } catch (_) {}
+      try { stage.setPointerCapture?.(event.pointerId); } catch (_) {}
    };
 
    const mover = (event) => {
       if (!arrastando) return;
-
-      const dx = event.clientX - inicioX;
-      const dy = event.clientY - inicioY;
-
-      stage.scrollLeft = scrollInicialX - dx;
-      stage.scrollTop = scrollInicialY - dy;
-
+      stage.scrollLeft = scrollInicialX - (event.clientX - inicioX);
+      stage.scrollTop = scrollInicialY - (event.clientY - inicioY);
       event.preventDefault();
    };
 
@@ -5639,10 +5456,7 @@ function ativarPanEstudo() {
       if (!arrastando) return;
       arrastando = false;
       stage.classList.remove('dragging');
-
-      try {
-         stage.releasePointerCapture?.(event.pointerId);
-      } catch (_) {}
+      try { stage.releasePointerCapture?.(event.pointerId); } catch (_) {}
    };
 
    stage.onpointerdown = iniciar;
@@ -5653,7 +5467,6 @@ function ativarPanEstudo() {
       if (arrastando && event.buttons === 0) encerrar(event);
    };
 
-   // Impede o arraste nativo da própria imagem.
    img.ondragstart = () => false;
 }
 
@@ -5672,6 +5485,7 @@ function desativarPanEstudo() {
 function alterarZoomEstudo(delta) {
    const img = document.getElementById('estudo-viewer-img');
    if (!img) return;
+
    estudoZoom = Math.max(0.4, Math.min(3.5, estudoZoom + delta));
    img.style.width = `${Math.round(estudoZoom * 100)}%`;
 }
@@ -5694,16 +5508,19 @@ async function registrarLeituraEstudoAtual() {
             .single(),
          'Erro ao registrar leitura'
       );
-
       if (error) return;
 
       cacheEstudoLeituras.unshift(data);
       reconstruirIndiceLeiturasEstudo();
       renderStatsEstudo();
-      if (estudoPastaAtualId) renderMapasEstudo();
+      if (estudoMateriaAtualId) renderMapasEstudo();
 
       const resumo = resumoLeituraMapaEstudo(mapa.id);
-      mostrarToast(`Leitura registrada. Você já leu este mapa ${resumo.quantidade} vez${resumo.quantidade === 1 ? '' : 'es'}.`, 'sucesso', 4500);
+      mostrarToast(
+         `Leitura registrada. Você já leu este mapa ${resumo.quantidade} vez${resumo.quantidade === 1 ? '' : 'es'}.`,
+         'sucesso',
+         4500
+      );
       fecharViewerEstudo();
    });
 }
@@ -5723,8 +5540,7 @@ function abrirHistoricoEstudo(id) {
          <div class="study-history-item">
             <span>${formatarDataHoraEstudo(l.lido_em)}</span>
             <span>${leituras.length - i}ª leitura</span>
-         </div>
-      `).join('')
+         </div>`).join('')
       : '<div class="study-empty" style="padding:1.8rem;"><i class="fas fa-clock"></i><h4>Ainda não há leituras</h4></div>';
 
    abrirModalEstudo('modal-estudo-historico');
