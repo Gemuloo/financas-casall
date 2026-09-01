@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.08.31.29">
+   <meta name="gemulo-build" content="2026.09.01.30">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.08.31.29';
+      window.GEMULO_BUILD = '2026.09.01.30';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -240,6 +240,43 @@
       .study-map-actions { display:flex; gap:0.45rem; margin-top:0.75rem; }
       .study-map-actions button { flex:1; border:1px solid #e2e8f0; background:#f8fafc; color:#475569; border-radius:0.8rem; padding:0.55rem; font-size:0.54rem; font-weight:900; text-transform:uppercase; cursor:pointer; }
       .study-map-actions button:hover { border-color:#c4b5fd; color:#6d28d9; }
+      .study-map-actions .study-cards-btn { background:#faf5ff; color:#7c3aed; border-color:#ddd6fe; }
+      .study-map-actions .study-cards-btn:hover { background:#f3e8ff; border-color:#c4b5fd; color:#6d28d9; }
+      .study-cards-toolbar { display:flex; gap:0.55rem; flex-wrap:wrap; margin:0.85rem 0 1rem; }
+      .study-cards-toolbar button { flex:1; min-width:145px; border-radius:0.9rem; border:1px solid #ddd6fe; background:#faf5ff; color:#6d28d9; padding:0.7rem 0.8rem; font-size:0.56rem; font-weight:900; text-transform:uppercase; cursor:pointer; }
+      .study-cards-toolbar button:hover { background:#f3e8ff; }
+      .study-cards-toolbar button.primary { background:#7c3aed; color:#fff; border-color:#7c3aed; }
+      .study-cards-toolbar button.primary:hover { background:#6d28d9; }
+      .study-cards-toolbar button:disabled { opacity:.5; cursor:not-allowed; }
+      .study-prompt-box { width:100%; min-height:180px; resize:vertical; border:1px solid #e2e8f0; background:#f8fafc; color:#475569; border-radius:1rem; padding:0.9rem; font-size:0.62rem; line-height:1.55; font-weight:650; outline:none; }
+      .study-json-box { width:100%; min-height:150px; resize:vertical; border:1px solid #e2e8f0; background:#fff; color:#334155; border-radius:1rem; padding:0.9rem; font-size:0.62rem; line-height:1.45; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; outline:none; }
+      .study-cards-section-title { margin:1rem 0 0.55rem; color:#64748b; font-size:0.55rem; font-weight:900; text-transform:uppercase; letter-spacing:.06em; }
+      .study-card-list { max-height:35vh; overflow:auto; padding-right:0.15rem; scrollbar-width:thin; }
+      .study-card-row { border:1px solid #e2e8f0; background:#fff; border-radius:1rem; padding:0.8rem 0.85rem; margin-bottom:0.55rem; }
+      .study-card-row-head { display:flex; align-items:flex-start; justify-content:space-between; gap:0.7rem; }
+      .study-card-row-num { min-width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:9999px; background:#ede9fe; color:#6d28d9; font-size:0.52rem; font-weight:900; }
+      .study-card-row-q { flex:1; color:#1e293b; font-size:0.64rem; font-weight:900; line-height:1.4; }
+      .study-card-row-a { color:#64748b; font-size:0.61rem; font-weight:700; line-height:1.45; margin:0.55rem 0 0 2.15rem; white-space:pre-wrap; }
+      .study-card-delete { border:0; background:transparent; color:#cbd5e1; cursor:pointer; padding:0.2rem; }
+      .study-card-delete:hover { color:#ef4444; }
+      .study-card-count-pill { display:inline-flex; align-items:center; gap:0.3rem; border-radius:9999px; background:#ede9fe; color:#6d28d9; padding:0.35rem 0.65rem; font-size:0.57rem; font-weight:900; text-transform:uppercase; }
+      .study-import-file { display:none; }
+      .study-import-label { display:flex; align-items:center; justify-content:center; gap:0.4rem; border:1px dashed #c4b5fd; background:#faf5ff; color:#6d28d9; border-radius:0.9rem; padding:0.7rem; font-size:0.56rem; font-weight:900; text-transform:uppercase; cursor:pointer; margin-top:0.55rem; }
+      .study-import-label:hover { background:#f3e8ff; }
+      .study-cards-study-modal { z-index:240; }
+      .study-cards-study-shell { width:min(720px,94vw); max-height:92vh; background:white; border-radius:1.6rem; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 70px rgba(15,23,42,.25); }
+      .study-cards-study-head { display:flex; align-items:center; justify-content:space-between; gap:0.75rem; padding:0.9rem 1rem; border-bottom:1px solid #e2e8f0; background:#fafafa; }
+      .study-cards-study-head strong { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#1e293b; font-size:0.7rem; font-weight:900; }
+      .study-cards-study-head span { color:#7c3aed; font-size:0.58rem; font-weight:900; white-space:nowrap; }
+      .study-cards-study-body { padding:1.4rem; overflow:auto; }
+      .study-flash-label { color:#94a3b8; font-size:0.52rem; font-weight:900; text-transform:uppercase; letter-spacing:.07em; margin-bottom:0.45rem; }
+      .study-flash-question { color:#0f172a; font-size:1.15rem; line-height:1.45; font-weight:900; min-height:110px; display:flex; align-items:center; justify-content:center; text-align:center; padding:1rem; border:1px solid #e2e8f0; border-radius:1.2rem; background:#f8fafc; white-space:pre-wrap; }
+      .study-flash-answer { margin-top:1rem; color:#334155; font-size:0.82rem; line-height:1.6; font-weight:700; padding:1rem; border-radius:1.2rem; background:#f5f3ff; border:1px solid #ddd6fe; white-space:pre-wrap; }
+      .study-flash-actions { display:flex; gap:0.55rem; flex-wrap:wrap; padding:0 1.4rem 1.4rem; }
+      .study-flash-actions button { flex:1; min-width:120px; border:1px solid #e2e8f0; background:#f8fafc; color:#475569; border-radius:0.9rem; padding:0.75rem; font-size:0.57rem; font-weight:900; text-transform:uppercase; cursor:pointer; }
+      .study-flash-actions button.primary { background:#7c3aed; color:white; border-color:#7c3aed; }
+      .study-flash-actions button:hover { border-color:#c4b5fd; color:#6d28d9; }
+      .study-flash-actions button.primary:hover { background:#6d28d9; color:white; }
       .study-filter-row { display:flex; justify-content:flex-end; margin-bottom:0.8rem; }
       .study-filter-row select { background:white; border:1px solid #e2e8f0; border-radius:9999px; padding:0.55rem 0.85rem; font-size:0.58rem; font-weight:900; color:#64748b; text-transform:uppercase; outline:none; }
       .study-viewer-modal { z-index:230; padding:0.5rem; }
@@ -572,7 +609,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.08.31.29</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.09.01.30</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -686,6 +723,69 @@ Despesa de terceiro
          <h3 id="estudo-historico-titulo" class="font-black text-slate-800 text-lg uppercase mb-2 text-center italic">Histórico</h3>
          <p id="estudo-historico-resumo" style="text-align:center;color:#7c3aed;font-size:0.65rem;font-weight:900;margin:0 0 1rem;"></p>
          <div id="estudo-historico-lista" style="max-height:55vh;overflow-y:auto;"></div>
+      </div>
+   </div>
+
+
+   <!-- Cartões do mapa -->
+   <div id="modal-estudo-cartoes" class="modal-overlay">
+      <div class="modal-content" style="max-width:760px;">
+         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharCartoesEstudo()"></i>
+         <h3 id="estudo-cartoes-titulo" class="font-black text-slate-800 text-lg uppercase mb-1 text-center italic">Cartões</h3>
+         <div style="text-align:center;margin-bottom:0.55rem;">
+            <span id="estudo-cartoes-contagem" class="study-card-count-pill"><i class="fas fa-clone"></i> 0 cartões</span>
+         </div>
+
+         <div class="study-cards-toolbar">
+            <button onclick="copiarInstrucaoCartoesEstudo()"><i class="fas fa-copy" style="margin-right:0.35rem;"></i> Copiar instrução</button>
+            <button id="btn-estudar-cartoes-estudo" class="primary" onclick="iniciarEstudoCartoes()"><i class="fas fa-play" style="margin-right:0.35rem;"></i> Estudar cartões</button>
+         </div>
+
+         <div class="study-cards-section-title">Instrução para usar no ChatGPT junto com o mapa mental</div>
+         <textarea id="estudo-cartoes-prompt" class="study-prompt-box" readonly></textarea>
+
+         <div class="study-cards-section-title">Importar cartões gerados pelo ChatGPT</div>
+         <textarea id="estudo-cartoes-json" class="study-json-box" placeholder='Cole aqui o JSON retornado pelo ChatGPT, por exemplo:
+[
+  {"pergunta":"O que é solo?","resposta":"..."},
+  {"pergunta":"...","resposta":"..."}
+]'></textarea>
+
+         <label for="estudo-cartoes-arquivo-json" class="study-import-label">
+            <i class="fas fa-file-import"></i> Ou selecionar arquivo .json
+         </label>
+         <input id="estudo-cartoes-arquivo-json" class="study-import-file" type="file" accept=".json,application/json,text/plain" onchange="carregarArquivoCartoesEstudo(this.files[0])">
+
+         <button id="btn-importar-cartoes-estudo" onclick="importarCartoesEstudo()" class="w-full mt-3 bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">
+            Importar cartões
+         </button>
+
+         <div class="study-cards-section-title">Cartões cadastrados</div>
+         <div id="estudo-cartoes-lista" class="study-card-list"></div>
+      </div>
+   </div>
+
+   <!-- Modo de estudo dos cartões -->
+   <div id="modal-estudo-cartoes-estudar" class="modal-overlay study-cards-study-modal">
+      <div class="study-cards-study-shell">
+         <div class="study-cards-study-head">
+            <strong id="estudo-flash-titulo">Cartões</strong>
+            <span id="estudo-flash-progresso">1 / 1</span>
+            <button class="study-icon-btn" onclick="fecharEstudoCartoes()" title="Fechar"><i class="fas fa-times"></i></button>
+         </div>
+         <div class="study-cards-study-body">
+            <div class="study-flash-label">Pergunta</div>
+            <div id="estudo-flash-pergunta" class="study-flash-question"></div>
+            <div id="estudo-flash-resposta-wrap" style="display:none;">
+               <div class="study-flash-label" style="margin-top:1rem;">Resposta</div>
+               <div id="estudo-flash-resposta" class="study-flash-answer"></div>
+            </div>
+         </div>
+         <div class="study-flash-actions">
+            <button onclick="cartaoAnteriorEstudo()"><i class="fas fa-chevron-left" style="margin-right:0.3rem;"></i> Anterior</button>
+            <button id="btn-mostrar-resposta-estudo" class="primary" onclick="mostrarRespostaCartaoEstudo()"><i class="fas fa-eye" style="margin-right:0.3rem;"></i> Mostrar resposta</button>
+            <button onclick="proximoCartaoEstudo()">Próximo <i class="fas fa-chevron-right" style="margin-left:0.3rem;"></i></button>
+         </div>
       </div>
    </div>
 
@@ -2480,7 +2580,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.08.31.29.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.09.01.30.';
          return;
       }
 
@@ -3471,6 +3571,7 @@ function limparCaches() {
    cacheEstudoPastas = [];
    cacheEstudoMapas = [];
    cacheEstudoLeituras = [];
+   cacheEstudoCartoes = [];
    estudoLeiturasPorMapa = new Map();
    estudoUrls = new Map();
 
@@ -4454,6 +4555,16 @@ function voltarOuFecharModal() {
       return true;
    }
 
+   if (modal.id === 'modal-estudo-cartoes-estudar') {
+      fecharEstudoCartoes();
+      return true;
+   }
+
+   if (modal.id === 'modal-estudo-cartoes') {
+      fecharCartoesEstudo();
+      return true;
+   }
+
    modal.classList.remove('open');
 
    const paiId = MODAL_PAI[modal.id];
@@ -4829,6 +4940,7 @@ let cacheEstudoMaterias = [];
 let cacheEstudoPastas = []; // legado, sem uso na interface nova
 let cacheEstudoMapas = [];
 let cacheEstudoLeituras = [];
+let cacheEstudoCartoes = [];
 let estudoLeiturasPorMapa = new Map();
 let estudoUrls = new Map();
 let estudoUrlPromises = new Map();
@@ -4838,7 +4950,10 @@ let estudoToastErroUrlAtivo = false;
 
 let estudoMateriaAtualId = null;
 let estudoMapaAtual = null;
+let estudoMapaCartoesId = null;
 let estudoMapaRenomearId = null;
+let estudoCartoesSessao = [];
+let estudoCartaoIndice = 0;
 let estudoArquivoSelecionado = null;
 let estudoZoom = 1;
 
@@ -4900,26 +5015,31 @@ function reconstruirIndiceLeiturasEstudo() {
 async function carregarEstudos() {
    const usuario = eu();
 
-   const [rMaterias, rMapas, rLeituras] = await Promise.all([
+   const [rMaterias, rMapas, rLeituras, rCartoes] = await Promise.all([
       chamarSupabase(
          _supabase.from('estudo_materias').select('*').eq('usuario', usuario).order('nome'),
-         'Erro ao carregar matérias. Execute Supabase_Estudos_v27_sem_pastas.sql'
+         'Erro ao carregar matérias. Execute Supabase_Estudos_v30_cartoes.sql'
       ),
       chamarSupabase(
          _supabase.from('estudo_mapas').select('*').eq('usuario', usuario).order('created_at', { ascending: false }),
-         'Erro ao carregar mapas. Execute Supabase_Estudos_v27_sem_pastas.sql'
+         'Erro ao carregar mapas. Execute Supabase_Estudos_v30_cartoes.sql'
       ),
       chamarSupabase(
          _supabase.from('estudo_leituras').select('*').eq('usuario', usuario).order('lido_em', { ascending: false }),
          'Erro ao carregar histórico de leituras'
+      ),
+      chamarSupabase(
+         _supabase.from('estudo_cartoes').select('*').eq('usuario', usuario).order('ordem', { ascending: true }),
+         'Erro ao carregar cartões. Execute Supabase_Estudos_v30_cartoes.sql'
       )
    ]);
 
-   if ([rMaterias, rMapas, rLeituras].some(r => r.error)) return false;
+   if ([rMaterias, rMapas, rLeituras, rCartoes].some(r => r.error)) return false;
 
    cacheEstudoMaterias = rMaterias.data || [];
    cacheEstudoMapas = rMapas.data || [];
    cacheEstudoLeituras = rLeituras.data || [];
+   cacheEstudoCartoes = rCartoes.data || [];
    reconstruirIndiceLeiturasEstudo();
    return true;
 }
@@ -5121,6 +5241,7 @@ function renderMapasEstudo() {
                   </div>
                   <div class="study-map-actions">
                      <button onclick="abrirMapaEstudo('${mapa.id}')"><i class="fas fa-expand" style="margin-right:0.3rem;"></i>Abrir</button>
+                     <button class="study-cards-btn" onclick="abrirCartoesEstudo('${mapa.id}')"><i class="fas fa-clone" style="margin-right:0.3rem;"></i>Cartões (${cacheEstudoCartoes.filter(c => String(c.mapa_id) === String(mapa.id)).length})</button>
                      <button onclick="abrirHistoricoEstudo('${mapa.id}')"><i class="fas fa-clock-rotate-left" style="margin-right:0.3rem;"></i>Histórico</button>
                   </div>
                </div>
@@ -5554,6 +5675,7 @@ async function excluirMapaEstudo(id) {
 
    cacheEstudoMapas = cacheEstudoMapas.filter(m => String(m.id) !== String(mapa.id));
    cacheEstudoLeituras = cacheEstudoLeituras.filter(l => String(l.mapa_id) !== String(mapa.id));
+   cacheEstudoCartoes = cacheEstudoCartoes.filter(c => String(c.mapa_id) !== String(mapa.id));
    estudoUrls.delete(String(mapa.id));
    reconstruirIndiceLeiturasEstudo();
    renderEstudos();
@@ -5587,10 +5709,351 @@ async function excluirMateriaEstudo(id) {
    cacheEstudoMaterias = cacheEstudoMaterias.filter(m => String(m.id) !== String(id));
    cacheEstudoMapas = cacheEstudoMapas.filter(m => !idsMapas.has(String(m.id)));
    cacheEstudoLeituras = cacheEstudoLeituras.filter(l => !idsMapas.has(String(l.mapa_id)));
+   cacheEstudoCartoes = cacheEstudoCartoes.filter(c => !idsMapas.has(String(c.mapa_id)));
    mapas.forEach(m => estudoUrls.delete(String(m.id)));
    reconstruirIndiceLeiturasEstudo();
    renderEstudos();
    mostrarToast('Matéria excluída.', 'sucesso');
+}
+
+
+function cartoesDoMapaEstudo(mapaId) {
+   return cacheEstudoCartoes
+      .filter(c => String(c.mapa_id) === String(mapaId))
+      .slice()
+      .sort((a, b) => {
+         const oa = Number(a.ordem ?? 0);
+         const ob = Number(b.ordem ?? 0);
+         if (oa !== ob) return oa - ob;
+         return String(a.created_at || '').localeCompare(String(b.created_at || ''));
+      });
+}
+
+function gerarInstrucaoCartoesEstudo(mapa) {
+   const materia = cacheEstudoMaterias.find(m => String(m.id) === String(mapa?.materia_id));
+   const materiaNome = materia?.nome || 'matéria de estudo';
+   const mapaNome = mapa?.titulo || 'mapa mental';
+
+   return `Analise integralmente a imagem do mapa mental que estou enviando.
+
+CONTEXTO:
+Matéria: ${materiaNome}
+Mapa/Aula: ${mapaNome}
+
+OBJETIVO:
+Crie cartões de estudo de pergunta e resposta utilizando EXCLUSIVAMENTE as informações contidas no mapa mental anexado.
+
+REGRAS:
+1. Transforme todo o conteúdo relevante do mapa em perguntas e respostas.
+2. Não acrescente informações externas, mesmo que estejam corretas.
+3. Não crie perguntas sobre informações que não estejam expressamente presentes no mapa.
+4. Cubra conceitos, definições, classificações, diferenças, exemplos, consequências, relações, fórmulas e pegadinhas indicadas no material.
+5. Evite perguntas excessivamente genéricas.
+6. Cada pergunta deve testar preferencialmente uma informação ou relação principal.
+7. As respostas devem ser objetivas, mas completas o suficiente para revisão.
+8. Não crie alternativas de múltipla escolha.
+9. Não numere as perguntas.
+10. Preserve a terminologia utilizada no mapa mental.
+11. Não escreva nenhuma explicação antes ou depois do resultado.
+12. Retorne SOMENTE um JSON válido.
+
+FORMATO OBRIGATÓRIO:
+[
+  {
+    "pergunta": "Texto da pergunta",
+    "resposta": "Texto da resposta"
+  },
+  {
+    "pergunta": "Texto da pergunta",
+    "resposta": "Texto da resposta"
+  }
+]`;
+}
+
+function renderListaCartoesEstudo() {
+   const mapa = cacheEstudoMapas.find(m => String(m.id) === String(estudoMapaCartoesId));
+   if (!mapa) return;
+
+   const cartoes = cartoesDoMapaEstudo(mapa.id);
+   const contagem = document.getElementById('estudo-cartoes-contagem');
+   const btnEstudar = document.getElementById('btn-estudar-cartoes-estudo');
+   const lista = document.getElementById('estudo-cartoes-lista');
+
+   contagem.innerHTML = `<i class="fas fa-clone"></i> ${cartoes.length} cartão${cartoes.length === 1 ? '' : 'ões'}`;
+   btnEstudar.disabled = cartoes.length === 0;
+
+   if (!cartoes.length) {
+      lista.innerHTML = `
+         <div class="study-empty" style="padding:1.6rem;">
+            <i class="fas fa-clone"></i>
+            <h4>Nenhum cartão cadastrado</h4>
+            <p>Copie a instrução, envie junto com o mapa ao ChatGPT e cole o JSON gerado acima.</p>
+         </div>`;
+      return;
+   }
+
+   lista.innerHTML = cartoes.map((cartao, indice) => `
+      <div class="study-card-row">
+         <div class="study-card-row-head">
+            <span class="study-card-row-num">${indice + 1}</span>
+            <div class="study-card-row-q">${escapeHtml(cartao.pergunta)}</div>
+            <button class="study-card-delete" onclick="excluirCartaoEstudo('${cartao.id}')" title="Excluir cartão"><i class="fas fa-trash"></i></button>
+         </div>
+         <div class="study-card-row-a">${escapeHtml(cartao.resposta)}</div>
+      </div>
+   `).join('');
+}
+
+function abrirCartoesEstudo(mapaId) {
+   const mapa = cacheEstudoMapas.find(m => String(m.id) === String(mapaId));
+   if (!mapa) return;
+
+   estudoMapaCartoesId = mapa.id;
+   document.getElementById('estudo-cartoes-titulo').textContent = mapa.titulo;
+   document.getElementById('estudo-cartoes-prompt').value = gerarInstrucaoCartoesEstudo(mapa);
+   document.getElementById('estudo-cartoes-json').value = '';
+   document.getElementById('estudo-cartoes-arquivo-json').value = '';
+   renderListaCartoesEstudo();
+   abrirModalEstudo('modal-estudo-cartoes');
+}
+
+function fecharCartoesEstudo() {
+   document.getElementById('modal-estudo-cartoes').classList.remove('open');
+   estudoMapaCartoesId = null;
+}
+
+async function copiarInstrucaoCartoesEstudo() {
+   const texto = document.getElementById('estudo-cartoes-prompt')?.value || '';
+   if (!texto) return;
+
+   try {
+      await navigator.clipboard.writeText(texto);
+      mostrarToast('Instrução copiada. Agora envie o mapa ao ChatGPT e cole essa instrução.', 'sucesso', 4500);
+   } catch (_) {
+      const area = document.getElementById('estudo-cartoes-prompt');
+      area.focus();
+      area.select();
+      document.execCommand('copy');
+      mostrarToast('Instrução copiada.', 'sucesso');
+   }
+}
+
+async function carregarArquivoCartoesEstudo(file) {
+   if (!file) return;
+
+   if (file.size > 2 * 1024 * 1024) {
+      mostrarToast('O arquivo JSON é grande demais.');
+      return;
+   }
+
+   try {
+      const texto = await file.text();
+      document.getElementById('estudo-cartoes-json').value = texto;
+      mostrarToast('Arquivo JSON carregado.', 'sucesso');
+   } catch (erro) {
+      console.error(erro);
+      mostrarToast('Não foi possível ler o arquivo JSON.', 'erro');
+   }
+}
+
+function limparJsonCartoesEstudo(texto) {
+   let t = String(texto || '').trim();
+
+   if (t.startsWith('```')) {
+      t = t.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+   }
+
+   return t.trim();
+}
+
+function validarJsonCartoesEstudo(texto) {
+   const limpo = limparJsonCartoesEstudo(texto);
+   let dados;
+
+   try {
+      dados = JSON.parse(limpo);
+   } catch (_) {
+      throw new Error('O conteúdo não é um JSON válido.');
+   }
+
+   if (!Array.isArray(dados)) {
+      throw new Error('O JSON precisa ser uma lista de cartões.');
+   }
+
+   const cartoes = dados.map((item, indice) => {
+      const pergunta = String(item?.pergunta ?? '').trim();
+      const resposta = String(item?.resposta ?? '').trim();
+
+      if (!pergunta || !resposta) {
+         throw new Error(`O cartão ${indice + 1} precisa ter "pergunta" e "resposta".`);
+      }
+
+      if (pergunta.length > 3000 || resposta.length > 12000) {
+         throw new Error(`O cartão ${indice + 1} ultrapassa o limite de tamanho.`);
+      }
+
+      return { pergunta, resposta, ordem: indice + 1 };
+   });
+
+   if (!cartoes.length) {
+      throw new Error('O JSON não contém cartões.');
+   }
+
+   if (cartoes.length > 300) {
+      throw new Error('O limite é de 300 cartões por importação.');
+   }
+
+   return cartoes;
+}
+
+async function importarCartoesEstudo() {
+   const mapa = cacheEstudoMapas.find(m => String(m.id) === String(estudoMapaCartoesId));
+   if (!mapa) return;
+
+   let novos;
+   try {
+      novos = validarJsonCartoesEstudo(document.getElementById('estudo-cartoes-json').value);
+   } catch (erro) {
+      mostrarToast(erro.message || 'JSON inválido.', 'erro', 5000);
+      return;
+   }
+
+   const atuais = cartoesDoMapaEstudo(mapa.id);
+
+   if (atuais.length) {
+      const ok = await confirmarAcao(
+         `Este mapa já possui ${atuais.length} cartão(ões). A nova importação substituirá todos eles por ${novos.length} cartão(ões). Continuar?`
+      );
+      if (!ok) return;
+   }
+
+   await comBotaoOcupado('btn-importar-cartoes-estudo', 'Importando...', async () => {
+      if (atuais.length) {
+         const { error: erroExcluir } = await chamarSupabase(
+            _supabase.from('estudo_cartoes')
+               .delete()
+               .eq('usuario', eu())
+               .eq('mapa_id', mapa.id),
+            'Erro ao substituir os cartões atuais'
+         );
+         if (erroExcluir) return;
+      }
+
+      const registros = novos.map(item => ({
+         usuario: eu(),
+         mapa_id: mapa.id,
+         pergunta: item.pergunta,
+         resposta: item.resposta,
+         ordem: item.ordem
+      }));
+
+      const { data, error } = await chamarSupabase(
+         _supabase.from('estudo_cartoes')
+            .insert(registros)
+            .select(),
+         'Erro ao importar cartões. Execute Supabase_Estudos_v30_cartoes.sql'
+      );
+
+      if (error) return;
+
+      cacheEstudoCartoes = cacheEstudoCartoes.filter(c => String(c.mapa_id) !== String(mapa.id));
+      cacheEstudoCartoes.push(...(data || []));
+      document.getElementById('estudo-cartoes-json').value = '';
+      document.getElementById('estudo-cartoes-arquivo-json').value = '';
+      renderListaCartoesEstudo();
+
+      if (estudoMateriaAtualId) renderMapasEstudo();
+
+      mostrarToast(
+         `${novos.length} cartão${novos.length === 1 ? '' : 'ões'} importado${novos.length === 1 ? '' : 's'}.`,
+         'sucesso',
+         5000
+      );
+   });
+}
+
+async function excluirCartaoEstudo(id) {
+   const cartao = cacheEstudoCartoes.find(c => String(c.id) === String(id));
+   if (!cartao) return;
+
+   const ok = await confirmarAcao('Excluir este cartão?');
+   if (!ok) return;
+
+   const { error } = await chamarSupabase(
+      _supabase.from('estudo_cartoes')
+         .delete()
+         .eq('id', cartao.id)
+         .eq('usuario', eu()),
+      'Erro ao excluir cartão'
+   );
+
+   if (error) return;
+
+   cacheEstudoCartoes = cacheEstudoCartoes.filter(c => String(c.id) !== String(cartao.id));
+   renderListaCartoesEstudo();
+   if (estudoMateriaAtualId) renderMapasEstudo();
+   mostrarToast('Cartão excluído.', 'sucesso');
+}
+
+function iniciarEstudoCartoes() {
+   const mapa = cacheEstudoMapas.find(m => String(m.id) === String(estudoMapaCartoesId));
+   if (!mapa) return;
+
+   estudoCartoesSessao = cartoesDoMapaEstudo(mapa.id);
+   if (!estudoCartoesSessao.length) {
+      mostrarToast('Este mapa ainda não possui cartões.');
+      return;
+   }
+
+   estudoCartaoIndice = 0;
+   document.getElementById('estudo-flash-titulo').textContent = mapa.titulo;
+   renderCartaoSessaoEstudo();
+   abrirModalEstudo('modal-estudo-cartoes-estudar');
+}
+
+function renderCartaoSessaoEstudo() {
+   if (!estudoCartoesSessao.length) return;
+
+   estudoCartaoIndice = Math.max(0, Math.min(estudoCartaoIndice, estudoCartoesSessao.length - 1));
+   const cartao = estudoCartoesSessao[estudoCartaoIndice];
+
+   document.getElementById('estudo-flash-progresso').textContent =
+      `${estudoCartaoIndice + 1} / ${estudoCartoesSessao.length}`;
+   document.getElementById('estudo-flash-pergunta').textContent = cartao.pergunta;
+   document.getElementById('estudo-flash-resposta').textContent = cartao.resposta;
+   document.getElementById('estudo-flash-resposta-wrap').style.display = 'none';
+   document.getElementById('btn-mostrar-resposta-estudo').innerHTML =
+      '<i class="fas fa-eye" style="margin-right:0.3rem;"></i> Mostrar resposta';
+}
+
+function mostrarRespostaCartaoEstudo() {
+   const wrap = document.getElementById('estudo-flash-resposta-wrap');
+   const btn = document.getElementById('btn-mostrar-resposta-estudo');
+   const exibindo = wrap.style.display !== 'none';
+
+   wrap.style.display = exibindo ? 'none' : 'block';
+   btn.innerHTML = exibindo
+      ? '<i class="fas fa-eye" style="margin-right:0.3rem;"></i> Mostrar resposta'
+      : '<i class="fas fa-eye-slash" style="margin-right:0.3rem;"></i> Ocultar resposta';
+}
+
+function proximoCartaoEstudo() {
+   if (!estudoCartoesSessao.length) return;
+   estudoCartaoIndice = (estudoCartaoIndice + 1) % estudoCartoesSessao.length;
+   renderCartaoSessaoEstudo();
+}
+
+function cartaoAnteriorEstudo() {
+   if (!estudoCartoesSessao.length) return;
+   estudoCartaoIndice =
+      (estudoCartaoIndice - 1 + estudoCartoesSessao.length) % estudoCartoesSessao.length;
+   renderCartaoSessaoEstudo();
+}
+
+function fecharEstudoCartoes() {
+   document.getElementById('modal-estudo-cartoes-estudar').classList.remove('open');
+   estudoCartoesSessao = [];
+   estudoCartaoIndice = 0;
 }
 
 function abrirRenomearMapaEstudo(id) {
