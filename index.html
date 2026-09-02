@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.09.01.30">
+   <meta name="gemulo-build" content="2026.09.02.32">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.09.01.30';
+      window.GEMULO_BUILD = '2026.09.02.32';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -173,6 +173,18 @@
          .study-map-grid { grid-template-columns:1fr; }
          .study-head-actions { width:100%; }
          .study-head-actions button { flex:1; }
+         .study-calendar-modal { padding:.35rem; }
+         .study-calendar-shell { width:99vw; height:96vh; border-radius:1rem; }
+         .study-calendar-top { padding:.65rem; gap:.5rem; align-items:flex-start; }
+         .study-calendar-title-wrap strong { font-size:.86rem; }
+         .study-calendar-nav { gap:.25rem; }
+         .study-calendar-nav button { min-width:32px; height:34px; padding:0 .5rem; }
+         .study-calendar-layout { grid-template-columns:1fr; grid-template-rows:minmax(430px,1fr) 230px; }
+         .study-calendar-side { border-left:0; border-top:1px solid #e2e8f0; }
+         .study-calendar-main { padding:.55rem; }
+         .study-calendar-grid { grid-template-rows:repeat(6,minmax(65px,1fr)); }
+         .study-calendar-day { padding:.3rem; }
+         .study-calendar-event { font-size:.42rem; padding:.22rem .28rem; }
          .study-viewer-stage { padding:0.35rem; }
          .study-viewer-bar { min-height:46px; padding:0.35rem 0.45rem 0.35rem 0.65rem; }
          .study-viewer-title { font-size:0.62rem; }
@@ -206,6 +218,259 @@
       .study-export-btn:hover { background:#ede9fe; border-color:#a78bfa; }
       .study-export-btn:disabled { opacity:.55; cursor:wait; }
       .study-head-actions { display:flex; align-items:center; gap:0.55rem; flex-wrap:wrap; }
+      .study-calendar-btn {
+         border:1px solid #bfdbfe;
+         border-radius:9999px;
+         background:#eff6ff;
+         color:#2563eb;
+         padding:0.75rem 1rem;
+         font-size:0.62rem;
+         font-weight:900;
+         text-transform:uppercase;
+         letter-spacing:0.06em;
+         cursor:pointer;
+         white-space:nowrap;
+      }
+      .study-calendar-btn:hover { background:#dbeafe; border-color:#93c5fd; }
+      .study-calendar-modal { z-index:235; padding:1rem; }
+      .study-calendar-shell {
+         width:min(1180px,96vw);
+         height:min(860px,92vh);
+         background:white;
+         border-radius:1.6rem;
+         overflow:hidden;
+         display:flex;
+         flex-direction:column;
+         box-shadow:0 28px 80px rgba(15,23,42,.22);
+      }
+      .study-calendar-top {
+         min-height:72px;
+         padding:0.85rem 1rem;
+         border-bottom:1px solid #e2e8f0;
+         display:flex;
+         align-items:center;
+         justify-content:space-between;
+         gap:1rem;
+         background:#fff;
+      }
+      .study-calendar-title-wrap { min-width:0; }
+      .study-calendar-title-wrap small {
+         display:block;
+         color:#94a3b8;
+         font-size:0.52rem;
+         font-weight:900;
+         text-transform:uppercase;
+         letter-spacing:.07em;
+      }
+      .study-calendar-title-wrap strong {
+         display:block;
+         color:#0f172a;
+         font-size:1.05rem;
+         font-weight:950;
+         text-transform:capitalize;
+         margin-top:.15rem;
+      }
+      .study-calendar-nav {
+         display:flex;
+         align-items:center;
+         gap:.4rem;
+         flex-wrap:wrap;
+         justify-content:flex-end;
+      }
+      .study-calendar-nav button {
+         border:1px solid #e2e8f0;
+         background:#f8fafc;
+         color:#475569;
+         min-width:38px;
+         height:38px;
+         padding:0 .72rem;
+         border-radius:.8rem;
+         font-size:.58rem;
+         font-weight:900;
+         cursor:pointer;
+         text-transform:uppercase;
+      }
+      .study-calendar-nav button:hover { border-color:#bfdbfe; color:#2563eb; background:#eff6ff; }
+      .study-calendar-layout {
+         flex:1;
+         min-height:0;
+         display:grid;
+         grid-template-columns:minmax(0,1fr) 310px;
+      }
+      .study-calendar-main {
+         min-width:0;
+         min-height:0;
+         padding:1rem;
+         display:flex;
+         flex-direction:column;
+      }
+      .study-calendar-weekdays {
+         display:grid;
+         grid-template-columns:repeat(7,minmax(0,1fr));
+         border:1px solid #e2e8f0;
+         border-bottom:0;
+         border-radius:1rem 1rem 0 0;
+         overflow:hidden;
+      }
+      .study-calendar-weekdays div {
+         padding:.55rem .4rem;
+         text-align:center;
+         color:#64748b;
+         background:#f8fafc;
+         font-size:.52rem;
+         font-weight:900;
+         text-transform:uppercase;
+         letter-spacing:.04em;
+         border-right:1px solid #e2e8f0;
+      }
+      .study-calendar-weekdays div:last-child { border-right:0; }
+      .study-calendar-grid {
+         flex:1;
+         min-height:0;
+         display:grid;
+         grid-template-columns:repeat(7,minmax(0,1fr));
+         grid-template-rows:repeat(6,minmax(82px,1fr));
+         border-left:1px solid #e2e8f0;
+         border-top:1px solid #e2e8f0;
+         overflow:hidden;
+         border-radius:0 0 1rem 1rem;
+      }
+      .study-calendar-day {
+         position:relative;
+         border:0;
+         border-right:1px solid #e2e8f0;
+         border-bottom:1px solid #e2e8f0;
+         background:#fff;
+         padding:.5rem;
+         text-align:left;
+         cursor:pointer;
+         min-width:0;
+         overflow:hidden;
+      }
+      .study-calendar-day:hover { background:#f8fafc; }
+      .study-calendar-day.outside { background:#fafafa; }
+      .study-calendar-day.outside .study-calendar-day-number { color:#cbd5e1; }
+      .study-calendar-day.today {
+         background:#eff6ff;
+         box-shadow:inset 0 0 0 2px #93c5fd;
+      }
+      .study-calendar-day.selected {
+         background:#f5f3ff;
+         box-shadow:inset 0 0 0 2px #8b5cf6;
+      }
+      .study-calendar-day-number {
+         width:28px;
+         height:28px;
+         border-radius:9999px;
+         display:flex;
+         align-items:center;
+         justify-content:center;
+         color:#334155;
+         font-size:.62rem;
+         font-weight:900;
+      }
+      .study-calendar-day.today .study-calendar-day-number {
+         background:#2563eb;
+         color:white;
+      }
+      .study-calendar-events {
+         display:flex;
+         flex-direction:column;
+         gap:.28rem;
+         margin-top:.35rem;
+      }
+      .study-calendar-event {
+         display:block;
+         width:100%;
+         border-radius:.55rem;
+         background:#ede9fe;
+         color:#6d28d9;
+         padding:.3rem .38rem;
+         font-size:.48rem;
+         font-weight:900;
+         white-space:nowrap;
+         overflow:hidden;
+         text-overflow:ellipsis;
+      }
+      .study-calendar-event.due { background:#dcfce7; color:#15803d; }
+      .study-calendar-event.overdue { background:#fee2e2; color:#b91c1c; }
+      .study-calendar-more {
+         color:#64748b;
+         font-size:.47rem;
+         font-weight:900;
+         margin-top:.1rem;
+      }
+      .study-calendar-side {
+         min-height:0;
+         border-left:1px solid #e2e8f0;
+         background:#f8fafc;
+         padding:1rem;
+         overflow:auto;
+      }
+      .study-calendar-side h4 {
+         margin:0;
+         color:#0f172a;
+         font-size:.78rem;
+         font-weight:950;
+      }
+      .study-calendar-side p {
+         margin:.2rem 0 .8rem;
+         color:#94a3b8;
+         font-size:.55rem;
+         font-weight:750;
+      }
+      .study-calendar-review-card {
+         background:white;
+         border:1px solid #e2e8f0;
+         border-radius:1rem;
+         padding:.75rem;
+         margin-bottom:.55rem;
+      }
+      .study-calendar-review-card .subject {
+         color:#7c3aed;
+         font-size:.48rem;
+         font-weight:900;
+         text-transform:uppercase;
+      }
+      .study-calendar-review-card .map {
+         color:#334155;
+         font-size:.57rem;
+         font-weight:900;
+         margin-top:.18rem;
+      }
+      .study-calendar-review-card .question {
+         color:#64748b;
+         font-size:.57rem;
+         font-weight:700;
+         line-height:1.42;
+         margin-top:.4rem;
+      }
+      .study-calendar-review-card .meta {
+         display:flex;
+         align-items:center;
+         gap:.35rem;
+         flex-wrap:wrap;
+         margin-top:.5rem;
+      }
+      .study-calendar-review-card .meta span {
+         background:#f1f5f9;
+         color:#64748b;
+         border-radius:9999px;
+         padding:.25rem .45rem;
+         font-size:.46rem;
+         font-weight:900;
+         text-transform:uppercase;
+      }
+      .study-calendar-empty {
+         border:1px dashed #cbd5e1;
+         background:white;
+         border-radius:1rem;
+         padding:1.4rem .8rem;
+         text-align:center;
+         color:#94a3b8;
+         font-size:.57rem;
+         font-weight:800;
+      }
       .study-breadcrumb { display:flex; align-items:center; gap:0.35rem; flex-wrap:wrap; margin-bottom:1.1rem; color:#94a3b8; font-size:0.6rem; font-weight:900; text-transform:uppercase; }
       .study-breadcrumb button { border:0; background:transparent; color:#7c3aed; font:inherit; cursor:pointer; padding:0; }
       .study-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.75rem; margin-bottom:1.25rem; }
@@ -248,6 +513,16 @@
       .study-cards-toolbar button.primary { background:#7c3aed; color:#fff; border-color:#7c3aed; }
       .study-cards-toolbar button.primary:hover { background:#6d28d9; }
       .study-cards-toolbar button:disabled { opacity:.5; cursor:not-allowed; }
+      .study-cards-generator-toggle { width:100%; border:1px solid #ddd6fe; background:#faf5ff; color:#6d28d9; border-radius:1rem; padding:0.8rem 1rem; font-size:0.58rem; font-weight:900; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.45rem; margin:0.85rem 0; }
+      .study-cards-generator-toggle:hover { background:#f3e8ff; }
+      .study-cards-generator-panel { display:none; }
+      .study-cards-generator-panel.open { display:block; }
+      .study-review-choice { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:0.6rem; margin-top:1rem; }
+      .study-review-choice button { border:1px solid #ddd6fe; background:#faf5ff; color:#6d28d9; border-radius:1rem; padding:0.95rem 0.6rem; font-size:0.68rem; font-weight:900; cursor:pointer; }
+      .study-review-choice button:hover { background:#ede9fe; border-color:#c4b5fd; }
+      .study-review-hint { color:#64748b; font-size:0.62rem; line-height:1.5; text-align:center; margin-top:0.6rem; font-weight:700; }
+      .study-due-pill { display:inline-flex; align-items:center; gap:0.3rem; border-radius:9999px; padding:0.28rem 0.55rem; font-size:0.52rem; font-weight:900; text-transform:uppercase; background:#ecfdf5; color:#15803d; }
+      .study-due-pill.future { background:#eff6ff; color:#2563eb; }
       .study-prompt-box { width:100%; min-height:180px; resize:vertical; border:1px solid #e2e8f0; background:#f8fafc; color:#475569; border-radius:1rem; padding:0.9rem; font-size:0.62rem; line-height:1.55; font-weight:650; outline:none; }
       .study-json-box { width:100%; min-height:150px; resize:vertical; border:1px solid #e2e8f0; background:#fff; color:#334155; border-radius:1rem; padding:0.9rem; font-size:0.62rem; line-height:1.45; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; outline:none; }
       .study-cards-section-title { margin:1rem 0 0.55rem; color:#64748b; font-size:0.55rem; font-weight:900; text-transform:uppercase; letter-spacing:.06em; }
@@ -609,7 +884,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.09.01.30</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.09.02.32</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -657,6 +932,9 @@ Despesa de terceiro
             <button id="btn-exportar-materia-estudo" class="study-export-btn" onclick="exportarMateriaEstudo()" style="display:none;">
                <i class="fas fa-file-zipper" style="margin-right:0.35rem;"></i> Exportar matéria
             </button>
+            <button id="btn-calendario-estudo" class="study-calendar-btn" onclick="abrirCalendarioEstudo()">
+               <i class="fas fa-calendar-days" style="margin-right:0.35rem;"></i> Calendário
+            </button>
             <button id="btn-estudo-novo" class="study-primary-btn" onclick="acaoNovoEstudo()"><i class="fas fa-plus" style="margin-right:0.35rem;"></i> Nova matéria</button>
          </div>
       </div>
@@ -676,6 +954,40 @@ Despesa de terceiro
 
       <section id="estudo-conteudo"></section>
    </main>
+
+
+   <!-- Calendário geral de revisões -->
+   <div id="modal-estudo-calendario" class="modal-overlay study-calendar-modal">
+      <div class="study-calendar-shell">
+         <div class="study-calendar-top">
+            <div class="study-calendar-title-wrap">
+               <small>Calendário de revisões</small>
+               <strong id="estudo-calendario-mes-titulo">Setembro de 2026</strong>
+            </div>
+            <div class="study-calendar-nav">
+               <button onclick="mudarMesCalendarioEstudo(-1)" title="Mês anterior"><i class="fas fa-chevron-left"></i></button>
+               <button onclick="irHojeCalendarioEstudo()">Hoje</button>
+               <button onclick="mudarMesCalendarioEstudo(1)" title="Próximo mês"><i class="fas fa-chevron-right"></i></button>
+               <button onclick="fecharCalendarioEstudo()" title="Fechar"><i class="fas fa-times"></i></button>
+            </div>
+         </div>
+
+         <div class="study-calendar-layout">
+            <div class="study-calendar-main">
+               <div class="study-calendar-weekdays">
+                  <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+               </div>
+               <div id="estudo-calendario-grid" class="study-calendar-grid"></div>
+            </div>
+
+            <aside class="study-calendar-side">
+               <h4 id="estudo-calendario-dia-titulo">Revisões do dia</h4>
+               <p id="estudo-calendario-dia-subtitulo">Selecione uma data no calendário.</p>
+               <div id="estudo-calendario-dia-lista"></div>
+            </aside>
+         </div>
+      </div>
+   </div>
 
    <!-- Nova matéria -->
    <div id="modal-estudo-materia" class="modal-overlay">
@@ -737,28 +1049,37 @@ Despesa de terceiro
          </div>
 
          <div class="study-cards-toolbar">
-            <button onclick="copiarInstrucaoCartoesEstudo()"><i class="fas fa-copy" style="margin-right:0.35rem;"></i> Copiar instrução</button>
             <button id="btn-estudar-cartoes-estudo" class="primary" onclick="iniciarEstudoCartoes()"><i class="fas fa-play" style="margin-right:0.35rem;"></i> Estudar cartões</button>
          </div>
 
-         <div class="study-cards-section-title">Instrução para usar no ChatGPT junto com o mapa mental</div>
-         <textarea id="estudo-cartoes-prompt" class="study-prompt-box" readonly></textarea>
+         <button class="study-cards-generator-toggle" onclick="toggleGeradorCartoesEstudo()">
+            <i class="fas fa-wand-magic-sparkles"></i> Gerar / Importar cartões
+         </button>
 
-         <div class="study-cards-section-title">Importar cartões gerados pelo ChatGPT</div>
-         <textarea id="estudo-cartoes-json" class="study-json-box" placeholder='Cole aqui o JSON retornado pelo ChatGPT, por exemplo:
+         <div id="estudo-cartoes-gerador" class="study-cards-generator-panel">
+            <div class="study-cards-section-title">Instrução para usar no ChatGPT junto com o mapa mental</div>
+            <textarea id="estudo-cartoes-prompt" class="study-prompt-box" readonly></textarea>
+
+            <div class="study-cards-toolbar">
+               <button onclick="copiarInstrucaoCartoesEstudo()"><i class="fas fa-copy" style="margin-right:0.35rem;"></i> Copiar instrução</button>
+            </div>
+
+            <div class="study-cards-section-title">Importar cartões gerados pelo ChatGPT</div>
+            <textarea id="estudo-cartoes-json" class="study-json-box" placeholder='Cole aqui o JSON retornado pelo ChatGPT, por exemplo:
 [
   {"pergunta":"O que é solo?","resposta":"..."},
   {"pergunta":"...","resposta":"..."}
 ]'></textarea>
 
-         <label for="estudo-cartoes-arquivo-json" class="study-import-label">
-            <i class="fas fa-file-import"></i> Ou selecionar arquivo .json
-         </label>
-         <input id="estudo-cartoes-arquivo-json" class="study-import-file" type="file" accept=".json,application/json,text/plain" onchange="carregarArquivoCartoesEstudo(this.files[0])">
+            <label for="estudo-cartoes-arquivo-json" class="study-import-label">
+               <i class="fas fa-file-import"></i> Ou selecionar arquivo .json
+            </label>
+            <input id="estudo-cartoes-arquivo-json" class="study-import-file" type="file" accept=".json,application/json,text/plain" onchange="carregarArquivoCartoesEstudo(this.files[0])">
 
-         <button id="btn-importar-cartoes-estudo" onclick="importarCartoesEstudo()" class="w-full mt-3 bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">
-            Importar cartões
-         </button>
+            <button id="btn-importar-cartoes-estudo" onclick="importarCartoesEstudo()" class="w-full mt-3 bg-purple-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">
+               Importar cartões
+            </button>
+         </div>
 
          <div class="study-cards-section-title">Cartões cadastrados</div>
          <div id="estudo-cartoes-lista" class="study-card-list"></div>
@@ -785,6 +1106,29 @@ Despesa de terceiro
             <button onclick="cartaoAnteriorEstudo()"><i class="fas fa-chevron-left" style="margin-right:0.3rem;"></i> Anterior</button>
             <button id="btn-mostrar-resposta-estudo" class="primary" onclick="mostrarRespostaCartaoEstudo()"><i class="fas fa-eye" style="margin-right:0.3rem;"></i> Mostrar resposta</button>
             <button onclick="proximoCartaoEstudo()">Próximo <i class="fas fa-chevron-right" style="margin-left:0.3rem;"></i></button>
+         </div>
+      </div>
+   </div>
+
+   <!-- Agendar próxima revisão do cartão -->
+   <div id="modal-estudo-cartao-revisao" class="modal-overlay study-cards-study-modal">
+      <div class="study-cards-study-shell" style="max-width:560px;">
+         <div class="study-cards-study-head">
+            <strong>Quando este cartão deve voltar?</strong>
+            <button class="study-icon-btn" onclick="fecharAgendamentoCartaoEstudo()" title="Fechar"><i class="fas fa-times"></i></button>
+         </div>
+         <div class="study-cards-study-body">
+            <div class="study-flash-label">Próxima revisão</div>
+            <div id="estudo-revisao-pergunta" class="study-flash-question" style="min-height:90px;font-size:0.95rem;"></div>
+            <div class="study-review-hint">Escolha em quantos dias este cartão deve voltar a aparecer no modo de estudo.</div>
+            <div class="study-review-choice">
+               <button onclick="agendarCartaoEstudo(1)">1 dia</button>
+               <button onclick="agendarCartaoEstudo(2)">2 dias</button>
+               <button onclick="agendarCartaoEstudo(4)">4 dias</button>
+               <button onclick="agendarCartaoEstudo(7)">7 dias</button>
+               <button onclick="agendarCartaoEstudo(15)">15 dias</button>
+               <button onclick="agendarCartaoEstudo(30)">30 dias</button>
+            </div>
          </div>
       </div>
    </div>
@@ -2580,7 +2924,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.09.01.30.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.09.02.32.';
          return;
       }
 
@@ -4555,6 +4899,16 @@ function voltarOuFecharModal() {
       return true;
    }
 
+   if (modal.id === 'modal-estudo-calendario') {
+      fecharCalendarioEstudo();
+      return true;
+   }
+
+   if (modal.id === 'modal-estudo-cartao-revisao') {
+      fecharAgendamentoCartaoEstudo();
+      return true;
+   }
+
    if (modal.id === 'modal-estudo-cartoes-estudar') {
       fecharEstudoCartoes();
       return true;
@@ -4954,6 +5308,9 @@ let estudoMapaCartoesId = null;
 let estudoMapaRenomearId = null;
 let estudoCartoesSessao = [];
 let estudoCartaoIndice = 0;
+let estudoCartaoAguardandoRevisao = null;
+let estudoCalendarioData = new Date();
+let estudoCalendarioDiaSelecionado = null;
 let estudoArquivoSelecionado = null;
 let estudoZoom = 1;
 
@@ -5086,6 +5443,7 @@ function renderContextoEstudo() {
    const btnVoltar = document.getElementById('btn-estudo-voltar');
    const filtro = document.getElementById('estudo-filtro-row');
    const btnExportar = document.getElementById('btn-exportar-materia-estudo');
+   const btnCalendario = document.getElementById('btn-calendario-estudo');
 
    if (materia) {
       breadcrumb.innerHTML = `
@@ -5098,6 +5456,7 @@ function renderContextoEstudo() {
       btnVoltar.innerHTML = '<i class="fas fa-chevron-left"></i> Matérias';
       filtro.style.display = 'flex';
       btnExportar.style.display = 'inline-flex';
+      btnCalendario.style.display = 'none';
    } else {
       breadcrumb.innerHTML = '<span>Biblioteca de Estudos</span>';
       titulo.textContent = 'Minhas matérias';
@@ -5106,6 +5465,7 @@ function renderContextoEstudo() {
       btnVoltar.innerHTML = '<i class="fas fa-chevron-left"></i> Hub';
       filtro.style.display = 'none';
       btnExportar.style.display = 'none';
+      btnCalendario.style.display = 'inline-flex';
    }
 }
 
@@ -5717,6 +6077,241 @@ async function excluirMateriaEstudo(id) {
 }
 
 
+
+function chaveDataLocalEstudo(dataOuIso) {
+   const d = dataOuIso instanceof Date ? dataOuIso : new Date(dataOuIso);
+   if (Number.isNaN(d.getTime())) return null;
+   const y = d.getFullYear();
+   const m = String(d.getMonth() + 1).padStart(2, '0');
+   const dia = String(d.getDate()).padStart(2, '0');
+   return `${y}-${m}-${dia}`;
+}
+
+function dataDaChaveEstudo(chave) {
+   const [y, m, d] = String(chave).split('-').map(Number);
+   return new Date(y, m - 1, d, 12, 0, 0);
+}
+
+function formatarDiaLongoEstudo(chave) {
+   const d = dataDaChaveEstudo(chave);
+   return d.toLocaleDateString('pt-BR', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+   });
+}
+
+function materiaDoMapaCalendarioEstudo(mapa) {
+   return cacheEstudoMaterias.find(m => String(m.id) === String(mapa?.materia_id)) || null;
+}
+
+function eventosCalendarioEstudo() {
+   const eventos = [];
+
+   cacheEstudoCartoes.forEach(cartao => {
+      if (!cartao.proxima_revisao) return;
+
+      const mapa = cacheEstudoMapas.find(m => String(m.id) === String(cartao.mapa_id));
+      if (!mapa) return;
+
+      const materia = materiaDoMapaCalendarioEstudo(mapa);
+      const chave = chaveDataLocalEstudo(cartao.proxima_revisao);
+      if (!chave) return;
+
+      eventos.push({
+         chave,
+         cartao,
+         mapa,
+         materia,
+         data: new Date(cartao.proxima_revisao)
+      });
+   });
+
+   return eventos.sort((a, b) => a.data - b.data);
+}
+
+function agruparEventosCalendarioEstudo() {
+   const grupos = new Map();
+   eventosCalendarioEstudo().forEach(evento => {
+      if (!grupos.has(evento.chave)) grupos.set(evento.chave, []);
+      grupos.get(evento.chave).push(evento);
+   });
+   return grupos;
+}
+
+function abrirCalendarioEstudo() {
+   const hoje = new Date();
+   estudoCalendarioData = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+   estudoCalendarioDiaSelecionado = chaveDataLocalEstudo(hoje);
+   renderCalendarioEstudo();
+   abrirModalEstudo('modal-estudo-calendario');
+}
+
+function fecharCalendarioEstudo() {
+   document.getElementById('modal-estudo-calendario')?.classList.remove('open');
+}
+
+function mudarMesCalendarioEstudo(delta) {
+   estudoCalendarioData = new Date(
+      estudoCalendarioData.getFullYear(),
+      estudoCalendarioData.getMonth() + Number(delta),
+      1
+   );
+   renderCalendarioEstudo();
+}
+
+function irHojeCalendarioEstudo() {
+   const hoje = new Date();
+   estudoCalendarioData = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+   estudoCalendarioDiaSelecionado = chaveDataLocalEstudo(hoje);
+   renderCalendarioEstudo();
+}
+
+function selecionarDiaCalendarioEstudo(chave) {
+   estudoCalendarioDiaSelecionado = chave;
+   const data = dataDaChaveEstudo(chave);
+   if (
+      data.getMonth() !== estudoCalendarioData.getMonth() ||
+      data.getFullYear() !== estudoCalendarioData.getFullYear()
+   ) {
+      estudoCalendarioData = new Date(data.getFullYear(), data.getMonth(), 1);
+   }
+   renderCalendarioEstudo();
+}
+
+function renderDetalheDiaCalendarioEstudo(grupos) {
+   const titulo = document.getElementById('estudo-calendario-dia-titulo');
+   const subtitulo = document.getElementById('estudo-calendario-dia-subtitulo');
+   const lista = document.getElementById('estudo-calendario-dia-lista');
+
+   if (!estudoCalendarioDiaSelecionado) {
+      titulo.textContent = 'Revisões do dia';
+      subtitulo.textContent = 'Selecione uma data no calendário.';
+      lista.innerHTML = '';
+      return;
+   }
+
+   const eventos = grupos.get(estudoCalendarioDiaSelecionado) || [];
+   const dataFormatada = formatarDiaLongoEstudo(estudoCalendarioDiaSelecionado);
+
+   titulo.textContent = dataFormatada;
+   subtitulo.textContent = eventos.length
+      ? `${eventos.length} cartão${eventos.length === 1 ? '' : 'ões'} programado${eventos.length === 1 ? '' : 's'}`
+      : 'Nenhum cartão programado para esta data.';
+
+   if (!eventos.length) {
+      lista.innerHTML = `
+         <div class="study-calendar-empty">
+            <i class="fas fa-calendar-check" style="display:block;font-size:1.3rem;margin-bottom:.45rem;color:#c4b5fd;"></i>
+            Dia livre de revisões.
+         </div>`;
+      return;
+   }
+
+   lista.innerHTML = eventos.map(evento => {
+      const intervalo = Number(evento.cartao.intervalo_dias || 0);
+      return `
+         <div class="study-calendar-review-card">
+            <div class="subject">${escapeHtml(evento.materia?.nome || 'Matéria')}</div>
+            <div class="map">${escapeHtml(evento.mapa.titulo)}</div>
+            <div class="question">${escapeHtml(evento.cartao.pergunta)}</div>
+            <div class="meta">
+               ${intervalo ? `<span><i class="fas fa-clock"></i> ${intervalo} dia${intervalo === 1 ? '' : 's'}</span>` : ''}
+               <span><i class="fas fa-clone"></i> Cartão</span>
+            </div>
+         </div>`;
+   }).join('');
+}
+
+function renderCalendarioEstudo() {
+   const tituloMes = document.getElementById('estudo-calendario-mes-titulo');
+   const grid = document.getElementById('estudo-calendario-grid');
+   if (!tituloMes || !grid) return;
+
+   const ano = estudoCalendarioData.getFullYear();
+   const mes = estudoCalendarioData.getMonth();
+
+   tituloMes.textContent = new Date(ano, mes, 1).toLocaleDateString('pt-BR', {
+      month: 'long',
+      year: 'numeric'
+   });
+
+   const primeiroDia = new Date(ano, mes, 1);
+   const inicio = new Date(ano, mes, 1 - primeiroDia.getDay());
+   const hojeChave = chaveDataLocalEstudo(new Date());
+   const grupos = agruparEventosCalendarioEstudo();
+
+   const botoes = [];
+
+   for (let i = 0; i < 42; i++) {
+      const data = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate() + i, 12, 0, 0);
+      const chave = chaveDataLocalEstudo(data);
+      const eventos = grupos.get(chave) || [];
+      const foraMes = data.getMonth() !== mes;
+      const hoje = chave === hojeChave;
+      const selecionado = chave === estudoCalendarioDiaSelecionado;
+
+      const hojeData = dataDaChaveEstudo(hojeChave);
+      const diaData = dataDaChaveEstudo(chave);
+
+      let classeEvento = '';
+      if (eventos.length) {
+         if (diaData < hojeData) classeEvento = 'overdue';
+         else if (chave === hojeChave) classeEvento = 'due';
+      }
+
+      const previews = eventos.slice(0, 2).map(evento => `
+         <span class="study-calendar-event ${classeEvento}" title="${escapeHtml(evento.mapa.titulo)}">
+            ${escapeHtml(evento.mapa.titulo)}
+         </span>
+      `).join('');
+
+      const mais = eventos.length > 2
+         ? `<div class="study-calendar-more">+ ${eventos.length - 2} revisão${eventos.length - 2 === 1 ? '' : 'ões'}</div>`
+         : '';
+
+      botoes.push(`
+         <button class="study-calendar-day ${foraMes ? 'outside' : ''} ${hoje ? 'today' : ''} ${selecionado ? 'selected' : ''}"
+                 onclick="selecionarDiaCalendarioEstudo('${chave}')">
+            <span class="study-calendar-day-number">${data.getDate()}</span>
+            <span class="study-calendar-events">
+               ${previews}
+               ${mais}
+            </span>
+         </button>
+      `);
+   }
+
+   grid.innerHTML = botoes.join('');
+   renderDetalheDiaCalendarioEstudo(grupos);
+}
+
+function toggleGeradorCartoesEstudo() {
+   document.getElementById('estudo-cartoes-gerador')?.classList.toggle('open');
+}
+
+function cartaoEstaDisponivelEstudo(cartao) {
+   if (!cartao?.proxima_revisao) return true;
+   const data = new Date(cartao.proxima_revisao);
+   return Number.isNaN(data.getTime()) || data.getTime() <= Date.now();
+}
+
+function formatarProximaRevisaoEstudo(iso) {
+   if (!iso) return 'Disponível agora';
+   const d = new Date(iso);
+   if (Number.isNaN(d.getTime())) return 'Disponível agora';
+
+   const hoje = new Date();
+   const dataHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+   const dataAlvo = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+   const diff = Math.round((dataAlvo - dataHoje) / 86400000);
+
+   if (diff <= 0) return 'Disponível agora';
+   if (diff === 1) return 'Volta amanhã';
+   return `Volta em ${diff} dias`;
+}
+
 function cartoesDoMapaEstudo(mapaId) {
    return cacheEstudoCartoes
       .filter(c => String(c.mapa_id) === String(mapaId))
@@ -5779,8 +6374,9 @@ function renderListaCartoesEstudo() {
    const btnEstudar = document.getElementById('btn-estudar-cartoes-estudo');
    const lista = document.getElementById('estudo-cartoes-lista');
 
-   contagem.innerHTML = `<i class="fas fa-clone"></i> ${cartoes.length} cartão${cartoes.length === 1 ? '' : 'ões'}`;
-   btnEstudar.disabled = cartoes.length === 0;
+   const disponiveis = cartoes.filter(cartaoEstaDisponivelEstudo).length;
+   contagem.innerHTML = `<i class="fas fa-clone"></i> ${cartoes.length} cartão${cartoes.length === 1 ? '' : 'ões'} · ${disponiveis} para revisar hoje`;
+   btnEstudar.disabled = disponiveis === 0;
 
    if (!cartoes.length) {
       lista.innerHTML = `
@@ -5800,6 +6396,11 @@ function renderListaCartoesEstudo() {
             <button class="study-card-delete" onclick="excluirCartaoEstudo('${cartao.id}')" title="Excluir cartão"><i class="fas fa-trash"></i></button>
          </div>
          <div class="study-card-row-a">${escapeHtml(cartao.resposta)}</div>
+         <div style="margin:0.6rem 0 0 2.15rem;">
+            <span class="study-due-pill ${cartaoEstaDisponivelEstudo(cartao) ? '' : 'future'}">
+               <i class="fas fa-calendar-day"></i> ${escapeHtml(formatarProximaRevisaoEstudo(cartao.proxima_revisao))}
+            </span>
+         </div>
       </div>
    `).join('');
 }
@@ -5813,6 +6414,7 @@ function abrirCartoesEstudo(mapaId) {
    document.getElementById('estudo-cartoes-prompt').value = gerarInstrucaoCartoesEstudo(mapa);
    document.getElementById('estudo-cartoes-json').value = '';
    document.getElementById('estudo-cartoes-arquivo-json').value = '';
+   document.getElementById('estudo-cartoes-gerador')?.classList.remove('open');
    renderListaCartoesEstudo();
    abrirModalEstudo('modal-estudo-cartoes');
 }
@@ -5999,9 +6601,16 @@ function iniciarEstudoCartoes() {
    const mapa = cacheEstudoMapas.find(m => String(m.id) === String(estudoMapaCartoesId));
    if (!mapa) return;
 
-   estudoCartoesSessao = cartoesDoMapaEstudo(mapa.id);
-   if (!estudoCartoesSessao.length) {
+   const todos = cartoesDoMapaEstudo(mapa.id);
+   estudoCartoesSessao = todos.filter(cartaoEstaDisponivelEstudo);
+
+   if (!todos.length) {
       mostrarToast('Este mapa ainda não possui cartões.');
+      return;
+   }
+
+   if (!estudoCartoesSessao.length) {
+      mostrarToast('Nenhum cartão está disponível para revisão hoje.', 'sucesso', 4500);
       return;
    }
 
@@ -6022,19 +6631,72 @@ function renderCartaoSessaoEstudo() {
    document.getElementById('estudo-flash-pergunta').textContent = cartao.pergunta;
    document.getElementById('estudo-flash-resposta').textContent = cartao.resposta;
    document.getElementById('estudo-flash-resposta-wrap').style.display = 'none';
-   document.getElementById('btn-mostrar-resposta-estudo').innerHTML =
-      '<i class="fas fa-eye" style="margin-right:0.3rem;"></i> Mostrar resposta';
+   const btnResposta = document.getElementById('btn-mostrar-resposta-estudo');
+   btnResposta.innerHTML = '<i class="fas fa-eye" style="margin-right:0.3rem;"></i> Mostrar resposta';
+   btnResposta.onclick = mostrarRespostaCartaoEstudo;
 }
 
 function mostrarRespostaCartaoEstudo() {
    const wrap = document.getElementById('estudo-flash-resposta-wrap');
    const btn = document.getElementById('btn-mostrar-resposta-estudo');
-   const exibindo = wrap.style.display !== 'none';
 
-   wrap.style.display = exibindo ? 'none' : 'block';
-   btn.innerHTML = exibindo
-      ? '<i class="fas fa-eye" style="margin-right:0.3rem;"></i> Mostrar resposta'
-      : '<i class="fas fa-eye-slash" style="margin-right:0.3rem;"></i> Ocultar resposta';
+   wrap.style.display = 'block';
+   btn.innerHTML = '<i class="fas fa-calendar-check" style="margin-right:0.3rem;"></i> Concluir e agendar';
+   btn.onclick = abrirAgendamentoCartaoEstudo;
+}
+
+function abrirAgendamentoCartaoEstudo() {
+   if (!estudoCartoesSessao.length) return;
+   const cartao = estudoCartoesSessao[estudoCartaoIndice];
+   estudoCartaoAguardandoRevisao = cartao;
+   document.getElementById('estudo-revisao-pergunta').textContent = cartao.pergunta;
+   abrirModalEstudo('modal-estudo-cartao-revisao');
+}
+
+function fecharAgendamentoCartaoEstudo() {
+   document.getElementById('modal-estudo-cartao-revisao').classList.remove('open');
+   estudoCartaoAguardandoRevisao = null;
+}
+
+async function agendarCartaoEstudo(dias) {
+   const cartao = estudoCartaoAguardandoRevisao;
+   if (!cartao) return;
+
+   const agora = new Date();
+   const proxima = new Date(agora.getTime());
+   proxima.setDate(proxima.getDate() + Number(dias));
+
+   const { error } = await chamarSupabase(
+      _supabase.from('estudo_cartoes')
+         .update({
+            ultima_revisao: agora.toISOString(),
+            proxima_revisao: proxima.toISOString(),
+            intervalo_dias: Number(dias)
+         })
+         .eq('id', cartao.id)
+         .eq('usuario', eu()),
+      'Erro ao agendar a próxima revisão do cartão'
+   );
+
+   if (error) return;
+
+   cartao.ultima_revisao = agora.toISOString();
+   cartao.proxima_revisao = proxima.toISOString();
+   cartao.intervalo_dias = Number(dias);
+
+   estudoCartoesSessao = estudoCartoesSessao.filter(c => String(c.id) !== String(cartao.id));
+   fecharAgendamentoCartaoEstudo();
+   renderListaCartoesEstudo();
+
+   if (!estudoCartoesSessao.length) {
+      mostrarToast('Revisão concluída. Não há mais cartões disponíveis hoje.', 'sucesso', 5000);
+      fecharEstudoCartoes();
+      return;
+   }
+
+   if (estudoCartaoIndice >= estudoCartoesSessao.length) estudoCartaoIndice = 0;
+   renderCartaoSessaoEstudo();
+   mostrarToast(`Cartão agendado para voltar em ${dias} dia${Number(dias) === 1 ? '' : 's'}.`, 'sucesso', 4000);
 }
 
 function proximoCartaoEstudo() {
@@ -6052,8 +6714,10 @@ function cartaoAnteriorEstudo() {
 
 function fecharEstudoCartoes() {
    document.getElementById('modal-estudo-cartoes-estudar').classList.remove('open');
+   document.getElementById('modal-estudo-cartao-revisao')?.classList.remove('open');
    estudoCartoesSessao = [];
    estudoCartaoIndice = 0;
+   estudoCartaoAguardandoRevisao = null;
 }
 
 function abrirRenomearMapaEstudo(id) {
