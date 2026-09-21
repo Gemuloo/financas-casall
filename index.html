@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.09.21.34">
+   <meta name="gemulo-build" content="2026.09.21.35">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.09.21.34';
+      window.GEMULO_BUILD = '2026.09.21.35';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -1128,7 +1128,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.09.21.34</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.09.21.35</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -3361,7 +3361,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.09.21.34.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.09.21.35.';
          return;
       }
 
@@ -4229,9 +4229,20 @@ function resolverEscopoEdicao(valor) {
 // Substitui o confirm() nativo do navegador por um modal no estilo do app.
 // Uso: if (await confirmarAcao("Excluir isto?")) { ... }
 let _resolveConfirmacao = null;
-function confirmarAcao(mensagem, textoBotao = 'Excluir') {
+function confirmarAcao(mensagem, textoBotao = 'Excluir', tipoBotao = 'perigo') {
    document.getElementById('texto-confirmar-acao').textContent = mensagem;
-   document.getElementById('btn-confirmar-acao-ok').textContent = textoBotao;
+
+   const botao = document.getElementById('btn-confirmar-acao-ok');
+   botao.textContent = textoBotao;
+
+   if (tipoBotao === 'positivo') {
+      botao.style.background = '#059669';
+   } else if (tipoBotao === 'neutro') {
+      botao.style.background = '#2563eb';
+   } else {
+      botao.style.background = '#dc2626';
+   }
+
    document.getElementById('modal-confirmar-acao').classList.add('open');
    return new Promise(resolve => { _resolveConfirmacao = resolve; });
 }
@@ -6970,7 +6981,9 @@ async function importarCartoesEstudo() {
 
    if (atuais.length) {
       const ok = await confirmarAcao(
-         `Este mapa já possui ${atuais.length} cartão(ões). A nova importação substituirá todos eles por ${novos.length} cartão(ões). Continuar?`
+         `Este mapa já possui ${atuais.length} cartão(ões). A nova importação substituirá todos eles por ${novos.length} cartão(ões). Continuar?`,
+         'Substituir cartões',
+         'positivo'
       );
       if (!ok) return;
    }
@@ -7953,7 +7966,9 @@ async function importarDietaSemanal() {
    );
 
    const ok = await confirmarAcao(
-      `A importação substituirá TODA a dieta semanal atual por ${totalRefs} refeição(ões) e ${totalItens} item(ns). Continuar?`
+      `A importação substituirá TODA a dieta semanal atual por ${totalRefs} refeição(ões) e ${totalItens} item(ns). Continuar?`,
+      'Importar dieta',
+      'positivo'
    );
    if (!ok) return;
 
@@ -8273,7 +8288,9 @@ async function confirmarCopiarDiaDieta() {
    }
 
    const ok = await confirmarAcao(
-      `Substituir toda a dieta de ${nomeDiaDieta(dietaDiaCopiarDestino)} pela dieta de ${nomeDiaDieta(dietaDiaCopiarOrigem)}?`
+      `Substituir toda a dieta de ${nomeDiaDieta(dietaDiaCopiarDestino)} pela dieta de ${nomeDiaDieta(dietaDiaCopiarOrigem)}?`,
+      'Copiar dia',
+      'positivo'
    );
    if (!ok) return;
 
@@ -8600,7 +8617,11 @@ async function toggleCompraDieta(chave, marcar) {
 async function limparChecksComprasDieta() {
    if (!cacheDietaCompras.length) return;
 
-   const ok = await confirmarAcao('Limpar todas as marcações da lista de compras desta semana?');
+   const ok = await confirmarAcao(
+      'Limpar todas as marcações da lista de compras desta semana?',
+      'Limpar marcações',
+      'neutro'
+   );
    if (!ok) return;
 
    const { error } = await chamarSupabase(
