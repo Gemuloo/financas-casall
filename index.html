@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.09.21.33">
+   <meta name="gemulo-build" content="2026.09.21.34">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.09.21.33';
+      window.GEMULO_BUILD = '2026.09.21.34';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -825,6 +825,53 @@
          font-size:.55rem; font-weight:900; color:#475569; cursor:pointer;
       }
       .diet-copy-day.selected { background:#ecfdf5; color:#047857; border-color:#6ee7b7; }
+      .diet-import-help {
+         border:1px solid #d1fae5;
+         background:#f0fdf4;
+         border-radius:1rem;
+         padding:.8rem;
+         color:#166534;
+         font-size:.57rem;
+         font-weight:750;
+         line-height:1.5;
+         margin-bottom:.8rem;
+      }
+      .diet-import-json {
+         width:100%;
+         min-height:270px;
+         resize:vertical;
+         border:1px solid #d1fae5;
+         background:#f8fafc;
+         color:#334155;
+         border-radius:1rem;
+         padding:.85rem;
+         font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+         font-size:.58rem;
+         line-height:1.45;
+         outline:none;
+      }
+      .diet-import-actions {
+         display:grid;
+         grid-template-columns:1fr 1fr;
+         gap:.55rem;
+         margin-top:.65rem;
+      }
+      .diet-import-file-label {
+         display:flex;
+         align-items:center;
+         justify-content:center;
+         gap:.4rem;
+         border:1px dashed #6ee7b7;
+         background:#f0fdf4;
+         color:#047857;
+         border-radius:.9rem;
+         padding:.7rem;
+         font-size:.54rem;
+         font-weight:900;
+         text-transform:uppercase;
+         cursor:pointer;
+      }
+      .diet-import-file-label:hover { background:#dcfce7; }
 
       /* AUTO */
       #view-auto { flex-direction: column; background: #f8fafc; }
@@ -1081,7 +1128,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.09.21.33</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.09.21.34</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -1395,6 +1442,9 @@ Despesa de terceiro
                <h3>Dieta semanal</h3>
                <p>Monte uma semana padrão. Ela se repete automaticamente no acompanhamento diário.</p>
             </div>
+            <button class="diet-btn primary" onclick="abrirImportarDieta()">
+               <i class="fas fa-file-import" style="margin-right:.3rem;"></i> Importar dieta
+            </button>
          </div>
          <div id="diet-semana-grid" class="diet-week-grid"></div>
       </section>
@@ -1440,6 +1490,43 @@ Despesa de terceiro
          <div id="diet-compras-lista" class="diet-shopping-list"></div>
       </section>
    </main>
+
+
+   <!-- Modal importar dieta semanal -->
+   <div id="modal-diet-importar" class="modal-overlay">
+      <div class="modal-content" style="max-width:760px;">
+         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisDieta()"></i>
+         <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar dieta semanal</h3>
+         <p style="font-size:.6rem;color:#94a3b8;font-weight:750;text-align:center;margin:0 0 1rem;">
+            A importação substitui toda a dieta semanal atual.
+         </p>
+
+         <div class="diet-import-help">
+            Use o modelo JSON abaixo. Você pode preencher manualmente, pedir ao ChatGPT para gerar nesse formato ou selecionar um arquivo .json.
+            Os dias podem ser escritos como segunda, terça, quarta, quinta, sexta, sábado e domingo.
+         </div>
+
+         <textarea id="diet-import-json" class="diet-import-json"></textarea>
+
+         <div class="diet-import-actions">
+            <button class="diet-btn" onclick="copiarModeloImportacaoDieta()">
+               <i class="fas fa-copy" style="margin-right:.3rem;"></i> Copiar modelo
+            </button>
+            <button class="diet-btn" onclick="baixarModeloImportacaoDieta()">
+               <i class="fas fa-download" style="margin-right:.3rem;"></i> Baixar modelo .json
+            </button>
+         </div>
+
+         <label for="diet-import-arquivo" class="diet-import-file-label" style="margin-top:.65rem;">
+            <i class="fas fa-file-code"></i> Selecionar arquivo .json
+         </label>
+         <input id="diet-import-arquivo" type="file" accept=".json,application/json,text/plain" style="display:none;" onchange="carregarArquivoImportacaoDieta(this.files[0])">
+
+         <button id="btn-importar-dieta-semanal" onclick="importarDietaSemanal()" class="w-full mt-3 bg-emerald-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">
+            Importar e substituir semana
+         </button>
+      </div>
+   </div>
 
    <!-- Modal refeição -->
    <div id="modal-diet-refeicao" class="modal-overlay">
@@ -3274,7 +3361,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.09.21.33.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.09.21.34.';
          return;
       }
 
@@ -7637,6 +7724,314 @@ async function salvarObservacaoDietaHoje() {
    cacheDietaDias = cacheDietaDias.filter(d => String(d.data) !== dataIso);
    cacheDietaDias.push(data);
    mostrarToast('Observação salva.', 'sucesso');
+}
+
+
+function modeloImportacaoDieta() {
+   return {
+      dias: [
+         {
+            dia: "segunda",
+            refeicoes: [
+               {
+                  nome: "Café da manhã",
+                  itens: [
+                     { nome: "Pão integral", quantidade: "2 fatias", alternativa: "" },
+                     { nome: "Ovo", quantidade: "2 unidades", alternativa: "" }
+                  ]
+               },
+               {
+                  nome: "Lanche da tarde",
+                  itens: [
+                     { nome: "Iogurte natural", quantidade: "1 unidade", alternativa: "" },
+                     { nome: "Whey", quantidade: "21 g", alternativa: "" }
+                  ]
+               }
+            ]
+         },
+         { dia: "terça", refeicoes: [] },
+         { dia: "quarta", refeicoes: [] },
+         { dia: "quinta", refeicoes: [] },
+         { dia: "sexta", refeicoes: [] },
+         { dia: "sábado", refeicoes: [] },
+         { dia: "domingo", refeicoes: [] }
+      ]
+   };
+}
+
+function textoModeloImportacaoDieta() {
+   return JSON.stringify(modeloImportacaoDieta(), null, 2);
+}
+
+function abrirImportarDieta() {
+   document.getElementById('diet-import-json').value = textoModeloImportacaoDieta();
+   document.getElementById('diet-import-arquivo').value = '';
+   abrirModalDieta('modal-diet-importar');
+}
+
+async function copiarModeloImportacaoDieta() {
+   const texto = textoModeloImportacaoDieta();
+
+   try {
+      await navigator.clipboard.writeText(texto);
+      mostrarToast('Modelo de importação copiado.', 'sucesso');
+   } catch (_) {
+      const campo = document.getElementById('diet-import-json');
+      campo.value = texto;
+      campo.focus();
+      campo.select();
+      document.execCommand('copy');
+      mostrarToast('Modelo de importação copiado.', 'sucesso');
+   }
+}
+
+function baixarModeloImportacaoDieta() {
+   const blob = new Blob(
+      [textoModeloImportacaoDieta()],
+      { type: 'application/json;charset=utf-8' }
+   );
+
+   const url = URL.createObjectURL(blob);
+   const link = document.createElement('a');
+   link.href = url;
+   link.download = 'Modelo_Importacao_Dieta_Semanal.json';
+   document.body.appendChild(link);
+   link.click();
+   link.remove();
+
+   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function carregarArquivoImportacaoDieta(file) {
+   if (!file) return;
+
+   if (file.size > 2 * 1024 * 1024) {
+      mostrarToast('O arquivo JSON é grande demais.');
+      return;
+   }
+
+   try {
+      const texto = await file.text();
+      document.getElementById('diet-import-json').value = texto;
+      mostrarToast('Arquivo carregado.', 'sucesso');
+   } catch (erro) {
+      console.error(erro);
+      mostrarToast('Não foi possível ler o arquivo.', 'erro');
+   }
+}
+
+function normalizarDiaImportacaoDieta(valor) {
+   const texto = String(valor || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/-feira/g, '')
+      .replace(/\s+/g, '');
+
+   const mapa = {
+      domingo: 0,
+      dom: 0,
+      segunda: 1,
+      seg: 1,
+      segunda2: 1,
+      terca: 2,
+      ter: 2,
+      quarta: 3,
+      qua: 3,
+      quinta: 4,
+      qui: 4,
+      sexta: 5,
+      sex: 5,
+      sabado: 6,
+      sab: 6
+   };
+
+   if (/^[0-6]$/.test(texto)) return Number(texto);
+   return mapa[texto] ?? null;
+}
+
+function limparJsonImportacaoDieta(texto) {
+   let t = String(texto || '').trim();
+
+   if (t.startsWith('```')) {
+      t = t.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+   }
+
+   return t.trim();
+}
+
+function validarDietaImportada(texto) {
+   let dados;
+
+   try {
+      dados = JSON.parse(limparJsonImportacaoDieta(texto));
+   } catch (_) {
+      throw new Error('O conteúdo não é um JSON válido.');
+   }
+
+   if (!dados || !Array.isArray(dados.dias)) {
+      throw new Error('O JSON precisa conter a propriedade "dias" com uma lista.');
+   }
+
+   const diasNormalizados = [];
+   const vistos = new Set();
+
+   for (const [indiceDia, diaObj] of dados.dias.entries()) {
+      const diaSemana = normalizarDiaImportacaoDieta(diaObj?.dia);
+
+      if (diaSemana === null) {
+         throw new Error(`Dia inválido na posição ${indiceDia + 1}.`);
+      }
+
+      if (vistos.has(diaSemana)) {
+         throw new Error(`O dia "${diaObj?.dia}" aparece mais de uma vez.`);
+      }
+
+      vistos.add(diaSemana);
+
+      const refeicoesOrigem = diaObj?.refeicoes ?? [];
+      if (!Array.isArray(refeicoesOrigem)) {
+         throw new Error(`"refeicoes" de ${diaObj?.dia} precisa ser uma lista.`);
+      }
+
+      const refeicoes = refeicoesOrigem.map((ref, indiceRef) => {
+         const nomeRef = String(ref?.nome ?? '').trim();
+         if (!nomeRef) {
+            throw new Error(`Refeição ${indiceRef + 1} de ${diaObj?.dia} está sem nome.`);
+         }
+
+         const itensOrigem = ref?.itens ?? [];
+         if (!Array.isArray(itensOrigem)) {
+            throw new Error(`"itens" da refeição "${nomeRef}" precisa ser uma lista.`);
+         }
+
+         const itens = itensOrigem.map((item, indiceItem) => {
+            const nome = String(item?.nome ?? '').trim();
+            const quantidade = String(item?.quantidade ?? '').trim();
+            const alternativa = String(item?.alternativa ?? '').trim();
+
+            if (!nome) {
+               throw new Error(`Item ${indiceItem + 1} da refeição "${nomeRef}" está sem nome.`);
+            }
+
+            return { nome, quantidade, alternativa, ordem: indiceItem + 1 };
+         });
+
+         return { nome: nomeRef, ordem: indiceRef + 1, itens };
+      });
+
+      diasNormalizados.push({ diaSemana, refeicoes });
+   }
+
+   // Importação semanal completa:
+   // dias não informados ficam vazios.
+   for (let dia = 0; dia <= 6; dia++) {
+      if (!vistos.has(dia)) {
+         diasNormalizados.push({ diaSemana: dia, refeicoes: [] });
+      }
+   }
+
+   return diasNormalizados.sort((a, b) => a.diaSemana - b.diaSemana);
+}
+
+async function importarDietaSemanal() {
+   const texto = document.getElementById('diet-import-json').value;
+
+   let semana;
+   try {
+      semana = validarDietaImportada(texto);
+   } catch (erro) {
+      mostrarToast(erro.message || 'Formato de dieta inválido.', 'erro', 5000);
+      return;
+   }
+
+   const totalRefs = semana.reduce((s, d) => s + d.refeicoes.length, 0);
+   const totalItens = semana.reduce(
+      (s, d) => s + d.refeicoes.reduce((ss, r) => ss + r.itens.length, 0),
+      0
+   );
+
+   const ok = await confirmarAcao(
+      `A importação substituirá TODA a dieta semanal atual por ${totalRefs} refeição(ões) e ${totalItens} item(ns). Continuar?`
+   );
+   if (!ok) return;
+
+   await comBotaoOcupado('btn-importar-dieta-semanal', 'Importando...', async () => {
+      // 1) Excluir toda a estrutura atual; itens/check-ins ligados a eles são removidos por cascade.
+      if (cacheDietaRefeicoes.length) {
+         const { error: errLimpar } = await chamarSupabase(
+            _supabase.from('dieta_refeicoes')
+               .delete()
+               .eq('usuario', eu()),
+            'Erro ao limpar a dieta semanal atual'
+         );
+
+         if (errLimpar) return;
+      }
+
+      const novasRefeicoes = [];
+      const novosItens = [];
+
+      // 2) Recriar a semana inteira.
+      for (const dia of semana) {
+         for (const ref of dia.refeicoes) {
+            const { data: novaRef, error: errRef } = await chamarSupabase(
+               _supabase.from('dieta_refeicoes')
+                  .insert({
+                     usuario: eu(),
+                     dia_semana: dia.diaSemana,
+                     nome: ref.nome,
+                     ordem: ref.ordem
+                  })
+                  .select()
+                  .single(),
+               `Erro ao importar a refeição "${ref.nome}"`
+            );
+
+            if (errRef) return;
+
+            novasRefeicoes.push(novaRef);
+
+            if (ref.itens.length) {
+               const registros = ref.itens.map(item => ({
+                  usuario: eu(),
+                  refeicao_id: novaRef.id,
+                  nome: item.nome,
+                  quantidade: item.quantidade,
+                  alternativa: item.alternativa,
+                  ordem: item.ordem
+               }));
+
+               const { data: inseridos, error: errItens } = await chamarSupabase(
+                  _supabase.from('dieta_itens')
+                     .insert(registros)
+                     .select(),
+                  `Erro ao importar os itens de "${ref.nome}"`
+               );
+
+               if (errItens) return;
+               novosItens.push(...(inseridos || []));
+            }
+         }
+      }
+
+      cacheDietaRefeicoes = novasRefeicoes;
+      cacheDietaItens = novosItens;
+
+      // Os check-ins ligados a itens excluídos deixam de existir por cascade.
+      // Recarrega o mês atual para manter o calendário coerente.
+      await carregarPeriodoDieta(new Date());
+
+      fecharModaisDieta();
+      renderSemanaDieta();
+
+      mostrarToast(
+         `Dieta importada: ${totalRefs} refeição${totalRefs === 1 ? '' : 'ões'} e ${totalItens} item${totalItens === 1 ? '' : 'ns'}.`,
+         'sucesso',
+         5000
+      );
+   });
 }
 
 function renderSemanaDieta() {
