@@ -2,12 +2,12 @@
 <html lang="pt-br">
 <head>
    <meta charset="UTF-8">
-   <meta name="gemulo-build" content="2026.09.02.32">
+   <meta name="gemulo-build" content="2026.09.21.33">
    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
    <meta http-equiv="Pragma" content="no-cache">
    <meta http-equiv="Expires" content="0">
    <script>
-      window.GEMULO_BUILD = '2026.09.02.32';
+      window.GEMULO_BUILD = '2026.09.21.33';
       if ('serviceWorker' in navigator) {
          navigator.serviceWorker.getRegistrations()
             .then(registros => Promise.all(registros.map(r => r.unregister())))
@@ -69,7 +69,7 @@
       .hub-header .welcome { color: rgba(255,255,255,0.45); font-size: 0.65rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 0.5rem; }
       .hub-header h1 { color: white; font-size: 1.8rem; font-weight: 900; margin: 0; }
       .hub-header h1 span { color: #60a5fa; }
-      .hub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; width: 100%; max-width: 720px; position: relative; z-index: 1; }
+      .hub-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; width: 100%; max-width: 960px; position: relative; z-index: 1; }
       .hub-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 1.75rem; padding: 2rem 1.25rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; cursor: pointer; transition: background 0.2s, border-color 0.2s, transform 0.15s; }
       .hub-card:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.25); transform: translateY(-2px); }
       .hub-card .icon-wrap { width: 64px; height: 64px; border-radius: 1.25rem; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; }
@@ -78,6 +78,7 @@
       .ic-finance { background: rgba(37,99,235,0.25); color: #60a5fa; }
       .ic-auto { background: rgba(234,88,12,0.25); color: #fb923c; }
       .ic-study { background: rgba(139,92,246,0.25); color: #c4b5fd; }
+      .ic-diet { background: rgba(16,185,129,0.22); color: #6ee7b7; }
       .hub-logout { position: absolute; top: 1.5rem; right: 1.5rem; z-index: 2; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.75rem; padding: 0.6rem 1rem; color: rgba(255,255,255,0.5); font-size: 0.65rem; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
       .hub-logout:hover { background: rgba(255,255,255,0.14); color: white; }
 
@@ -190,6 +191,14 @@
          .study-viewer-title { font-size:0.62rem; }
          .study-viewer-tools { gap:0.22rem; }
          .study-viewer-tools button { width:32px; height:32px; border-radius:0.62rem; font-size:0.68rem; }
+         .diet-body { padding:.85rem; padding-bottom:5rem; }
+         .diet-summary { grid-template-columns:1fr 1fr 1fr; gap:.45rem; }
+         .diet-stat { padding:.7rem; }
+         .diet-stat strong { font-size:.92rem; }
+         .diet-calendar-shell { grid-template-columns:1fr; }
+         .diet-calendar-side { min-height:0; }
+         .diet-calendar-day { min-height:70px; padding:.3rem; }
+         .diet-modal-grid { grid-template-columns:1fr; }
          aside#f-aside { display: none !important; }
          #btn-menu-bancos { display: flex; }
          .content-wrapper { padding-top: 1rem; }
@@ -633,6 +642,190 @@
       .study-upload-zone strong { display:block; color:#5b21b6; font-size:0.65rem; text-transform:uppercase; margin-top:0.45rem; }
       .study-upload-zone span { display:block; color:#94a3b8; font-size:0.55rem; font-weight:700; margin-top:0.2rem; }
 
+
+      /* DIET */
+      #view-diet { flex-direction:column; background:#f8fafc; }
+      .diet-body { flex:1; padding:1.25rem; padding-bottom:6rem; max-width:1400px; width:100%; margin:0 auto; }
+      .diet-tabs { display:flex; gap:.45rem; flex-wrap:wrap; margin-bottom:1rem; }
+      .diet-tab {
+         border:1px solid #d1fae5; background:white; color:#64748b;
+         border-radius:9999px; padding:.65rem .9rem; cursor:pointer;
+         font-size:.58rem; font-weight:900; text-transform:uppercase; letter-spacing:.05em;
+      }
+      .diet-tab:hover { border-color:#6ee7b7; color:#047857; }
+      .diet-tab.active { background:#059669; border-color:#059669; color:white; }
+      .diet-page { display:none; }
+      .diet-page.active { display:block; }
+      .diet-toolbar {
+         display:flex; justify-content:space-between; align-items:flex-start;
+         gap:1rem; flex-wrap:wrap; margin-bottom:1rem;
+      }
+      .diet-toolbar h3 { margin:0; color:#0f172a; font-size:1.25rem; font-weight:950; letter-spacing:-.035em; }
+      .diet-toolbar p { margin:.22rem 0 0; color:#94a3b8; font-size:.62rem; font-weight:750; }
+      .diet-btn {
+         border:1px solid #d1fae5; background:white; color:#047857; border-radius:.85rem;
+         padding:.68rem .82rem; cursor:pointer; font-size:.56rem; font-weight:900;
+         text-transform:uppercase; letter-spacing:.04em;
+      }
+      .diet-btn:hover { background:#ecfdf5; border-color:#6ee7b7; }
+      .diet-btn.primary { background:#059669; color:white; border-color:#059669; }
+      .diet-btn.primary:hover { background:#047857; }
+      .diet-btn.danger { color:#dc2626; border-color:#fecaca; background:#fff; }
+      .diet-btn.danger:hover { background:#fef2f2; }
+      .diet-summary {
+         display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.75rem; margin-bottom:1rem;
+      }
+      .diet-stat {
+         background:white; border:1px solid #e2e8f0; border-radius:1.25rem; padding:1rem;
+      }
+      .diet-stat small { display:block; color:#94a3b8; font-size:.5rem; font-weight:900; text-transform:uppercase; letter-spacing:.06em; }
+      .diet-stat strong { display:block; color:#0f172a; font-size:1.2rem; font-weight:950; margin-top:.15rem; }
+      .diet-progress-card {
+         background:white; border:1px solid #d1fae5; border-radius:1.35rem;
+         padding:1rem 1.1rem; margin-bottom:1rem;
+      }
+      .diet-progress-head { display:flex; justify-content:space-between; gap:.8rem; align-items:center; margin-bottom:.65rem; }
+      .diet-progress-head strong { color:#0f172a; font-size:.78rem; font-weight:950; }
+      .diet-progress-head span { color:#059669; font-size:.75rem; font-weight:950; }
+      .diet-progress-track { height:12px; background:#ecfdf5; border-radius:9999px; overflow:hidden; }
+      .diet-progress-fill { height:100%; width:0%; background:#10b981; border-radius:inherit; transition:width .18s ease; }
+      .diet-goal-badge {
+         display:inline-flex; align-items:center; gap:.3rem; margin-top:.65rem;
+         border-radius:9999px; padding:.28rem .55rem; font-size:.52rem; font-weight:900; text-transform:uppercase;
+         background:#f1f5f9; color:#64748b;
+      }
+      .diet-goal-badge.ok { background:#dcfce7; color:#15803d; }
+      .diet-meal-card {
+         background:white; border:1px solid #e2e8f0; border-radius:1.3rem;
+         overflow:hidden; margin-bottom:.8rem;
+      }
+      .diet-meal-head {
+         display:flex; align-items:center; justify-content:space-between; gap:.8rem;
+         padding:.85rem 1rem; background:#fafafa; border-bottom:1px solid #e2e8f0;
+      }
+      .diet-meal-head strong { color:#1e293b; font-size:.72rem; font-weight:950; }
+      .diet-meal-actions { display:flex; gap:.35rem; }
+      .diet-mini-btn {
+         width:32px; height:32px; border-radius:.7rem; border:1px solid #e2e8f0; background:white;
+         color:#64748b; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:.62rem;
+      }
+      .diet-mini-btn:hover { border-color:#6ee7b7; color:#047857; }
+      .diet-item-list { padding:.35rem .85rem .75rem; }
+      .diet-item {
+         display:flex; align-items:flex-start; gap:.7rem; padding:.7rem .2rem;
+         border-bottom:1px solid #f1f5f9;
+      }
+      .diet-item:last-child { border-bottom:0; }
+      .diet-check {
+         width:22px; height:22px; border-radius:.55rem; border:2px solid #a7f3d0;
+         background:white; cursor:pointer; flex:0 0 auto; margin-top:.05rem;
+         display:flex; align-items:center; justify-content:center; color:white;
+      }
+      .diet-check.checked { background:#10b981; border-color:#10b981; }
+      .diet-item-main { flex:1; min-width:0; }
+      .diet-item-name { color:#1e293b; font-size:.67rem; font-weight:900; line-height:1.3; }
+      .diet-item-meta { color:#94a3b8; font-size:.55rem; font-weight:700; margin-top:.12rem; line-height:1.35; }
+      .diet-item-alt { color:#047857; font-size:.53rem; font-weight:800; margin-top:.18rem; }
+      .diet-item-actions { display:flex; gap:.25rem; }
+      .diet-empty {
+         background:white; border:1px dashed #cbd5e1; border-radius:1.3rem;
+         padding:2.2rem 1rem; text-align:center; color:#94a3b8;
+      }
+      .diet-empty i { display:block; color:#6ee7b7; font-size:1.7rem; margin-bottom:.55rem; }
+      .diet-empty strong { display:block; color:#64748b; font-size:.7rem; font-weight:950; text-transform:uppercase; }
+      .diet-empty span { display:block; margin-top:.25rem; font-size:.58rem; font-weight:700; }
+      .diet-note-box {
+         width:100%; min-height:90px; resize:vertical; border:1px solid #e2e8f0;
+         background:white; border-radius:1rem; padding:.8rem; outline:none; color:#475569;
+         font-size:.65rem; font-weight:700;
+      }
+      .diet-week-grid { display:grid; grid-template-columns:repeat(7,minmax(210px,1fr)); gap:.75rem; overflow-x:auto; padding-bottom:.35rem; }
+      .diet-day-card {
+         min-width:210px; background:white; border:1px solid #e2e8f0; border-radius:1.25rem; overflow:hidden;
+      }
+      .diet-day-head {
+         padding:.8rem; background:#ecfdf5; border-bottom:1px solid #d1fae5;
+         display:flex; justify-content:space-between; gap:.5rem; align-items:center;
+      }
+      .diet-day-head strong { color:#065f46; font-size:.64rem; font-weight:950; text-transform:uppercase; }
+      .diet-day-head .actions { display:flex; gap:.25rem; }
+      .diet-plan-meal { padding:.65rem .7rem; border-bottom:1px solid #f1f5f9; }
+      .diet-plan-meal:last-child { border-bottom:0; }
+      .diet-plan-meal-head { display:flex; justify-content:space-between; align-items:center; gap:.4rem; margin-bottom:.45rem; }
+      .diet-plan-meal-head strong { color:#334155; font-size:.58rem; font-weight:950; }
+      .diet-plan-item {
+         background:#f8fafc; border-radius:.7rem; padding:.5rem; margin-bottom:.35rem;
+         display:flex; justify-content:space-between; gap:.4rem; align-items:flex-start;
+      }
+      .diet-plan-item .text { min-width:0; }
+      .diet-plan-item .text strong { display:block; color:#475569; font-size:.54rem; font-weight:900; line-height:1.25; }
+      .diet-plan-item .text span { display:block; color:#94a3b8; font-size:.48rem; font-weight:700; margin-top:.1rem; }
+      .diet-plan-add { width:100%; border:1px dashed #a7f3d0; background:#f0fdf4; color:#047857; border-radius:.7rem; padding:.5rem; font-size:.5rem; font-weight:900; text-transform:uppercase; cursor:pointer; }
+      .diet-plan-add:hover { background:#dcfce7; }
+      .diet-calendar-shell {
+         display:grid; grid-template-columns:minmax(0,1fr) 310px; gap:1rem;
+      }
+      .diet-calendar-box { background:white; border:1px solid #e2e8f0; border-radius:1.3rem; padding:1rem; }
+      .diet-calendar-head { display:flex; justify-content:space-between; align-items:center; gap:.6rem; margin-bottom:.75rem; }
+      .diet-calendar-head strong { color:#0f172a; font-size:.88rem; font-weight:950; text-transform:capitalize; }
+      .diet-calendar-nav { display:flex; gap:.3rem; }
+      .diet-calendar-weekdays, .diet-calendar-grid {
+         display:grid; grid-template-columns:repeat(7,minmax(0,1fr));
+      }
+      .diet-calendar-weekdays div {
+         text-align:center; color:#94a3b8; font-size:.48rem; font-weight:900; text-transform:uppercase;
+         padding:.45rem .2rem;
+      }
+      .diet-calendar-day {
+         min-height:90px; border:1px solid #f1f5f9; background:white; padding:.4rem;
+         cursor:pointer; text-align:left; position:relative;
+      }
+      .diet-calendar-day:hover { background:#f8fafc; }
+      .diet-calendar-day.outside { background:#fafafa; }
+      .diet-calendar-day.today { box-shadow:inset 0 0 0 2px #34d399; }
+      .diet-calendar-day.selected { background:#ecfdf5; box-shadow:inset 0 0 0 2px #10b981; }
+      .diet-calendar-day .num { color:#64748b; font-size:.55rem; font-weight:950; }
+      .diet-calendar-day .pct { display:block; margin-top:.45rem; font-size:.62rem; font-weight:950; color:#64748b; }
+      .diet-calendar-day.ok .pct { color:#15803d; }
+      .diet-calendar-day.partial .pct { color:#d97706; }
+      .diet-calendar-day.fail .pct { color:#dc2626; }
+      .diet-calendar-day .mark { position:absolute; right:.35rem; top:.35rem; font-size:.6rem; }
+      .diet-calendar-side {
+         background:white; border:1px solid #e2e8f0; border-radius:1.3rem; padding:1rem; min-height:300px;
+      }
+      .diet-calendar-side h4 { margin:0; color:#0f172a; font-size:.78rem; font-weight:950; }
+      .diet-calendar-side p { margin:.2rem 0 .75rem; color:#94a3b8; font-size:.55rem; font-weight:750; }
+      .diet-day-detail-item {
+         display:flex; align-items:flex-start; gap:.5rem; padding:.55rem 0; border-bottom:1px solid #f1f5f9;
+      }
+      .diet-day-detail-item:last-child { border-bottom:0; }
+      .diet-day-detail-item i { margin-top:.1rem; }
+      .diet-day-detail-item strong { display:block; color:#475569; font-size:.56rem; font-weight:900; }
+      .diet-day-detail-item span { display:block; color:#94a3b8; font-size:.49rem; font-weight:700; margin-top:.1rem; }
+      .diet-shopping-head { display:flex; justify-content:space-between; align-items:center; gap:.7rem; flex-wrap:wrap; margin-bottom:.8rem; }
+      .diet-shopping-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:.6rem; }
+      .diet-shopping-item {
+         background:white; border:1px solid #e2e8f0; border-radius:1rem; padding:.75rem;
+         display:flex; gap:.65rem; align-items:flex-start;
+      }
+      .diet-shopping-item.done { opacity:.6; }
+      .diet-shopping-item.done .diet-shopping-name { text-decoration:line-through; }
+      .diet-shopping-name { color:#334155; font-size:.62rem; font-weight:900; }
+      .diet-shopping-meta { color:#94a3b8; font-size:.51rem; font-weight:700; margin-top:.15rem; }
+      .diet-modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+      .diet-modal-field label { display:block; color:#64748b; font-size:.5rem; font-weight:900; text-transform:uppercase; margin-bottom:.3rem; }
+      .diet-modal-field input, .diet-modal-field select, .diet-modal-field textarea {
+         width:100%; border:1px solid #e2e8f0; border-radius:.85rem; padding:.75rem;
+         background:#f8fafc; color:#334155; font-size:.65rem; font-weight:700; outline:none;
+      }
+      .diet-modal-field textarea { min-height:80px; resize:vertical; }
+      .diet-copy-days { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.5rem; }
+      .diet-copy-day {
+         border:1px solid #e2e8f0; background:#fff; border-radius:.8rem; padding:.65rem;
+         font-size:.55rem; font-weight:900; color:#475569; cursor:pointer;
+      }
+      .diet-copy-day.selected { background:#ecfdf5; color:#047857; border-color:#6ee7b7; }
+
       /* AUTO */
       #view-auto { flex-direction: column; background: #f8fafc; }
       .auto-body { flex: 1; overflow-y: auto; padding: 1.5rem; padding-bottom: 180px; }
@@ -706,6 +899,10 @@
       <div class="hub-card" onclick="irPara('study')">
          <div class="icon-wrap ic-study"><i class="fas fa-book-open"></i></div>
          <div><p class="card-label">Estudos</p><p class="card-sub">Mapas & Leituras</p></div>
+      </div>
+      <div class="hub-card" onclick="irPara('diet')">
+         <div class="icon-wrap ic-diet"><i class="fas fa-apple-whole"></i></div>
+         <div><p class="card-label">Dieta</p><p class="card-sub">Semana & Metas</p></div>
       </div>
    </div>
 </div>
@@ -884,7 +1081,7 @@ Despesa de terceiro
    <div id="modal-importar-fatura" class="modal-overlay"><div class="modal-content" style="max-width:520px;">
       <i class="fas fa-arrow-left absolute top-6 left-6 text-slate-300 cursor-pointer" onclick="fecharModais(); abrirModal('modal-menu-config')"></i>
       <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Importar Fatura</h3>
-      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.09.02.32</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
+      <p style="font-size:0.65rem; color:#94a3b8; text-align:center; font-weight:700; margin-bottom:0.35rem;">Aceita faturas completas em PDF do Nubank e do Itaú Pão de Açúcar e faturas parciais do Nubank em CSV, com parcelas, projeções futuras, créditos, estornos, terceiros e reconciliação automática de duplicidades e conferência final pelo PDF fechado.</p><p style="font-size:0.55rem; color:#cbd5e1; text-align:center; font-weight:900; margin:0 0 0.35rem; text-transform:uppercase; letter-spacing:0.08em;">Importador v2026.09.21.33</p><p style="font-size:0.52rem;color:#94a3b8;text-align:center;font-weight:700;margin:0 0 1.5rem;">Despesas marcadas como terceiro continuam visíveis, mas ficam fora dos totais pessoais. A competência da fatura é definida automaticamente para cada cartão.</p>
       <div class="space-y-3">
          <select id="imp-cartao" class="w-full bg-slate-50 border p-3 rounded-xl font-bold text-[10px] uppercase" aria-label="Banco desta fatura"><option value="">Qual banco/cartão é essa fatura?</option></select>
          <div id="imp-aviso-manual" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:0.75rem; padding:0.75rem; font-size:0.65rem; font-weight:700; color:#92400e;">
@@ -1149,6 +1346,159 @@ Despesa de terceiro
          <div class="study-viewer-footer">
             <button id="btn-marcar-leitura-estudo" class="study-read-btn" onclick="registrarLeituraEstudoAtual()"><i class="fas fa-check" style="margin-right:0.45rem;"></i> Terminei de ler</button>
          </div>
+      </div>
+   </div>
+</div>
+
+
+<!-- DIET APP -->
+<div id="view-diet" class="view">
+   <div class="app-topbar">
+      <button class="btn-back" onclick="voltarHub()"><i class="fas fa-chevron-left"></i> Hub</button>
+      <h2><i class="fas fa-apple-whole" style="color:#059669;margin-right:0.5rem;"></i>Dieta</h2>
+      <button class="btn-back" onclick="abrirConfigDieta()"><i class="fas fa-sliders"></i> Meta</button>
+   </div>
+
+   <main class="diet-body">
+      <div class="diet-tabs">
+         <button id="diet-tab-hoje" class="diet-tab active" onclick="mudarAbaDieta('hoje')"><i class="fas fa-sun" style="margin-right:.3rem;"></i>Hoje</button>
+         <button id="diet-tab-semana" class="diet-tab" onclick="mudarAbaDieta('semana')"><i class="fas fa-calendar-week" style="margin-right:.3rem;"></i>Semana</button>
+         <button id="diet-tab-calendario" class="diet-tab" onclick="mudarAbaDieta('calendario')"><i class="fas fa-calendar-days" style="margin-right:.3rem;"></i>Calendário</button>
+         <button id="diet-tab-compras" class="diet-tab" onclick="mudarAbaDieta('compras')"><i class="fas fa-basket-shopping" style="margin-right:.3rem;"></i>Lista de compras</button>
+      </div>
+
+      <section id="diet-page-hoje" class="diet-page active">
+         <div class="diet-toolbar">
+            <div>
+               <h3 id="diet-hoje-titulo">Hoje</h3>
+               <p id="diet-hoje-data"></p>
+            </div>
+            <button class="diet-btn" onclick="mudarAbaDieta('semana')"><i class="fas fa-pen" style="margin-right:.3rem;"></i>Editar dieta semanal</button>
+         </div>
+
+         <div id="diet-hoje-resumo" class="diet-summary"></div>
+         <div id="diet-hoje-progresso"></div>
+         <div id="diet-hoje-refeicoes"></div>
+
+         <div style="margin-top:1rem;">
+            <div style="color:#64748b;font-size:.53rem;font-weight:900;text-transform:uppercase;margin-bottom:.35rem;">Observação do dia</div>
+            <textarea id="diet-hoje-observacao" class="diet-note-box" placeholder="Ex.: almoço fora, viagem, sem fome no lanche..."></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:.45rem;">
+               <button class="diet-btn" onclick="salvarObservacaoDietaHoje()">Salvar observação</button>
+            </div>
+         </div>
+      </section>
+
+      <section id="diet-page-semana" class="diet-page">
+         <div class="diet-toolbar">
+            <div>
+               <h3>Dieta semanal</h3>
+               <p>Monte uma semana padrão. Ela se repete automaticamente no acompanhamento diário.</p>
+            </div>
+         </div>
+         <div id="diet-semana-grid" class="diet-week-grid"></div>
+      </section>
+
+      <section id="diet-page-calendario" class="diet-page">
+         <div class="diet-toolbar">
+            <div>
+               <h3>Calendário de metas</h3>
+               <p>Veja em quais dias você atingiu a meta definida.</p>
+            </div>
+         </div>
+         <div class="diet-calendar-shell">
+            <div class="diet-calendar-box">
+               <div class="diet-calendar-head">
+                  <strong id="diet-calendario-titulo"></strong>
+                  <div class="diet-calendar-nav">
+                     <button class="diet-mini-btn" onclick="mudarMesCalendarioDieta(-1)" title="Mês anterior"><i class="fas fa-chevron-left"></i></button>
+                     <button class="diet-btn" onclick="irHojeCalendarioDieta()">Hoje</button>
+                     <button class="diet-mini-btn" onclick="mudarMesCalendarioDieta(1)" title="Próximo mês"><i class="fas fa-chevron-right"></i></button>
+                  </div>
+               </div>
+               <div class="diet-calendar-weekdays">
+                  <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+               </div>
+               <div id="diet-calendario-grid" class="diet-calendar-grid"></div>
+            </div>
+            <aside class="diet-calendar-side">
+               <h4 id="diet-calendario-dia-titulo">Detalhes do dia</h4>
+               <p id="diet-calendario-dia-resumo">Selecione uma data no calendário.</p>
+               <div id="diet-calendario-dia-detalhes"></div>
+            </aside>
+         </div>
+      </section>
+
+      <section id="diet-page-compras" class="diet-page">
+         <div class="diet-toolbar">
+            <div>
+               <h3>Lista de compras</h3>
+               <p id="diet-compras-semana-label">Itens usados na sua dieta semanal.</p>
+            </div>
+            <button class="diet-btn" onclick="limparChecksComprasDieta()"><i class="fas fa-rotate-left" style="margin-right:.3rem;"></i>Limpar marcações</button>
+         </div>
+         <div id="diet-compras-lista" class="diet-shopping-list"></div>
+      </section>
+   </main>
+
+   <!-- Modal refeição -->
+   <div id="modal-diet-refeicao" class="modal-overlay">
+      <div class="modal-content" style="max-width:420px;">
+         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisDieta()"></i>
+         <h3 class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Adicionar refeição</h3>
+         <div class="diet-modal-field">
+            <label for="diet-refeicao-nome">Nome da refeição</label>
+            <input id="diet-refeicao-nome" type="text" placeholder="Ex.: Café da manhã">
+         </div>
+         <button id="btn-salvar-refeicao-dieta" onclick="salvarRefeicaoDieta()" class="w-full mt-4 bg-emerald-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">Adicionar</button>
+      </div>
+   </div>
+
+   <!-- Modal item -->
+   <div id="modal-diet-item" class="modal-overlay">
+      <div class="modal-content" style="max-width:520px;">
+         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisDieta()"></i>
+         <h3 id="diet-item-modal-titulo" class="font-black text-slate-800 text-xl uppercase mb-6 text-center italic">Adicionar item</h3>
+         <div class="diet-modal-grid">
+            <div class="diet-modal-field" style="grid-column:1/-1;">
+               <label for="diet-item-nome">Alimento / item</label>
+               <input id="diet-item-nome" type="text" placeholder="Ex.: Frango">
+            </div>
+            <div class="diet-modal-field">
+               <label for="diet-item-quantidade">Quantidade</label>
+               <input id="diet-item-quantidade" type="text" placeholder="Ex.: 120 g">
+            </div>
+            <div class="diet-modal-field">
+               <label for="diet-item-alternativa">Alternativa (opcional)</label>
+               <input id="diet-item-alternativa" type="text" placeholder="Ex.: Patinho 120 g">
+            </div>
+         </div>
+         <button id="btn-salvar-item-dieta" onclick="salvarItemDieta()" class="w-full mt-4 bg-emerald-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">Salvar item</button>
+      </div>
+   </div>
+
+   <!-- Modal copiar dia -->
+   <div id="modal-diet-copiar" class="modal-overlay">
+      <div class="modal-content" style="max-width:480px;">
+         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisDieta()"></i>
+         <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Copiar dia</h3>
+         <p id="diet-copiar-texto" style="font-size:.6rem;color:#94a3b8;font-weight:750;text-align:center;margin:0 0 1rem;"></p>
+         <div id="diet-copiar-dias" class="diet-copy-days"></div>
+         <button id="btn-copiar-dia-dieta" onclick="confirmarCopiarDiaDieta()" class="w-full mt-4 bg-emerald-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">Copiar e substituir destino</button>
+      </div>
+   </div>
+
+   <!-- Modal configuração meta -->
+   <div id="modal-diet-config" class="modal-overlay">
+      <div class="modal-content" style="max-width:420px;">
+         <i class="fas fa-times absolute top-6 right-6 text-slate-300 cursor-pointer" onclick="fecharModaisDieta()"></i>
+         <h3 class="font-black text-slate-800 text-xl uppercase mb-2 text-center italic">Meta diária</h3>
+         <p style="font-size:.6rem;color:#94a3b8;font-weight:750;text-align:center;margin:0 0 1rem;">Defina qual percentual dos itens planejados precisa ser concluído para o dia contar como meta atingida.</p>
+         <div class="diet-modal-field">
+            <label for="diet-meta-percentual">Percentual da meta</label>
+            <input id="diet-meta-percentual" type="number" min="1" max="100" step="1" value="100">
+         </div>
+         <button id="btn-salvar-config-dieta" onclick="salvarConfigDieta()" class="w-full mt-4 bg-emerald-600 text-white font-black py-4 rounded-2xl uppercase text-[10px] btn-confirm">Salvar meta</button>
       </div>
    </div>
 </div>
@@ -2924,7 +3274,7 @@ async function processarArquivoFatura(arquivo) {
 
       if (daFatura.length === 0) {
          document.getElementById('imp-status').textContent =
-            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.09.02.32.';
+            'Não encontrei transações nesse arquivo. Confirme que está usando o importador v2026.09.21.33.';
          return;
       }
 
@@ -3911,6 +4261,11 @@ function limparCaches() {
    cacheDespesas = [];
    cacheVeiculos = [];
    cacheAutoRegistros = [];
+   cacheDietaRefeicoes = [];
+   cacheDietaItens = [];
+   cacheDietaCheckins = [];
+   cacheDietaDias = [];
+   cacheDietaCompras = [];
    cacheEstudoMaterias = [];
    cacheEstudoPastas = [];
    cacheEstudoMapas = [];
@@ -3981,12 +4336,16 @@ function irPara(app) {
    if (app === 'study') {
       entrarEstudos();
    }
+   if (app === 'diet') {
+      entrarDieta();
+   }
 }
 
 function voltarHub() {
    fecharModais();
    fecharModaisAuto();
    fecharModaisEstudo();
+   fecharModaisDieta();
    mostrarView('hub');
 }
 
@@ -6916,6 +7275,951 @@ function abrirHistoricoEstudo(id) {
       : '<div class="study-empty" style="padding:1.8rem;"><i class="fas fa-clock"></i><h4>Ainda não há leituras</h4></div>';
 
    abrirModalEstudo('modal-estudo-historico');
+}
+
+
+
+// =================== DIET APP ===================
+const DIET_DAYS = [
+   { id: 0, nome: 'Domingo', curto: 'Dom' },
+   { id: 1, nome: 'Segunda-feira', curto: 'Seg' },
+   { id: 2, nome: 'Terça-feira', curto: 'Ter' },
+   { id: 3, nome: 'Quarta-feira', curto: 'Qua' },
+   { id: 4, nome: 'Quinta-feira', curto: 'Qui' },
+   { id: 5, nome: 'Sexta-feira', curto: 'Sex' },
+   { id: 6, nome: 'Sábado', curto: 'Sáb' }
+];
+
+let cacheDietaRefeicoes = [];
+let cacheDietaItens = [];
+let cacheDietaCheckins = [];
+let cacheDietaDias = [];
+let cacheDietaCompras = [];
+let dietaConfig = { percentual_meta: 100 };
+
+let dietaAbaAtual = 'hoje';
+let dietaDiaRefeicaoNovo = null;
+let dietaRefeicaoItemAtual = null;
+let dietaItemEdicaoId = null;
+let dietaDiaCopiarOrigem = null;
+let dietaDiaCopiarDestino = null;
+let dietaCalendarioData = new Date();
+let dietaCalendarioDiaSelecionado = hojeLocalISO();
+let dietaComprasSemanaInicio = null;
+
+function fecharModaisDieta() {
+   document.querySelectorAll('#view-diet .modal-overlay').forEach(m => m.classList.remove('open'));
+}
+
+function abrirModalDieta(id) {
+   document.getElementById(id)?.classList.add('open');
+}
+
+function dataLocalIsoDieta(data = new Date()) {
+   const d = new Date(data.getFullYear(), data.getMonth(), data.getDate(), 12, 0, 0);
+   const y = d.getFullYear();
+   const m = String(d.getMonth() + 1).padStart(2, '0');
+   const dia = String(d.getDate()).padStart(2, '0');
+   return `${y}-${m}-${dia}`;
+}
+
+function dataDeIsoDieta(iso) {
+   const [y, m, d] = String(iso).split('-').map(Number);
+   return new Date(y, m - 1, d, 12, 0, 0);
+}
+
+function formatarDataDieta(iso, opcoes = {}) {
+   const d = dataDeIsoDieta(iso);
+   return d.toLocaleDateString('pt-BR', opcoes);
+}
+
+function inicioSemanaDieta(data = new Date()) {
+   const d = new Date(data.getFullYear(), data.getMonth(), data.getDate(), 12, 0, 0);
+   const dia = d.getDay();
+   const deslocamento = dia === 0 ? -6 : 1 - dia;
+   d.setDate(d.getDate() + deslocamento);
+   return d;
+}
+
+function fimSemanaDieta(data = new Date()) {
+   const ini = inicioSemanaDieta(data);
+   const fim = new Date(ini);
+   fim.setDate(fim.getDate() + 6);
+   return fim;
+}
+
+function nomeDiaDieta(dia) {
+   return DIET_DAYS.find(d => d.id === Number(dia))?.nome || '';
+}
+
+function refeicoesDoDiaDieta(diaSemana) {
+   return cacheDietaRefeicoes
+      .filter(r => Number(r.dia_semana) === Number(diaSemana))
+      .slice()
+      .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0) || String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
+}
+
+function itensDaRefeicaoDieta(refeicaoId) {
+   return cacheDietaItens
+      .filter(i => String(i.refeicao_id) === String(refeicaoId))
+      .slice()
+      .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0) || String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
+}
+
+function itensDoDiaSemanaDieta(diaSemana) {
+   const ids = new Set(refeicoesDoDiaDieta(diaSemana).map(r => String(r.id)));
+   return cacheDietaItens.filter(i => ids.has(String(i.refeicao_id)));
+}
+
+function chaveCheckDieta(itemId, dataIso) {
+   return `${String(itemId)}|${dataIso}`;
+}
+
+function checkDietaExiste(itemId, dataIso) {
+   return cacheDietaCheckins.some(c =>
+      String(c.item_id) === String(itemId) &&
+      String(c.data) === String(dataIso) &&
+      c.concluido !== false
+   );
+}
+
+function resumoDiaDieta(dataIso) {
+   const data = dataDeIsoDieta(dataIso);
+   const itens = itensDoDiaSemanaDieta(data.getDay());
+   const total = itens.length;
+   const concluidos = itens.filter(item => checkDietaExiste(item.id, dataIso)).length;
+   const percentual = total ? Math.round((concluidos / total) * 100) : 0;
+   return {
+      total,
+      concluidos,
+      percentual,
+      atingiu: total > 0 && percentual >= Number(dietaConfig.percentual_meta || 100)
+   };
+}
+
+async function carregarBaseDieta() {
+   const usuario = eu();
+
+   const [rRef, rItens, rConfig] = await Promise.all([
+      chamarSupabase(
+         _supabase.from('dieta_refeicoes').select('*').eq('usuario', usuario).order('dia_semana').order('ordem'),
+         'Erro ao carregar refeições. Execute Supabase_Dieta_v33.sql'
+      ),
+      chamarSupabase(
+         _supabase.from('dieta_itens').select('*').eq('usuario', usuario).order('ordem'),
+         'Erro ao carregar itens da dieta. Execute Supabase_Dieta_v33.sql'
+      ),
+      chamarSupabase(
+         _supabase.from('dieta_config').select('*').eq('usuario', usuario).maybeSingle(),
+         'Erro ao carregar configuração da dieta'
+      )
+   ]);
+
+   if ([rRef, rItens, rConfig].some(r => r.error)) return false;
+
+   cacheDietaRefeicoes = rRef.data || [];
+   cacheDietaItens = rItens.data || [];
+   dietaConfig = rConfig.data || { percentual_meta: 100 };
+   return true;
+}
+
+async function carregarPeriodoDieta(dataReferencia = new Date()) {
+   const usuario = eu();
+   const inicio = new Date(dataReferencia.getFullYear(), dataReferencia.getMonth(), 1, 12);
+   const fim = new Date(dataReferencia.getFullYear(), dataReferencia.getMonth() + 1, 0, 12);
+   const inicioIso = dataLocalIsoDieta(inicio);
+   const fimIso = dataLocalIsoDieta(fim);
+
+   const [rChecks, rDias] = await Promise.all([
+      chamarSupabase(
+         _supabase.from('dieta_checkins')
+            .select('*')
+            .eq('usuario', usuario)
+            .gte('data', inicioIso)
+            .lte('data', fimIso),
+         'Erro ao carregar acompanhamento da dieta'
+      ),
+      chamarSupabase(
+         _supabase.from('dieta_dias')
+            .select('*')
+            .eq('usuario', usuario)
+            .gte('data', inicioIso)
+            .lte('data', fimIso),
+         'Erro ao carregar observações da dieta'
+      )
+   ]);
+
+   if ([rChecks, rDias].some(r => r.error)) return false;
+
+   cacheDietaCheckins = rChecks.data || [];
+   cacheDietaDias = rDias.data || [];
+   return true;
+}
+
+async function carregarComprasDieta(dataReferencia = new Date()) {
+   const ini = inicioSemanaDieta(dataReferencia);
+   dietaComprasSemanaInicio = dataLocalIsoDieta(ini);
+
+   const { data, error } = await chamarSupabase(
+      _supabase.from('dieta_compras_check')
+         .select('*')
+         .eq('usuario', eu())
+         .eq('semana_inicio', dietaComprasSemanaInicio),
+      'Erro ao carregar lista de compras'
+   );
+
+   if (error) return false;
+   cacheDietaCompras = data || [];
+   return true;
+}
+
+async function entrarDieta() {
+   dietaAbaAtual = 'hoje';
+   dietaCalendarioData = new Date();
+   dietaCalendarioDiaSelecionado = hojeLocalISO();
+
+   document.getElementById('diet-hoje-refeicoes').innerHTML =
+      '<div class="diet-empty"><i class="fas fa-spinner fa-spin"></i><strong>Carregando dieta</strong></div>';
+
+   const okBase = await carregarBaseDieta();
+   if (!okBase) return;
+
+   await Promise.all([
+      carregarPeriodoDieta(new Date()),
+      carregarComprasDieta(new Date())
+   ]);
+
+   mudarAbaDieta('hoje');
+}
+
+function mudarAbaDieta(aba) {
+   dietaAbaAtual = aba;
+
+   document.querySelectorAll('#view-diet .diet-tab').forEach(b => b.classList.remove('active'));
+   document.querySelectorAll('#view-diet .diet-page').forEach(p => p.classList.remove('active'));
+
+   document.getElementById(`diet-tab-${aba}`)?.classList.add('active');
+   document.getElementById(`diet-page-${aba}`)?.classList.add('active');
+
+   if (aba === 'hoje') renderHojeDieta();
+   if (aba === 'semana') renderSemanaDieta();
+   if (aba === 'calendario') renderCalendarioDieta();
+   if (aba === 'compras') renderComprasDieta();
+}
+
+function renderHojeDieta() {
+   const hojeIso = hojeLocalISO();
+   const data = dataDeIsoDieta(hojeIso);
+   const refeicoes = refeicoesDoDiaDieta(data.getDay());
+   const resumo = resumoDiaDieta(hojeIso);
+
+   document.getElementById('diet-hoje-titulo').textContent = nomeDiaDieta(data.getDay());
+   document.getElementById('diet-hoje-data').textContent =
+      data.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+
+   document.getElementById('diet-hoje-resumo').innerHTML = `
+      <div class="diet-stat"><small>Itens previstos</small><strong>${resumo.total}</strong></div>
+      <div class="diet-stat"><small>Concluídos</small><strong>${resumo.concluidos}</strong></div>
+      <div class="diet-stat"><small>Meta diária</small><strong>${Number(dietaConfig.percentual_meta || 100)}%</strong></div>
+   `;
+
+   document.getElementById('diet-hoje-progresso').innerHTML = `
+      <div class="diet-progress-card">
+         <div class="diet-progress-head">
+            <strong>Progresso de hoje</strong>
+            <span>${resumo.percentual}%</span>
+         </div>
+         <div class="diet-progress-track"><div class="diet-progress-fill" style="width:${Math.min(100, resumo.percentual)}%"></div></div>
+         <span class="diet-goal-badge ${resumo.atingiu ? 'ok' : ''}">
+            <i class="fas ${resumo.atingiu ? 'fa-circle-check' : 'fa-bullseye'}"></i>
+            ${resumo.atingiu ? 'Meta atingida' : `Meta: ${Number(dietaConfig.percentual_meta || 100)}%`}
+         </span>
+      </div>
+   `;
+
+   const container = document.getElementById('diet-hoje-refeicoes');
+
+   if (!refeicoes.length) {
+      container.innerHTML = `
+         <div class="diet-empty">
+            <i class="fas fa-utensils"></i>
+            <strong>Nenhuma refeição planejada para hoje</strong>
+            <span>Abra a aba Semana para montar sua dieta padrão.</span>
+         </div>`;
+   } else {
+      container.innerHTML = refeicoes.map(ref => {
+         const itens = itensDaRefeicaoDieta(ref.id);
+         return `
+            <article class="diet-meal-card">
+               <div class="diet-meal-head">
+                  <strong>${escapeHtml(ref.nome)}</strong>
+                  <span style="color:#94a3b8;font-size:.5rem;font-weight:900;">${itens.length} item${itens.length === 1 ? '' : 's'}</span>
+               </div>
+               <div class="diet-item-list">
+                  ${itens.length ? itens.map(item => {
+                     const marcado = checkDietaExiste(item.id, hojeIso);
+                     return `
+                        <div class="diet-item">
+                           <button class="diet-check ${marcado ? 'checked' : ''}" onclick="toggleCheckItemDieta('${item.id}','${hojeIso}',${marcado ? 'false' : 'true'})">
+                              ${marcado ? '<i class="fas fa-check"></i>' : ''}
+                           </button>
+                           <div class="diet-item-main">
+                              <div class="diet-item-name">${escapeHtml(item.nome)}</div>
+                              ${item.quantidade ? `<div class="diet-item-meta">${escapeHtml(item.quantidade)}</div>` : ''}
+                              ${item.alternativa ? `<div class="diet-item-alt"><i class="fas fa-shuffle"></i> Alternativa: ${escapeHtml(item.alternativa)}</div>` : ''}
+                           </div>
+                        </div>`;
+                  }).join('') : '<div style="padding:.7rem;color:#94a3b8;font-size:.56rem;font-weight:750;">Nenhum item cadastrado.</div>'}
+               </div>
+            </article>`;
+      }).join('');
+   }
+
+   const registroDia = cacheDietaDias.find(d => String(d.data) === hojeIso);
+   document.getElementById('diet-hoje-observacao').value = registroDia?.observacao || '';
+}
+
+async function toggleCheckItemDieta(itemId, dataIso, marcar) {
+   if (marcar) {
+      const { data, error } = await chamarSupabase(
+         _supabase.from('dieta_checkins')
+            .upsert(
+               { usuario: eu(), item_id: itemId, data: dataIso, concluido: true },
+               { onConflict: 'usuario,item_id,data' }
+            )
+            .select()
+            .single(),
+         'Erro ao marcar item da dieta'
+      );
+      if (error) return;
+
+      cacheDietaCheckins = cacheDietaCheckins.filter(c =>
+         !(String(c.item_id) === String(itemId) && String(c.data) === String(dataIso))
+      );
+      cacheDietaCheckins.push(data);
+   } else {
+      const { error } = await chamarSupabase(
+         _supabase.from('dieta_checkins')
+            .delete()
+            .eq('usuario', eu())
+            .eq('item_id', itemId)
+            .eq('data', dataIso),
+         'Erro ao desmarcar item da dieta'
+      );
+      if (error) return;
+
+      cacheDietaCheckins = cacheDietaCheckins.filter(c =>
+         !(String(c.item_id) === String(itemId) && String(c.data) === String(dataIso))
+      );
+   }
+
+   if (dietaAbaAtual === 'hoje') renderHojeDieta();
+   if (dietaAbaAtual === 'calendario') renderCalendarioDieta();
+}
+
+async function salvarObservacaoDietaHoje() {
+   const dataIso = hojeLocalISO();
+   const observacao = document.getElementById('diet-hoje-observacao').value.trim();
+
+   const { data, error } = await chamarSupabase(
+      _supabase.from('dieta_dias')
+         .upsert(
+            { usuario: eu(), data: dataIso, observacao },
+            { onConflict: 'usuario,data' }
+         )
+         .select()
+         .single(),
+      'Erro ao salvar observação'
+   );
+
+   if (error) return;
+
+   cacheDietaDias = cacheDietaDias.filter(d => String(d.data) !== dataIso);
+   cacheDietaDias.push(data);
+   mostrarToast('Observação salva.', 'sucesso');
+}
+
+function renderSemanaDieta() {
+   const grid = document.getElementById('diet-semana-grid');
+
+   grid.innerHTML = DIET_DAYS.map(dia => {
+      const refeicoes = refeicoesDoDiaDieta(dia.id);
+
+      return `
+         <section class="diet-day-card">
+            <div class="diet-day-head">
+               <strong>${dia.nome}</strong>
+               <div class="actions">
+                  <button class="diet-mini-btn" onclick="abrirCopiarDiaDieta(${dia.id})" title="Copiar este dia"><i class="fas fa-copy"></i></button>
+                  <button class="diet-mini-btn" onclick="abrirNovaRefeicaoDieta(${dia.id})" title="Adicionar refeição"><i class="fas fa-plus"></i></button>
+               </div>
+            </div>
+
+            <div>
+               ${refeicoes.length ? refeicoes.map(ref => {
+                  const itens = itensDaRefeicaoDieta(ref.id);
+                  return `
+                     <div class="diet-plan-meal">
+                        <div class="diet-plan-meal-head">
+                           <strong>${escapeHtml(ref.nome)}</strong>
+                           <div style="display:flex;gap:.2rem;">
+                              <button class="diet-mini-btn" style="width:27px;height:27px;" onclick="abrirNovoItemDieta('${ref.id}')" title="Adicionar item"><i class="fas fa-plus"></i></button>
+                              <button class="diet-mini-btn" style="width:27px;height:27px;color:#dc2626;" onclick="excluirRefeicaoDieta('${ref.id}')" title="Excluir refeição"><i class="fas fa-trash"></i></button>
+                           </div>
+                        </div>
+
+                        ${itens.map(item => `
+                           <div class="diet-plan-item">
+                              <div class="text">
+                                 <strong>${escapeHtml(item.nome)}</strong>
+                                 <span>${item.quantidade ? escapeHtml(item.quantidade) : 'Sem quantidade'}${item.alternativa ? ` · alt.: ${escapeHtml(item.alternativa)}` : ''}</span>
+                              </div>
+                              <div style="display:flex;gap:.18rem;">
+                                 <button class="diet-mini-btn" style="width:25px;height:25px;" onclick="editarItemDieta('${item.id}')" title="Editar"><i class="fas fa-pen"></i></button>
+                                 <button class="diet-mini-btn" style="width:25px;height:25px;color:#dc2626;" onclick="excluirItemDieta('${item.id}')" title="Excluir"><i class="fas fa-trash"></i></button>
+                              </div>
+                           </div>
+                        `).join('')}
+
+                        <button class="diet-plan-add" onclick="abrirNovoItemDieta('${ref.id}')"><i class="fas fa-plus"></i> Adicionar item</button>
+                     </div>`;
+               }).join('') : `
+                  <div style="padding:.8rem;">
+                     <button class="diet-plan-add" onclick="abrirNovaRefeicaoDieta(${dia.id})"><i class="fas fa-plus"></i> Adicionar refeição</button>
+                  </div>`}
+            </div>
+         </section>`;
+   }).join('');
+}
+
+function abrirNovaRefeicaoDieta(diaSemana) {
+   dietaDiaRefeicaoNovo = Number(diaSemana);
+   document.getElementById('diet-refeicao-nome').value = '';
+   abrirModalDieta('modal-diet-refeicao');
+   setTimeout(() => document.getElementById('diet-refeicao-nome')?.focus(), 50);
+}
+
+async function salvarRefeicaoDieta() {
+   const nome = document.getElementById('diet-refeicao-nome').value.trim();
+   if (!nome || dietaDiaRefeicaoNovo === null) {
+      mostrarToast('Informe o nome da refeição.');
+      return;
+   }
+
+   const existentes = refeicoesDoDiaDieta(dietaDiaRefeicaoNovo);
+   const ordem = existentes.length ? Math.max(...existentes.map(r => Number(r.ordem || 0))) + 1 : 1;
+
+   await comBotaoOcupado('btn-salvar-refeicao-dieta', 'Salvando...', async () => {
+      const { data, error } = await chamarSupabase(
+         _supabase.from('dieta_refeicoes')
+            .insert({ usuario: eu(), dia_semana: dietaDiaRefeicaoNovo, nome, ordem })
+            .select()
+            .single(),
+         'Erro ao adicionar refeição'
+      );
+      if (error) return;
+
+      cacheDietaRefeicoes.push(data);
+      fecharModaisDieta();
+      renderSemanaDieta();
+      mostrarToast('Refeição adicionada.', 'sucesso');
+   });
+}
+
+async function excluirRefeicaoDieta(id) {
+   const ref = cacheDietaRefeicoes.find(r => String(r.id) === String(id));
+   if (!ref) return;
+
+   const ok = await confirmarAcao(`Excluir a refeição "${ref.nome}" e todos os itens dela?`);
+   if (!ok) return;
+
+   const idsItens = new Set(itensDaRefeicaoDieta(id).map(i => String(i.id)));
+
+   const { error } = await chamarSupabase(
+      _supabase.from('dieta_refeicoes').delete().eq('id', id).eq('usuario', eu()),
+      'Erro ao excluir refeição'
+   );
+   if (error) return;
+
+   cacheDietaRefeicoes = cacheDietaRefeicoes.filter(r => String(r.id) !== String(id));
+   cacheDietaItens = cacheDietaItens.filter(i => String(i.refeicao_id) !== String(id));
+   cacheDietaCheckins = cacheDietaCheckins.filter(c => !idsItens.has(String(c.item_id)));
+
+   renderSemanaDieta();
+   mostrarToast('Refeição excluída.', 'sucesso');
+}
+
+function abrirNovoItemDieta(refeicaoId) {
+   dietaRefeicaoItemAtual = refeicaoId;
+   dietaItemEdicaoId = null;
+   document.getElementById('diet-item-modal-titulo').textContent = 'Adicionar item';
+   document.getElementById('diet-item-nome').value = '';
+   document.getElementById('diet-item-quantidade').value = '';
+   document.getElementById('diet-item-alternativa').value = '';
+   abrirModalDieta('modal-diet-item');
+}
+
+function editarItemDieta(itemId) {
+   const item = cacheDietaItens.find(i => String(i.id) === String(itemId));
+   if (!item) return;
+
+   dietaRefeicaoItemAtual = item.refeicao_id;
+   dietaItemEdicaoId = item.id;
+   document.getElementById('diet-item-modal-titulo').textContent = 'Editar item';
+   document.getElementById('diet-item-nome').value = item.nome || '';
+   document.getElementById('diet-item-quantidade').value = item.quantidade || '';
+   document.getElementById('diet-item-alternativa').value = item.alternativa || '';
+   abrirModalDieta('modal-diet-item');
+}
+
+async function salvarItemDieta() {
+   const nome = document.getElementById('diet-item-nome').value.trim();
+   const quantidade = document.getElementById('diet-item-quantidade').value.trim();
+   const alternativa = document.getElementById('diet-item-alternativa').value.trim();
+
+   if (!nome || !dietaRefeicaoItemAtual) {
+      mostrarToast('Informe o alimento/item.');
+      return;
+   }
+
+   await comBotaoOcupado('btn-salvar-item-dieta', 'Salvando...', async () => {
+      if (dietaItemEdicaoId) {
+         const { data, error } = await chamarSupabase(
+            _supabase.from('dieta_itens')
+               .update({ nome, quantidade, alternativa })
+               .eq('id', dietaItemEdicaoId)
+               .eq('usuario', eu())
+               .select()
+               .single(),
+            'Erro ao atualizar item'
+         );
+         if (error) return;
+
+         cacheDietaItens = cacheDietaItens.map(i => String(i.id) === String(data.id) ? data : i);
+      } else {
+         const existentes = itensDaRefeicaoDieta(dietaRefeicaoItemAtual);
+         const ordem = existentes.length ? Math.max(...existentes.map(i => Number(i.ordem || 0))) + 1 : 1;
+
+         const { data, error } = await chamarSupabase(
+            _supabase.from('dieta_itens')
+               .insert({
+                  usuario: eu(),
+                  refeicao_id: dietaRefeicaoItemAtual,
+                  nome,
+                  quantidade,
+                  alternativa,
+                  ordem
+               })
+               .select()
+               .single(),
+            'Erro ao adicionar item'
+         );
+         if (error) return;
+
+         cacheDietaItens.push(data);
+      }
+
+      fecharModaisDieta();
+      renderSemanaDieta();
+      mostrarToast('Item salvo.', 'sucesso');
+   });
+}
+
+async function excluirItemDieta(id) {
+   const item = cacheDietaItens.find(i => String(i.id) === String(id));
+   if (!item) return;
+
+   const ok = await confirmarAcao(`Excluir "${item.nome}" da dieta?`);
+   if (!ok) return;
+
+   const { error } = await chamarSupabase(
+      _supabase.from('dieta_itens').delete().eq('id', id).eq('usuario', eu()),
+      'Erro ao excluir item'
+   );
+   if (error) return;
+
+   cacheDietaItens = cacheDietaItens.filter(i => String(i.id) !== String(id));
+   cacheDietaCheckins = cacheDietaCheckins.filter(c => String(c.item_id) !== String(id));
+   renderSemanaDieta();
+   mostrarToast('Item excluído.', 'sucesso');
+}
+
+function abrirCopiarDiaDieta(diaOrigem) {
+   dietaDiaCopiarOrigem = Number(diaOrigem);
+   dietaDiaCopiarDestino = null;
+
+   document.getElementById('diet-copiar-texto').textContent =
+      `Copiar toda a dieta de ${nomeDiaDieta(diaOrigem)} para outro dia. O conteúdo existente no destino será substituído.`;
+
+   document.getElementById('diet-copiar-dias').innerHTML = DIET_DAYS
+      .filter(d => d.id !== Number(diaOrigem))
+      .map(d => `<button id="diet-copy-day-${d.id}" class="diet-copy-day" onclick="selecionarDestinoCopiaDieta(${d.id})">${d.nome}</button>`)
+      .join('');
+
+   abrirModalDieta('modal-diet-copiar');
+}
+
+function selecionarDestinoCopiaDieta(dia) {
+   dietaDiaCopiarDestino = Number(dia);
+   document.querySelectorAll('#diet-copiar-dias .diet-copy-day').forEach(b => b.classList.remove('selected'));
+   document.getElementById(`diet-copy-day-${dia}`)?.classList.add('selected');
+}
+
+async function confirmarCopiarDiaDieta() {
+   if (dietaDiaCopiarOrigem === null || dietaDiaCopiarDestino === null) {
+      mostrarToast('Selecione o dia de destino.');
+      return;
+   }
+
+   const refsOrigem = refeicoesDoDiaDieta(dietaDiaCopiarOrigem);
+   if (!refsOrigem.length) {
+      mostrarToast('O dia de origem não possui refeições.');
+      return;
+   }
+
+   const ok = await confirmarAcao(
+      `Substituir toda a dieta de ${nomeDiaDieta(dietaDiaCopiarDestino)} pela dieta de ${nomeDiaDieta(dietaDiaCopiarOrigem)}?`
+   );
+   if (!ok) return;
+
+   await comBotaoOcupado('btn-copiar-dia-dieta', 'Copiando...', async () => {
+      const refsDestino = refeicoesDoDiaDieta(dietaDiaCopiarDestino);
+      const idsDestino = new Set(refsDestino.map(r => String(r.id)));
+
+      if (refsDestino.length) {
+         const { error: errDel } = await chamarSupabase(
+            _supabase.from('dieta_refeicoes')
+               .delete()
+               .eq('usuario', eu())
+               .eq('dia_semana', dietaDiaCopiarDestino),
+            'Erro ao limpar dia de destino'
+         );
+         if (errDel) return;
+      }
+
+      cacheDietaItens = cacheDietaItens.filter(i => !idsDestino.has(String(i.refeicao_id)));
+      cacheDietaRefeicoes = cacheDietaRefeicoes.filter(r => Number(r.dia_semana) !== dietaDiaCopiarDestino);
+
+      for (const ref of refsOrigem) {
+         const { data: novaRef, error: errRef } = await chamarSupabase(
+            _supabase.from('dieta_refeicoes')
+               .insert({
+                  usuario: eu(),
+                  dia_semana: dietaDiaCopiarDestino,
+                  nome: ref.nome,
+                  ordem: ref.ordem
+               })
+               .select()
+               .single(),
+            'Erro ao copiar refeição'
+         );
+         if (errRef) return;
+
+         cacheDietaRefeicoes.push(novaRef);
+
+         const itensOrigem = itensDaRefeicaoDieta(ref.id);
+         if (itensOrigem.length) {
+            const registros = itensOrigem.map(item => ({
+               usuario: eu(),
+               refeicao_id: novaRef.id,
+               nome: item.nome,
+               quantidade: item.quantidade || '',
+               alternativa: item.alternativa || '',
+               ordem: item.ordem || 0
+            }));
+
+            const { data: novosItens, error: errItens } = await chamarSupabase(
+               _supabase.from('dieta_itens').insert(registros).select(),
+               'Erro ao copiar itens'
+            );
+            if (errItens) return;
+
+            cacheDietaItens.push(...(novosItens || []));
+         }
+      }
+
+      fecharModaisDieta();
+      renderSemanaDieta();
+      mostrarToast('Dia copiado.', 'sucesso');
+   });
+}
+
+function abrirConfigDieta() {
+   document.getElementById('diet-meta-percentual').value = Number(dietaConfig.percentual_meta || 100);
+   abrirModalDieta('modal-diet-config');
+}
+
+async function salvarConfigDieta() {
+   const percentual = Number(document.getElementById('diet-meta-percentual').value);
+   if (!Number.isFinite(percentual) || percentual < 1 || percentual > 100) {
+      mostrarToast('Informe um percentual entre 1 e 100.');
+      return;
+   }
+
+   await comBotaoOcupado('btn-salvar-config-dieta', 'Salvando...', async () => {
+      const { data, error } = await chamarSupabase(
+         _supabase.from('dieta_config')
+            .upsert({ usuario: eu(), percentual_meta: Math.round(percentual) }, { onConflict: 'usuario' })
+            .select()
+            .single(),
+         'Erro ao salvar meta'
+      );
+      if (error) return;
+
+      dietaConfig = data;
+      fecharModaisDieta();
+      if (dietaAbaAtual === 'hoje') renderHojeDieta();
+      if (dietaAbaAtual === 'calendario') renderCalendarioDieta();
+      mostrarToast('Meta diária atualizada.', 'sucesso');
+   });
+}
+
+async function mudarMesCalendarioDieta(delta) {
+   dietaCalendarioData = new Date(
+      dietaCalendarioData.getFullYear(),
+      dietaCalendarioData.getMonth() + Number(delta),
+      1
+   );
+   dietaCalendarioDiaSelecionado = dataLocalIsoDieta(new Date(
+      dietaCalendarioData.getFullYear(),
+      dietaCalendarioData.getMonth(),
+      1
+   ));
+   await carregarPeriodoDieta(dietaCalendarioData);
+   renderCalendarioDieta();
+}
+
+async function irHojeCalendarioDieta() {
+   dietaCalendarioData = new Date();
+   dietaCalendarioDiaSelecionado = hojeLocalISO();
+   await carregarPeriodoDieta(new Date());
+   renderCalendarioDieta();
+}
+
+function selecionarDiaCalendarioDieta(iso) {
+   dietaCalendarioDiaSelecionado = iso;
+   renderCalendarioDieta();
+}
+
+function renderCalendarioDieta() {
+   const ano = dietaCalendarioData.getFullYear();
+   const mes = dietaCalendarioData.getMonth();
+   const hoje = dataDeIsoDieta(hojeLocalISO());
+
+   document.getElementById('diet-calendario-titulo').textContent =
+      new Date(ano, mes, 1).toLocaleDateString('pt-BR', { month:'long', year:'numeric' });
+
+   const primeiro = new Date(ano, mes, 1, 12);
+   const inicio = new Date(ano, mes, 1 - primeiro.getDay(), 12);
+
+   const celulas = [];
+
+   for (let i = 0; i < 42; i++) {
+      const d = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate() + i, 12);
+      const iso = dataLocalIsoDieta(d);
+      const resumo = resumoDiaDieta(iso);
+      const fora = d.getMonth() !== mes;
+      const futuro = d > hoje;
+      const hojeCls = iso === hojeLocalISO();
+      const sel = iso === dietaCalendarioDiaSelecionado;
+
+      let classe = '';
+      let mark = '';
+      let pct = '';
+
+      if (!futuro && resumo.total > 0) {
+         pct = `${resumo.percentual}%`;
+         if (resumo.atingiu) {
+            classe = 'ok';
+            mark = '<i class="fas fa-circle-check" style="color:#16a34a;"></i>';
+         } else if (resumo.percentual > 0) {
+            classe = 'partial';
+            mark = '<i class="fas fa-circle-half-stroke" style="color:#d97706;"></i>';
+         } else {
+            classe = 'fail';
+            mark = '<i class="fas fa-circle-xmark" style="color:#ef4444;"></i>';
+         }
+      } else if (futuro && resumo.total > 0) {
+         pct = `${resumo.total} itens`;
+      }
+
+      celulas.push(`
+         <button class="diet-calendar-day ${fora ? 'outside' : ''} ${hojeCls ? 'today' : ''} ${sel ? 'selected' : ''} ${classe}"
+                 onclick="selecionarDiaCalendarioDieta('${iso}')">
+            <span class="num">${d.getDate()}</span>
+            ${mark ? `<span class="mark">${mark}</span>` : ''}
+            ${pct ? `<span class="pct">${pct}</span>` : ''}
+         </button>
+      `);
+   }
+
+   document.getElementById('diet-calendario-grid').innerHTML = celulas.join('');
+   renderDetalheCalendarioDieta();
+}
+
+function renderDetalheCalendarioDieta() {
+   const iso = dietaCalendarioDiaSelecionado;
+   const data = dataDeIsoDieta(iso);
+   const refeicoes = refeicoesDoDiaDieta(data.getDay());
+   const resumo = resumoDiaDieta(iso);
+   const registroDia = cacheDietaDias.find(d => String(d.data) === String(iso));
+
+   document.getElementById('diet-calendario-dia-titulo').textContent =
+      data.toLocaleDateString('pt-BR', { weekday:'long', day:'2-digit', month:'long' });
+
+   document.getElementById('diet-calendario-dia-resumo').textContent = resumo.total
+      ? `${resumo.concluidos} de ${resumo.total} itens · ${resumo.percentual}% · ${resumo.atingiu ? 'meta atingida' : 'meta não atingida'}`
+      : 'Nenhum item planejado para este dia da semana.';
+
+   const detalhes = [];
+
+   refeicoes.forEach(ref => {
+      itensDaRefeicaoDieta(ref.id).forEach(item => {
+         const feito = checkDietaExiste(item.id, iso);
+         detalhes.push(`
+            <div class="diet-day-detail-item">
+               <i class="fas ${feito ? 'fa-circle-check' : 'fa-circle'}" style="color:${feito ? '#16a34a' : '#cbd5e1'};"></i>
+               <div>
+                  <strong>${escapeHtml(ref.nome)} · ${escapeHtml(item.nome)}</strong>
+                  <span>${item.quantidade ? escapeHtml(item.quantidade) : 'Sem quantidade'}</span>
+               </div>
+            </div>
+         `);
+      });
+   });
+
+   if (registroDia?.observacao) {
+      detalhes.push(`
+         <div style="margin-top:.8rem;padding:.75rem;border-radius:.85rem;background:#f8fafc;color:#64748b;font-size:.56rem;font-weight:700;line-height:1.45;">
+            <strong style="display:block;color:#475569;margin-bottom:.25rem;">Observação</strong>
+            ${escapeHtml(registroDia.observacao)}
+         </div>
+      `);
+   }
+
+   document.getElementById('diet-calendario-dia-detalhes').innerHTML =
+      detalhes.length ? detalhes.join('') : '<div class="diet-empty" style="padding:1.2rem;"><strong>Sem registros</strong></div>';
+}
+
+function normalizarChaveCompraDieta(item) {
+   return `${String(item.nome || '').trim().toLowerCase()}|${String(item.quantidade || '').trim().toLowerCase()}`;
+}
+
+function itensComprasAgrupadosDieta() {
+   const mapa = new Map();
+
+   cacheDietaItens.forEach(item => {
+      const chave = normalizarChaveCompraDieta(item);
+      if (!mapa.has(chave)) {
+         mapa.set(chave, {
+            chave,
+            nome: item.nome,
+            quantidade: item.quantidade || '',
+            ocorrencias: 0
+         });
+      }
+      mapa.get(chave).ocorrencias++;
+   });
+
+   return Array.from(mapa.values()).sort((a, b) =>
+      a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity:'base' })
+   );
+}
+
+function compraMarcadaDieta(chave) {
+   return cacheDietaCompras.some(c => c.chave_item === chave && c.comprado !== false);
+}
+
+function renderComprasDieta() {
+   const ini = inicioSemanaDieta(dataDeIsoDieta(dietaComprasSemanaInicio || hojeLocalISO()));
+   const fim = fimSemanaDieta(ini);
+
+   document.getElementById('diet-compras-semana-label').textContent =
+      `Semana de ${ini.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' })} a ${fim.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' })}.`;
+
+   const itens = itensComprasAgrupadosDieta();
+   const container = document.getElementById('diet-compras-lista');
+
+   if (!itens.length) {
+      container.innerHTML = `
+         <div class="diet-empty" style="grid-column:1/-1;">
+            <i class="fas fa-basket-shopping"></i>
+            <strong>Lista vazia</strong>
+            <span>Cadastre os itens da dieta semanal primeiro.</span>
+         </div>`;
+      return;
+   }
+
+   container.innerHTML = itens.map(item => {
+      const done = compraMarcadaDieta(item.chave);
+      return `
+         <div class="diet-shopping-item ${done ? 'done' : ''}">
+            <button class="diet-check ${done ? 'checked' : ''}" onclick='toggleCompraDieta(${JSON.stringify(item.chave)}, ${done ? 'false' : 'true'})'>
+               ${done ? '<i class="fas fa-check"></i>' : ''}
+            </button>
+            <div>
+               <div class="diet-shopping-name">${escapeHtml(item.nome)}</div>
+               <div class="diet-shopping-meta">
+                  ${item.quantidade ? escapeHtml(item.quantidade) + ' · ' : ''}aparece ${item.ocorrencias}x na semana
+               </div>
+            </div>
+         </div>`;
+   }).join('');
+}
+
+async function toggleCompraDieta(chave, marcar) {
+   if (marcar) {
+      const { data, error } = await chamarSupabase(
+         _supabase.from('dieta_compras_check')
+            .upsert({
+               usuario: eu(),
+               semana_inicio: dietaComprasSemanaInicio,
+               chave_item: chave,
+               comprado: true
+            }, { onConflict: 'usuario,semana_inicio,chave_item' })
+            .select()
+            .single(),
+         'Erro ao marcar compra'
+      );
+      if (error) return;
+
+      cacheDietaCompras = cacheDietaCompras.filter(c => c.chave_item !== chave);
+      cacheDietaCompras.push(data);
+   } else {
+      const { error } = await chamarSupabase(
+         _supabase.from('dieta_compras_check')
+            .delete()
+            .eq('usuario', eu())
+            .eq('semana_inicio', dietaComprasSemanaInicio)
+            .eq('chave_item', chave),
+         'Erro ao desmarcar compra'
+      );
+      if (error) return;
+
+      cacheDietaCompras = cacheDietaCompras.filter(c => c.chave_item !== chave);
+   }
+
+   renderComprasDieta();
+}
+
+async function limparChecksComprasDieta() {
+   if (!cacheDietaCompras.length) return;
+
+   const ok = await confirmarAcao('Limpar todas as marcações da lista de compras desta semana?');
+   if (!ok) return;
+
+   const { error } = await chamarSupabase(
+      _supabase.from('dieta_compras_check')
+         .delete()
+         .eq('usuario', eu())
+         .eq('semana_inicio', dietaComprasSemanaInicio),
+      'Erro ao limpar lista de compras'
+   );
+   if (error) return;
+
+   cacheDietaCompras = [];
+   renderComprasDieta();
+   mostrarToast('Marcações da lista de compras limpas.', 'sucesso');
 }
 
 
